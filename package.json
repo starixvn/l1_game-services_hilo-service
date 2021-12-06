@@ -1,0 +1,57 @@
+{
+    "name": "hilo-service",
+    "version": "1.0.0",
+    "description": "",
+    "main": "./src/app.js",
+    "author": "pentagon",
+    "license": "ISC",
+    "type": "module",
+    "scripts": {
+        "start": "node --es-module-specifier-resolution=node .",
+        "dev": "nodemon --es-module-specifier-resolution=node --watch ./src ./src/app.js",
+        "debug": "nodemon --es-module-specifier-resolution=node --watch ./ --inspect ./src/app.js",
+        "prod": "node --max-old-space-size=8192 --es-module-specifier-resolution=node ./src/app.js",
+        "reg": "npm set registry http://npm.lumigame.com",
+        "test": "jest",
+        "test-coverage": "jest --collect-coverage"
+    },
+    "jest": {
+        "transform": {
+            "^.+\\.jsx?$": "babel-jest"
+        }
+    },
+    "jestSonar": {
+        "reportPath": "reports",
+        "reportFile": "test-reporter.xml",
+        "indent": 4
+    },
+    "dependencies": {
+        "@types/jest": "^26.0.24",
+        "jest-extended": "^0.11.5",
+        "jest-sonar-reporter": "^2.0.0",
+        "nodemon": "^2.0.4",
+        "sc-game-base": "2.0.1-beta.30"
+    },
+    "devDependencies": {
+        "@babel/preset-env": "^7.14.9",
+        "@commitlint/cli": "^9.1.2",
+        "@commitlint/config-conventional": "^9.1.2",
+        "@semantic-release/changelog": "^5.0.1",
+        "@semantic-release/commit-analyzer": "^8.0.1",
+        "@semantic-release/git": "^9.0.0",
+        "@semantic-release/gitlab": "^6.0.4",
+        "@semantic-release/npm": "^7.0.5",
+        "@semantic-release/release-notes-generator": "^9.0.1",
+        "babel-jest": "^27.0.6",
+        "husky": "^4.2.5",
+        "install": "^0.13.0",
+        "jest": "^26.4.2",
+        "sc-semantic-release": "^1.1.0",
+        "semantic-release": "^17.1.1"
+    },
+    "husky": {
+        "hooks": {
+            "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+        }
+    }
+}

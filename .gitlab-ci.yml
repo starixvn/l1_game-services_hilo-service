@@ -1,0 +1,7 @@
+variables:
+  SMOKE_PRODUCT_NAME: Hilo
+  
+include:
+  - project: "ci/repos-ci/pentagon_l1_hilo_service"
+    ref: master
+    file: "gitlab-ci.yml"
