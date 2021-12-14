@@ -1,8 +1,9 @@
-import { Core } from 'sc-game-base';
+import { Table } from 'sc-game-base';
 
-export default class GameData extends Core.GameData {
+export default class GameData extends Table.TableGameData {
     constructor(remainingTime) {
         super(remainingTime);
-        this.rounds = [];
+
+        this.runningRounds = {};
     }
 }

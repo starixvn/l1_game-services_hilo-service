@@ -1,4 +1,4 @@
-import GameCron from './game-cron';
 import ProcessBetQueue from './process-bet-queue';
+import GameCron from './game-cron';
 
-export { GameCron, ProcessBetQueue };
+export { ProcessBetQueue, GameCron };

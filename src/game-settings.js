@@ -1,8 +1,11 @@
 export default {
     id: 45,
-    name: "Hilo",
+    name: 'Hilo',
     durations: {
         wholeRound: 120,
-        lockingBet: 20,
-    }
+    },
+    choices: ['hi', 'lo'],
+    newGameChoice: 'newGameChoice',
+    hiChoice: 'hi',
+    loChoice: 'lo',
 };

@@ -3,28 +3,22 @@ import gameSettings from '../game-settings';
 
 const schema = new mongoose.Schema({
     id: { type: Number, required: true },
+    uid: { type: String, required: true },
     name: { type: String, required: true },
-    memberId: { type: Number },
-    siteId: { type: String },
-    uid: { type: String },
 
-    bet: { type: Number, default: 0 },
-    totalAmount: { type: Number, default: 0 },
-
-    result: { type: [Number] },
-    settlementResult: { type: [Number] },
-
-    odds: { type: Object },
+    roundStartTime: { type: Date },
+    subRoundTime: { type: Date },
+    ended: { type: Boolean, default: false },
+    origStake: { type: Number, default: 0 },
+    stake: { type: Number, default: 0 },
     betWin: { type: Number, default: 0 },
-    jackpotWin: { type: Number },
-    paid: { type: Boolean, default: false },
-    time: { type: Date },
-    endTime: { type: Date },
+    stepCount: { type: Number, default: 0 },
 
-    partnerId: { type: String, require: true },
-    currency: { type: String, require: true },
-    rate: { type: Number, require: true },
-    exchangeRateId: { type: Number, require: true },
+    cards: { type: Array },
+    result: { type: Array },
+    settlementResult: { type: Array },
+
+    exchangeRateId: { type: Number, required: true },
 });
 
 export default mongoose.model(`${gameSettings.name}_round`, schema);
