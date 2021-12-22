@@ -57,5 +57,6 @@ export default {
         "http://localhost:7779",
         "http://games.lumigame.com",
         "http://admin.lumigame.com",
-    ]
+    ],
+    useMsgpackParser: true,
 };
