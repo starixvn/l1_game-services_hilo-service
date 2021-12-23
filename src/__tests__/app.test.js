@@ -6,7 +6,10 @@ const roundModel = {
             lean: () => {
                 return {
                     exec: async () => {
-                        return [{ uid: 'm1' }, { uid: 'm2' }];
+                        return [
+                            { uid: 'm1', cards: [{ card: 1 }] },
+                            { uid: 'm2', cards: [{ card: 1 }] },
+                        ];
                     },
                 };
             },
@@ -60,8 +63,11 @@ describe('app', () => {
     describe('loadRunningRound', () => {
         it('should load running rounds to game data', async () => {
             // arrange
-            const gameData = { runningRounds: {} };
-            const runningRounds = { m1: { uid: 'm1' }, m2: { uid: 'm2' } };
+            const gameData = { gameConfigs: {}, runningRounds: {} };
+            const runningRounds = {
+                m1: { uid: 'm1', cards: [{ card: 1 }], odds: { hi: 0, lo: 0 } },
+                m2: { uid: 'm2', cards: [{ card: 1 }], odds: { hi: 0, lo: 0 } },
+            };
 
             // act
             await loadRunningRound(gameData);

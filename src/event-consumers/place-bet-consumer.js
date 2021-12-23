@@ -119,7 +119,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
             return;
         }
 
-        const result = await this.settleGameRoundConsumer.settleSubRound(player, payload);
+        const result = await this.settleGameRoundConsumer.settleSubRound(player.UID, payload);
         this.publisher.publishToUser(player.UID, { endBet: 1, payload, result });
     }
 }

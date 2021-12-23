@@ -19,24 +19,32 @@ export default class SocketRouter extends Core.Routers.BaseSocketRouter {
             }
 
             const player = this.gameData.realPlayers[this.socketClient.id];
+            const runningRound = this.gameData.runningRounds[player.UID];
+            if (!!runningRound) {
+                this.socketClient.emit(this.definition.name, { endBet: -1, ...runningRound });
+                return;
+            }
+
             const failedCriterion = this.validateNewGame(player, payload.amount);
             if (!!failedCriterion) {
-                this.socketClient.emit({ endBet: -1, ...failedCriterion });
+                this.socketClient.emit(this.definition.name, { endBet: -1, ...failedCriterion });
                 return;
             }
 
             const name = player.profile.name;
-            if (this.gameData.ingame[name]) {
-                return;
-            }
-
-            this.gameData.ingame[name] = {
+            const inGameInfo = this.gameData.ingame[name] ?? {
                 name: player.profile.name,
                 currency: player.session.currencyName,
                 system: player.session.system,
                 partnerId: player.session.partnerId,
-                betQueue: [{ player, payload }],
+                betQueue: [],
             };
+
+            if (inGameInfo.betQueue.length === 0) {
+                inGameInfo.betQueue = [{ player, payload }];
+            }
+
+            this.gameData.ingame[name] = inGameInfo;
         } catch (error) {
             this.logService.logError(error);
         }
@@ -52,7 +60,7 @@ export default class SocketRouter extends Core.Routers.BaseSocketRouter {
             const runningRound = this.gameData.runningRounds[player.UID];
             const failedCriterion = this.validateAnNon(runningRound);
             if (!!failedCriterion) {
-                this.socketClient.emit({ isAnNon: false, ...failedCriterion });
+                this.socketClient.emit(this.definition.name, { isAnNon: false, ...failedCriterion });
                 return;
             }
 

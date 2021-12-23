@@ -108,6 +108,14 @@ describe('game-cron', () => {
         // arrange
         const testCases = [
             { nextCard: { card: 3 }, previousCard: { card: 3 }, expectedValue: 'tie' },
+            { nextCard: { card: 3 }, previousCard: { card: 0 }, expectedValue: 'lo' },
+            { nextCard: { card: 1 }, previousCard: { card: 0 }, expectedValue: 'lo' },
+            { nextCard: { card: 1 }, previousCard: { card: 2 }, expectedValue: 'lo' },
+
+            { nextCard: { card: 0 }, previousCard: { card: 1 }, expectedValue: 'hi' },
+            { nextCard: { card: 0 }, previousCard: { card: 2 }, expectedValue: 'hi' },
+            { nextCard: { card: 2 }, previousCard: { card: 1 }, expectedValue: 'hi' },
+
             { nextCard: { card: 3 }, previousCard: { card: 2 }, expectedValue: 'hi' },
             { nextCard: { card: 3 }, previousCard: { card: 4 }, expectedValue: 'lo' },
         ];

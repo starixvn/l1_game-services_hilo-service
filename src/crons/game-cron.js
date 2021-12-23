@@ -4,7 +4,6 @@ import { Random as RandomJS, MersenneTwister19937 } from 'random-js';
 export default class GameCron extends Table.Crons.TableGameCron {
     async proceed() {
         await this.processRunningRounds();
-
         const { durations } = this.definition;
 
         if (this.gameData.remainingTime === durations.wholeRound) {
@@ -22,24 +21,23 @@ export default class GameCron extends Table.Crons.TableGameCron {
 
     async processRunningRounds() {
         const runningRounds = Object.values(this.gameData.runningRounds);
-        for (var i = 0; i < runningRounds.length; i++) {
+        for (let i = 0; i < runningRounds.length; i++) {
             const r = runningRounds[i];
+
             if (r.anNon) {
-                const player = this.gameData.realPlayers[r.uid];
-                await this.settleGameRoundConsumer.anNon(player);
+                await this.settleGameRoundConsumer.anNon(r.uid);
                 continue;
             }
 
             if (this.isExpiredRound(r)) {
-                const player = this.gameData.realPlayers[r.uid];
                 const payload = { betChoice: this.autoChooseChoice() };
-                await this.settleGameRoundConsumer.settleSubRound(player, payload);
+                await this.settleGameRoundConsumer.settleSubRound(r.uid, payload);
             }
         }
     }
 
     isExpiredRound(round) {
-        var remainingTime = (round.subRoundTime - new Date()) / 1000 + this.definition.durations.wholeRound;
+        const remainingTime = (round.subRoundTime - new Date()) / 1000 + this.definition.durations.wholeRound;
 
         return remainingTime < 0;
     }

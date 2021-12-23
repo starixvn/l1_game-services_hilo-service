@@ -21,7 +21,7 @@ export default {
     },
     drawCard: function (drawnCards) {
         const shuffleTimes = 3;
-        let cards = baseCards;
+        let cards = [...baseCards];
         for (let i = 0; i < shuffleTimes; i++) {
             cards = this.shuffle(cards);
         }
@@ -42,31 +42,36 @@ export default {
             return { [gameSettings.hiChoice]: 0, [gameSettings.loChoice]: 0 };
         }
 
-        var up = (odds[(card + 1).toString()] / 100) * (6 / (5 + stepCount));
-        var down = (odds[(15 - card).toString()] / 100) * (6 / (5 + stepCount));
+        const stepOdd = 6 / (5 + stepCount);
+        const hiOdd = (odds[(card + 1).toString()] / 100) * stepOdd;
+        const loOdd = (odds[(15 - card).toString()] / 100) * stepOdd;
 
-        return { [gameSettings.hiChoice]: up, [gameSettings.loChoice]: down };
+        return { [gameSettings.hiChoice]: hiOdd, [gameSettings.loChoice]: loOdd };
+    },
+    rankCardByValue: function (previousCard, nextCard) {
+        const highestCardValue = 13;
+
+        return {
+            pCard: previousCard.card === 0 ? highestCardValue : previousCard.card,
+            nCard: nextCard.card === 0 ? highestCardValue : nextCard.card,
+        };
     },
     isWin: function (choice, previousCard, nextCard) {
-        if (previousCard.card <= 1) {
+        if (previousCard.card <= 1 || previousCard.card === nextCard.card) {
             return true;
         }
 
-        if (choice === gameSettings.hiChoice) {
-            return nextCard.card === 0 || nextCard.card >= previousCard.card;
-        }
+        const r = this.rankCardByValue(previousCard, nextCard);
 
-        return nextCard.card === 1 || (nextCard.card >= 2 && nextCard.card <= previousCard.card);
+        return (choice === gameSettings.hiChoice && r.pCard < r.nCard) || (choice === gameSettings.loChoice && r.nCard < r.pCard);
     },
     getSettlementResult: function (previousCard, nextCard) {
-        if (previousCard.card < nextCard.card) {
-            return gameSettings.hiChoice;
+        if (previousCard.card === nextCard.card) {
+            return 'tie';
         }
 
-        if (nextCard.card < previousCard.card) {
-            return gameSettings.loChoice;
-        }
+        const r = this.rankCardByValue(previousCard, nextCard);
 
-        return 'tie';
+        return r.pCard < r.nCard ? gameSettings.hiChoice : gameSettings.loChoice;
     },
 };

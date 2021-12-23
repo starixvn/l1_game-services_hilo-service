@@ -116,11 +116,11 @@ describe('game-cron', () => {
             await cron.processRunningRounds();
 
             //assert
-            expect(cron.settleGameRoundConsumer.anNon).toHaveBeenCalledWith(expect.objectContaining({ UID: 'm1' }));
-            expect(cron.settleGameRoundConsumer.anNon).toHaveBeenCalledWith(expect.objectContaining({ UID: 'm2' }));
+            expect(cron.settleGameRoundConsumer.anNon).toHaveBeenCalledWith('m1');
+            expect(cron.settleGameRoundConsumer.anNon).toHaveBeenCalledWith('m2');
         });
 
-        it('should an non round of correct player', async () => {
+        it('should settleSubRound of correct player', async () => {
             // arrange
             const expiredTime = new Date() - 200000;
             const runningRounds = {
@@ -137,14 +137,8 @@ describe('game-cron', () => {
             await cron.processRunningRounds();
 
             //assert
-            expect(cron.settleGameRoundConsumer.settleSubRound).toHaveBeenCalledWith(
-                expect.objectContaining({ UID: 'm1' }),
-                expect.any(Object)
-            );
-            expect(cron.settleGameRoundConsumer.settleSubRound).toHaveBeenCalledWith(
-                expect.objectContaining({ UID: 'm2' }),
-                expect.any(Object)
-            );
+            expect(cron.settleGameRoundConsumer.settleSubRound).toHaveBeenCalledWith('m1', expect.any(Object));
+            expect(cron.settleGameRoundConsumer.settleSubRound).toHaveBeenCalledWith('m2', expect.any(Object));
         });
     });
 

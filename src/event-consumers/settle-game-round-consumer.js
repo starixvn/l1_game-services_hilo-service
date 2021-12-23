@@ -21,8 +21,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         };
     }
 
-    async settleSubRound(player, payload) {
-        const runningRound = this.gameData.runningRounds[player.UID];
+    async settleSubRound(playerUID, payload) {
+        const runningRound = this.gameData.runningRounds[playerUID];
         if (runningRound.anNon) {
             return runningRound;
         }
@@ -48,7 +48,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             newOdds: cardHelper.calculateOdd(this.gameData.gameConfigs.odds, nextCard.card, runningRound.stepCount + 2),
         };
 
-        newInfo.cards.push(nextCard.card);
+        newInfo.cards.push(nextCard);
         newInfo.result.push(nextCard.card);
         newInfo.settlementResult.push(cardHelper.getSettlementResult(previousCard, nextCard));
         const settleResult = { ...runningRound, ...newInfo, ended: !isWin };
@@ -57,7 +57,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             Object.assign(runningRound, newInfo);
         } else {
             await this.settleMainRound(runningRound, newInfo);
-            delete this.gameData.runningRounds[player.UID];
+            delete this.gameData.runningRounds[playerUID];
         }
 
         return settleResult;
@@ -84,11 +84,11 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     async settleMainRound(runningRound, newInfo) {
         const updatedInfo = { ended: true, ...newInfo };
         await this.roundsRepository.updateOne({ id: runningRound.id }, { $set: updatedInfo }).exec();
-        await this.settleBets({ runningRound, newInfo, roundId: runningRound.id, time: newInfo.subRoundTime });
+        await this.settleBets({ runningRound, settlementResult: newInfo, roundId: runningRound.id, time: newInfo.subRoundTime });
     }
 
-    async anNon(player) {
-        const runningRound = this.gameData.runningRounds[player.UID];
+    async anNon(playerUid) {
+        const runningRound = this.gameData.runningRounds[playerUid];
         const updatedInfo = { ended: true };
         await this.roundsRepository.updateOne({ id: runningRound.id }, { $set: updatedInfo }).exec();
 
@@ -103,7 +103,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             settlementResult: runningRound.settlementResult,
         };
 
-        await this.settleBets({ runningRound, newInfo, roundId: runningRound.id, time: newInfo.subRoundTime });
-        delete this.gameData.runningRounds[player.UID];
+        await this.settleBets({ runningRound, settlementResult: newInfo, roundId: runningRound.id, time: newInfo.subRoundTime });
+        delete this.gameData.runningRounds[playerUid];
     }
 }

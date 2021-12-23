@@ -17,22 +17,22 @@ describe('game-cron', () => {
     describe('proceedBet', () => {
         // arrange
         const testCases = [
-            { amount: null, freeBet: null },
-            { amount: 10, freeBet: true },
+            { amount: null, freeBet: null, lastRound: null, expectedValue: 1 },
+            { amount: 10, freeBet: true, lastRound: { id: 10 }, expectedValue: 11 },
         ];
 
         it.each(testCases)('should assign round id', async (testCase) => {
             // arrange
             const definition = { choicesMapper: {} };
             const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
-            roundsRepository.findOne().lean().exec.mockReturnValueOnce({ id: 10 });
+            roundsRepository.findOne().lean().exec.mockReturnValueOnce(testCase.lastRound);
             const placeBetPublisher = { publishGameFailedBet: jest.fn() };
             const baseMetrics = { collectBetProcessedTime: jest.fn() };
             const cron = new ProcessBetQueue({ definition, roundsRepository, placeBetPublisher, baseMetrics });
             const player = { session: {}, profile: {} };
             const payload = { ...testCase };
-            const expectedValue = 11;
             spyOn(cron, 'composeValidationCriteria').and.returnValue([]);
+            spyOn(cron, 'handleSuccessBet');
             cron.placeBet = jest.fn();
             cron.placeBet.mockReturnValueOnce({ response: { notice: {} } });
 
@@ -40,7 +40,7 @@ describe('game-cron', () => {
             await cron.proceedBet(player, payload);
 
             //assert
-            expect(payload.roundId).toBe(expectedValue);
+            expect(payload.roundId).toBe(testCase.expectedValue);
         });
     });
 
@@ -112,7 +112,7 @@ describe('game-cron', () => {
             // arrange
             const definition = { choicesMapper: {} };
             const gameData = {
-                runningRounds: { m1: { cards: [{ card: 0 }] } },
+                runningRounds: { m1: { cards: [{ card: 0 }], odds: { hi: 0, lo: 0 } } },
                 players: {},
                 ingame: {},
                 chips: [],
@@ -139,7 +139,7 @@ describe('game-cron', () => {
         it('should call roundsRepository.create', async () => {
             // arrange
             const definition = { choicesMapper: {} };
-            const gameData = { exchangeRates: {}, runningRounds: {} };
+            const gameData = { exchangeRates: {}, runningRounds: {}, gameConfigs: { odds: {} } };
             const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
             const cron = new ProcessBetQueue({ definition, gameData, roundsRepository });
 

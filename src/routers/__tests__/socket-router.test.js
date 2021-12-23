@@ -30,6 +30,18 @@ describe('socket-router', () => {
     });
 
     describe('handleNewGame', () => {
+        // arrange
+        const gameData = {
+            realPlayers: {
+                m1: { UID: 'm1' },
+                m2: { UID: 'm2' },
+                m3: { UID: 'm3', profile: { name: 'm3' } },
+                m4: { UID: 'm4', profile: { name: 'm4' }, session: {} },
+            },
+            runningRounds: { m1: { uid: 'm1' } },
+            ingame: { m1: { betQueue: [] }, m3: { betQueue: [] } },
+        };
+
         it('when has error should log error', async () => {
             // arrange
             const logService = { logError: jest.fn() };
@@ -75,12 +87,29 @@ describe('socket-router', () => {
             expect(gameSocketRouter.validateNewGame).not.toBeCalled();
         });
 
+        it('when has running round should not validateNewGame', async () => {
+            // arrange
+            const logService = { logError: jest.fn() };
+            const definition = {};
+            const gameSocketRouter = new SocketRouter({ logService, gameData, definition });
+            gameSocketRouter.socketClient = { id: 'm1', emit: jest.fn() };
+            spyOn(gameSocketRouter, 'verify').and.returnValue(true);
+            spyOn(gameSocketRouter, 'validateNewGame');
+            const payload = { amount: 10 };
+
+            // act
+            await gameSocketRouter.handleNewGame(payload);
+
+            //assert
+            expect(gameSocketRouter.validateNewGame).not.toBeCalled();
+        });
+
         it('when validateNewGame failed should endBet', async () => {
             // arrange
             const logService = { logError: jest.fn() };
-            const gameData = { realPlayers: {} };
-            const gameSocketRouter = new SocketRouter({ logService, gameData });
-            gameSocketRouter.socketClient = { emit: jest.fn() };
+            const definition = { name: 'Hilo' };
+            const gameSocketRouter = new SocketRouter({ logService, gameData, definition });
+            gameSocketRouter.socketClient = { emit: jest.fn(), id: 'm2' };
             spyOn(gameSocketRouter, 'verify').and.returnValue(true);
             spyOn(gameSocketRouter, 'validateNewGame').and.returnValue({ failed: true });
             const payload = { amount: 10 };
@@ -89,7 +118,7 @@ describe('socket-router', () => {
             await gameSocketRouter.handleNewGame(payload);
 
             //assert
-            expect(gameSocketRouter.socketClient.emit).toBeCalledWith(expect.objectContaining({ endBet: -1, failed: true }));
+            expect(gameSocketRouter.socketClient.emit).toBeCalledWith('Hilo', expect.objectContaining({ endBet: -1, failed: true }));
         });
 
         it('when validateNewGame pass but player already ingame should keep old ingame info', async () => {
@@ -110,10 +139,30 @@ describe('socket-router', () => {
             expect(gameData.ingame['m1']).toStrictEqual(expectedInfo);
         });
 
-        it('when validateNewGame pass and player not ingame should  add player to ingame', async () => {
+        it('when validateNewGame pass and player not ingame should add player to ingame', async () => {
             // arrange
             const logService = { logError: jest.fn() };
-            const gameData = { realPlayers: { m1: { profile: { name: 'm1' }, session: {} } }, ingame: {} };
+            const gameSocketRouter = new SocketRouter({ logService, gameData });
+            gameSocketRouter.socketClient = { id: 'm4', emit: jest.fn() };
+            spyOn(gameSocketRouter, 'verify').and.returnValue(true);
+            spyOn(gameSocketRouter, 'validateNewGame').and.returnValue(null);
+            const payload = { amount: 10 };
+
+            // act
+            await gameSocketRouter.handleNewGame(payload);
+
+            //assert
+            expect(gameData.ingame['m4']).not.toBeUndefined();
+        });
+
+        it('when validateNewGame pass and player has betQueue should not add new betQueue', async () => {
+            // arrange
+            const logService = { logError: jest.fn() };
+            const gameData = {
+                realPlayers: { m1: { profile: { name: 'm1' }, session: {} } },
+                ingame: { m1: { betQueue: [{}] } },
+            };
+
             const gameSocketRouter = new SocketRouter({ logService, gameData });
             gameSocketRouter.socketClient = { id: 'm1', emit: jest.fn() };
             spyOn(gameSocketRouter, 'verify').and.returnValue(true);
@@ -124,7 +173,23 @@ describe('socket-router', () => {
             await gameSocketRouter.handleNewGame(payload);
 
             //assert
-            expect(gameData.ingame['m1']).not.toBeUndefined();
+            expect(gameData.ingame['m1'].betQueue.length).toBe(1);
+        });
+
+        it('when validateNewGame pass and player does not have betQueue should not add new betQueue', async () => {
+            // arrange
+            const logService = { logError: jest.fn() };
+            const gameSocketRouter = new SocketRouter({ logService, gameData });
+            gameSocketRouter.socketClient = { id: 'm4', emit: jest.fn() };
+            spyOn(gameSocketRouter, 'verify').and.returnValue(true);
+            spyOn(gameSocketRouter, 'validateNewGame').and.returnValue(null);
+            const payload = { amount: 10 };
+
+            // act
+            await gameSocketRouter.handleNewGame(payload);
+
+            //assert
+            expect(gameData.ingame['m4'].betQueue.length).toBe(1);
         });
     });
 
@@ -163,7 +228,8 @@ describe('socket-router', () => {
             // arrange
             const logService = { logError: jest.fn() };
             const gameData = { realPlayers: { m1: { UID: 'm1' } }, runningRounds: {} };
-            const gameSocketRouter = new SocketRouter({ logService, gameData });
+            const definition = { name: 'Hilo' };
+            const gameSocketRouter = new SocketRouter({ logService, gameData, definition });
             gameSocketRouter.socketClient = { emit: jest.fn(), id: 'm1' };
             spyOn(gameSocketRouter, 'verify').and.returnValue(true);
             spyOn(gameSocketRouter, 'validateAnNon').and.returnValue({ failed: true });
@@ -173,7 +239,7 @@ describe('socket-router', () => {
             await gameSocketRouter.handleAnNon(payload);
 
             //assert
-            expect(gameSocketRouter.socketClient.emit).toBeCalledWith(expect.objectContaining({ isAnNon: false, failed: true }));
+            expect(gameSocketRouter.socketClient.emit).toBeCalledWith('Hilo', expect.objectContaining({ isAnNon: false, failed: true }));
         });
 
         it('when validateAnNon pass should set an non flag', async () => {

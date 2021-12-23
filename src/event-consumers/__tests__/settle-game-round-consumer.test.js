@@ -110,12 +110,12 @@ describe('settle-game-round-consumer', () => {
             // arrange
             const gameData = { runningRounds: { m1: { anNon: true } } };
             const consumer = new SettleGameRoundConsumer({ gameData });
-            const player = { UID: 'm1' };
+            const playerUid = 'm1';
             const payload = {};
             const expectedValue = { anNon: true };
 
             // act
-            const actualValue = await consumer.settleSubRound(player, payload);
+            const actualValue = await consumer.settleSubRound(playerUid, payload);
 
             //assert
             expect(actualValue).toStrictEqual(expectedValue);
@@ -161,13 +161,13 @@ describe('settle-game-round-consumer', () => {
                 gameConfigs: { odds: {} },
             };
             const consumer = new SettleGameRoundConsumer({ gameData });
-            const player = { UID: 'm1' };
+            const playerUid = 'm1';
             const payload = { betChoice: testCase.betChoice };
             spyOn(consumer, 'addStep');
             spyOn(consumer, 'settleMainRound');
 
             // act
-            await consumer.settleSubRound(player, payload);
+            await consumer.settleSubRound(playerUid, payload);
 
             //assert
             expect(consumer.addStep).toHaveBeenCalled();
@@ -223,11 +223,11 @@ describe('settle-game-round-consumer', () => {
             };
 
             const consumer = new SettleGameRoundConsumer({ gameData, roundsRepository });
-            const player = { UID: 'm1' };
+            const playerUid = 'm1';
             spyOn(consumer, 'settleBets');
 
             // act
-            await consumer.anNon(player);
+            await consumer.anNon(playerUid);
 
             //assert
             expect(consumer.settleBets).toHaveBeenCalled();

@@ -38,7 +38,7 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
 
         Object.assign(payload, {
             amount: payload.amount >> 0,
-            roundId: lastRound.id + 1,
+            roundId: (lastRound?.id ?? 0) + 1,
             freeBet: payload.freeBet ?? false,
             receivedTime: new Date(),
             betChoice: gameSettings.newGameChoice,
@@ -61,10 +61,10 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
 
     generatePlacingBetResult(player, balance, bet, rate) {
         const ownBet = super.generatePlacingBetResult(player, balance, bet, rate);
-        ownBet.cards = this.gameData.runningRounds[player.UID].cards;
 
-        const previousCard = ownBet.cards[ownBet.cards.length - 1];
-        ownBet.odds = cardHelper.calculateOdd(this.gameData.gameConfigs.odds, previousCard.card, 1);
+        const runningRound = this.gameData.runningRounds[player.UID];
+        ownBet.cards = runningRound.cards;
+        ownBet.odds = runningRound.odds;
 
         return ownBet;
     }
@@ -95,6 +95,8 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
         };
 
         await this.roundsRepository.create(newRound);
+
+        newRound.odds = cardHelper.calculateOdd(this.gameData.gameConfigs.odds, firstCard.card, 1);
         this.gameData.runningRounds[player.UID] = newRound;
 
         return newRound;
