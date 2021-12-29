@@ -9,9 +9,9 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
         this.settleGameRoundConsumer = settleGameRoundConsumer;
     }
 
-    async composeValidationCriteria(player, betChoice, amount, freeBet, roundId) {
+    async composeValidationCriteria(player, betChoice, freeBet, roundId) {
         const bettingTimeValidationCriteria = (await this.composeBettingTimeValidationCriteria(roundId)) ?? [];
-        const betAmountValidationCriteria = this.composeBetAmountValidationCriteria(player, betChoice, amount, freeBet) || [];
+        const betAmountValidationCriteria = this.composeBetAmountValidationCriteria(freeBet) || [];
         const betChoiceValidationCriteria = this.composeBetChoiceValidationCriteria(player, betChoice) || [];
 
         return bettingTimeValidationCriteria.concat(betChoiceValidationCriteria, betAmountValidationCriteria);
@@ -41,29 +41,13 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
         ];
     }
 
-    composeBetAmountValidationCriteria(player, betChoice, amount, freeBet) {
-        const settings = this.gameData.currencyGroupGames.find((x) => x.groupId.toString() === player.session.currencyGroupId);
+    composeBetAmountValidationCriteria(freeBet) {
         const configs = this.gameData.gameConfigs;
-        const minBet = Math.max(player.profile.minBet, settings.minBet);
-        const maxBet = Math.min(player.profile.maxBet, settings.maxBet);
-        const maxBetPerChoice = Math.min(player.profile.maxBet, settings.maxBetPerChoices[betChoice]);
 
         return [
             {
                 failure: freeBet && !configs.enableFreeBet,
                 notice: this.getNoticeObj(helpers.noticeHelper.invalidBet),
-            },
-            {
-                failure: amount > maxBetPerChoice,
-                notice: this.getNoticeObj(helpers.noticeHelper.maxBetForChoice, { maxBet: maxBetPerChoice }),
-            },
-            {
-                failure: amount < minBet,
-                notice: this.getNoticeObj(helpers.noticeHelper.minBet, { minBet }),
-            },
-            {
-                failure: amount > maxBet,
-                notice: this.getNoticeObj(helpers.noticeHelper.maxBet, { maxBet }),
             },
         ];
     }
@@ -93,7 +77,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
             return false;
         }
 
-        const criteria = await this.composeValidationCriteria(player, betChoice, amount, freeBet, roundId);
+        const criteria = await this.composeValidationCriteria(player, betChoice, freeBet, roundId);
         const failedCriterion = criteria.find((criterion) => criterion.failure);
 
         if (failedCriterion) {
