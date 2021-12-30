@@ -4,7 +4,7 @@ import ServiceContainerRegistry from './service-container-registry';
 import gameSettings from './game-settings';
 import GameData from './game-data';
 import { RoundModel } from './models';
-import cardHelper from './helpers/card-helper';
+import gameHelper from './helpers/game-helper';
 
 export const loadRunningRound = async (gameData) => {
     if (!gameData.gameConfigs) {
@@ -14,7 +14,7 @@ export const loadRunningRound = async (gameData) => {
     const rounds = await RoundModel.find({ ended: false }).lean().exec();
 
     return rounds.forEach((round) => {
-        const odds = cardHelper.calculateOdd(gameData.gameConfigs.odds, round.cards[round.cards.length - 1].card, round.cards.length);
+        const odds = gameHelper.calculateOdd(gameData.gameConfigs.odds, round.cards[round.cards.length - 1].card, round.cards.length);
         gameData.runningRounds[round.uid] = { ...round, odds };
     });
 };

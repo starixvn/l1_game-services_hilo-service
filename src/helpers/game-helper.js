@@ -17,7 +17,12 @@ export default {
         return array;
     },
     isDrawnCard: function (card1, drawnCards) {
-        return drawnCards.some((c) => c.card === card1.card && c.type === card1.type);
+        if (drawnCards.length === 0) {
+            return false;
+        }
+
+        const lastCard = drawnCards[drawnCards.length - 1];
+        return lastCard.card === card1.card && lastCard.type === card1.type;
     },
     drawCard: function (drawnCards) {
         const shuffleTimes = 3;
@@ -26,16 +31,8 @@ export default {
             cards = this.shuffle(cards);
         }
 
-        for (let i = 0; i < cards.length; i++) {
-            const c = cards[i];
-            if (this.isDrawnCard(c, drawnCards)) {
-                continue;
-            }
-
-            return c;
-        }
-
-        return null;
+        const firstCard = cards[0];
+        return this.isDrawnCard(firstCard, drawnCards) ? cards[1] : firstCard;
     },
     calculateOdd: function (odds, card, stepCount) {
         if (card <= 1) {
@@ -73,5 +70,10 @@ export default {
         const r = this.rankCardByValue(previousCard, nextCard);
 
         return r.pCard < r.nCard ? gameSettings.hiChoice : gameSettings.loChoice;
+    },
+    isExpiredRound: (lastTime, wholeRound) => {
+        const remainingTime = (lastTime - new Date()) / 1000 + wholeRound;
+
+        return remainingTime < 0;
     },
 };

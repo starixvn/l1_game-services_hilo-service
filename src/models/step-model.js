@@ -10,8 +10,9 @@ const schema = new mongoose.Schema({
     stake: { type: Number, default: 0 },
     stepCount: { type: Number, default: 0 },
 
-    card1: { type: Number },
-    card2: { type: Number },
+    card1: { type: Object },
+    card2: { type: Object },
+    betWin: { type: Number, default: 0 },
     choice: { type: String },
 });
 

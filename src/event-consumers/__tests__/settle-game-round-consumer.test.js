@@ -1,6 +1,4 @@
 import { Core } from 'sc-game-base';
-import mongoose from 'mongoose';
-import { stubMongooseModelStupidly } from 'jest-micro-auto-stub';
 import baseCards from '../../constants/cards';
 import { SettleGameRoundConsumer } from '../index';
 
@@ -14,6 +12,19 @@ jest.mock('../../models', () => {
             create: () => {
                 stepModel.called = true;
             },
+        },
+    };
+});
+
+jest.mock('random-js', () => {
+    return {
+        Random: function () {
+            return {
+                integer: (min, max) => max, // not shuffle base card
+            };
+        },
+        MersenneTwister19937: {
+            autoSeed: () => {},
         },
     };
 });
@@ -49,13 +60,13 @@ describe('settle-game-round-consumer', () => {
             const gameData = { settlementResultFromAdmin: { roundId: 10, result: { card: 2 } } };
             const consumer = new SettleGameRoundConsumer({ gameData });
             const expectedValue = null;
-            const runningRound = { id: 11, cards: baseCards };
+            const runningRound = { id: 11, cards: [...baseCards] };
 
             // act
             const actualValue = consumer.generateResult(runningRound);
 
             //assert
-            expect(actualValue).toStrictEqual(expectedValue);
+            expect(actualValue).not.toBe(null);
         });
     });
 
@@ -160,11 +171,19 @@ describe('settle-game-round-consumer', () => {
                 settlementResultFromAdmin: {},
                 gameConfigs: { odds: {} },
             };
-            const consumer = new SettleGameRoundConsumer({ gameData });
+
+            const roundsRepository = {
+                updateOne: () => {
+                    return { exec: jest.fn() };
+                },
+            };
+
+            const userBetResultPublisher = { publish: jest.fn() };
+            const consumer = new SettleGameRoundConsumer({ gameData, roundsRepository, userBetResultPublisher });
             const playerUid = 'm1';
             const payload = { betChoice: testCase.betChoice };
             spyOn(consumer, 'addStep');
-            spyOn(consumer, 'settleMainRound');
+            spyOn(consumer, 'settleBets');
 
             // act
             await consumer.settleSubRound(playerUid, payload);
@@ -190,28 +209,6 @@ describe('settle-game-round-consumer', () => {
         });
     });
 
-    describe('settleMainRound', () => {
-        it('should call settleBets', async () => {
-            // arrange
-            const gameData = {};
-            const roundsRepository = {
-                updateOne: () => {
-                    return { exec: jest.fn() };
-                },
-            };
-
-            const consumer = new SettleGameRoundConsumer({ gameData, roundsRepository });
-            const runningRound = { stepCount: 3 };
-            spyOn(consumer, 'settleBets');
-
-            // act
-            await consumer.settleMainRound(runningRound, {});
-
-            //assert
-            expect(consumer.settleBets).toHaveBeenCalled();
-        });
-    });
-
     describe('anNon', () => {
         it('should call settleBets', async () => {
             // arrange
@@ -231,6 +228,20 @@ describe('settle-game-round-consumer', () => {
 
             //assert
             expect(consumer.settleBets).toHaveBeenCalled();
+        });
+    });
+
+    describe('settleRound', () => {
+        it('should do nothing', async () => {
+            // arrange
+            const consumer = new SettleGameRoundConsumer({});
+            spyOn(consumer, 'generateResult');
+
+            // act
+            await consumer.settleRound();
+
+            //assert
+            expect(consumer.generateResult).not.toHaveBeenCalled();
         });
     });
 });

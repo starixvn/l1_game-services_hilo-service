@@ -1,12 +1,12 @@
 import { Core } from 'sc-game-base';
-import cardHelper from '../helpers/card-helper';
+import gameHelper from '../helpers/game-helper';
 import { StepModel } from '../models';
 
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
     generateResult(runningRound) {
         const resultFromAdmin = this.gameData.settlementResultFromAdmin;
 
-        return runningRound.id === resultFromAdmin.roundId ? resultFromAdmin.result : cardHelper.drawCard(runningRound.cards);
+        return runningRound.id === resultFromAdmin.roundId ? resultFromAdmin.result : gameHelper.drawCard(runningRound.cards);
     }
 
     calculateBetResult(settlementResult, bet) {
@@ -30,11 +30,11 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const previousCard = runningRound.cards[runningRound.cards.length - 1];
         const nextCard = this.generateResult(runningRound);
 
-        const isWin = cardHelper.isWin(payload.betChoice, previousCard, nextCard);
-        await this.addStep(runningRound, previousCard.card, nextCard.card, payload.betChoice);
+        const isWin = gameHelper.isWin(payload.betChoice, previousCard, nextCard);
 
-        const odds = cardHelper.calculateOdd(this.gameData.gameConfigs.odds, previousCard.card, runningRound.stepCount + 1);
+        const odds = gameHelper.calculateOdd(this.gameData.gameConfigs.odds, previousCard.card, runningRound.stepCount + 1);
         const newStake = isWin ? runningRound.stake * (1 + odds[payload.betChoice]) : runningRound.stake;
+        await this.addStep(runningRound, previousCard, nextCard, payload.betChoice, newStake - runningRound.stake);
         const newInfo = {
             isWin,
             subRoundTime: new Date(),
@@ -45,25 +45,29 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             result: runningRound.result,
             settlementResult: runningRound.settlementResult,
             odds,
-            newOdds: cardHelper.calculateOdd(this.gameData.gameConfigs.odds, nextCard.card, runningRound.stepCount + 2),
+            newOdds: gameHelper.calculateOdd(this.gameData.gameConfigs.odds, nextCard.card, runningRound.stepCount + 2),
+            ended: !isWin,
         };
 
         newInfo.cards.push(nextCard);
-        newInfo.result.push(nextCard.card);
-        newInfo.settlementResult.push(cardHelper.getSettlementResult(previousCard, nextCard));
-        const settleResult = { ...runningRound, ...newInfo, ended: !isWin };
+        newInfo.result.push(nextCard);
+        newInfo.settlementResult.push(gameHelper.getSettlementResult(previousCard, nextCard));
+        await this.roundsRepository.updateOne({ id: runningRound.id }, { $set: newInfo }).exec();
+
+        const settleResult = { ...runningRound, ...newInfo };
+        await this.userBetResultPublisher.publish(runningRound.uid, settleResult);
 
         if (isWin) {
             Object.assign(runningRound, newInfo);
         } else {
-            await this.settleMainRound(runningRound, newInfo);
+            await this.settleBets({ runningRound, settlementResult: newInfo, roundId: runningRound.id, time: newInfo.subRoundTime });
             delete this.gameData.runningRounds[playerUID];
         }
 
         return settleResult;
     }
 
-    async addStep(runningRound, card1, card2, choice) {
+    async addStep(runningRound, card1, card2, choice, betWin) {
         const newStep = {
             id: runningRound.id,
             uid: runningRound.uid,
@@ -72,19 +76,13 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             time: new Date(),
             stake: runningRound.stake,
             stepCount: runningRound.stepCount + 1,
-
+            betWin,
             card1,
             card2,
             choice,
         };
 
         await StepModel.create(newStep);
-    }
-
-    async settleMainRound(runningRound, newInfo) {
-        const updatedInfo = { ended: true, ...newInfo };
-        await this.roundsRepository.updateOne({ id: runningRound.id }, { $set: updatedInfo }).exec();
-        await this.settleBets({ runningRound, settlementResult: newInfo, roundId: runningRound.id, time: newInfo.subRoundTime });
     }
 
     async anNon(playerUid) {
@@ -106,4 +104,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         await this.settleBets({ runningRound, settlementResult: newInfo, roundId: runningRound.id, time: newInfo.subRoundTime });
         delete this.gameData.runningRounds[playerUid];
     }
+
+    async settleRound() {}
 }

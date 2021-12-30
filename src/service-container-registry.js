@@ -3,7 +3,7 @@ import { Table } from 'sc-game-base';
 import { InGameConsumer, PlaceBetConsumer, SettleGameRoundConsumer } from './event-consumers';
 import { RoundModel, BetModel } from './models';
 import { SocketRouter } from './routers';
-import { ProcessBetQueue, GameCron } from './crons';
+import { ProcessBetQueue, GameCron, GameBot } from './crons';
 import { HistoryQuery } from './query-apis';
 
 export default class ServiceContainerRegistry extends Table.TableContainerRegistry {
@@ -40,6 +40,7 @@ export default class ServiceContainerRegistry extends Table.TableContainerRegist
         this.container.register({
             processBetQueue: asClass(ProcessBetQueue).singleton().proxy(),
             gameCron: asClass(GameCron).singleton().proxy(),
+            bot: asClass(GameBot).singleton(),
         });
     }
 

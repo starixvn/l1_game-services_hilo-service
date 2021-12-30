@@ -1,6 +1,6 @@
 import { Table } from 'sc-game-base';
 import gameSettings from '../game-settings';
-import cardHelper from '../helpers/card-helper';
+import gameHelper from '../helpers/game-helper';
 
 export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
     constructor({
@@ -70,7 +70,7 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
     }
 
     async createNewRound(player, payload) {
-        const firstCard = cardHelper.drawCard([]);
+        const firstCard = gameHelper.drawCard([]);
         const { exchangeRates } = this.gameData;
 
         const newRound = {
@@ -96,7 +96,7 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
 
         await this.roundsRepository.create(newRound);
 
-        newRound.odds = cardHelper.calculateOdd(this.gameData.gameConfigs.odds, firstCard.card, 1);
+        newRound.odds = gameHelper.calculateOdd(this.gameData.gameConfigs.odds, firstCard.card, 1);
         this.gameData.runningRounds[player.UID] = newRound;
 
         return newRound;

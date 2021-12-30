@@ -90,7 +90,8 @@ describe('game-cron', () => {
         it('when remainingTime < 0 should set remainingTime=wholeRound', async () => {
             // arrange
             const gameData = { remainingTime: -1, disabled: false };
-            const cron = new GameCron({ definition, gameData });
+            const settleGameRoundConsumer = { settleRound: jest.fn() };
+            const cron = new GameCron({ definition, gameData, settleGameRoundConsumer });
             spyOn(cron, 'processRunningRounds');
             spyOn(cron, 'checkGameStatus');
             const expectedValue = 120;
@@ -106,8 +107,14 @@ describe('game-cron', () => {
     describe('processRunningRounds', () => {
         it('should an non round of correct player', async () => {
             // arrange
-            const runningRounds = { m1: { anNon: true, uid: 'm1' }, m2: { anNon: true, uid: 'm2' } };
-            const realPlayers = { m1: { UID: 'm1' }, m2: { UID: 'm2' } };
+            const expiredTime = new Date() - 200000;
+            const runningRounds = {
+                m1: { anNon: true, uid: 'm1' },
+                m2: { anNon: true, uid: 'm2' },
+                m3: { anNon: false, uid: 'm3', subRoundTime: expiredTime, stepCount: 1 },
+            };
+
+            const realPlayers = { m1: { UID: 'm1' }, m2: { UID: 'm2' }, m3: { UID: 'm3' } };
             const gameData = { runningRounds, realPlayers };
             const settleGameRoundConsumer = { anNon: jest.fn() };
             const cron = new GameCron({ definition, gameData, settleGameRoundConsumer });
@@ -118,46 +125,28 @@ describe('game-cron', () => {
             //assert
             expect(cron.settleGameRoundConsumer.anNon).toHaveBeenCalledWith('m1');
             expect(cron.settleGameRoundConsumer.anNon).toHaveBeenCalledWith('m2');
+            expect(cron.settleGameRoundConsumer.anNon).toHaveBeenCalledWith('m3');
         });
 
         it('should settleSubRound of correct player', async () => {
             // arrange
             const expiredTime = new Date() - 200000;
             const runningRounds = {
-                m1: { subRoundTime: expiredTime, uid: 'm1' },
-                m2: { subRoundTime: expiredTime, uid: 'm2' },
+                m1: { subRoundTime: expiredTime, uid: 'm1', stepCount: 1 },
+                m2: { subRoundTime: expiredTime, uid: 'm2', stepCount: 0 },
                 m3: { subRoundTime: new Date(), uid: 'm3' },
             };
             const realPlayers = { m1: { UID: 'm1' }, m2: { UID: 'm2' } };
             const gameData = { runningRounds, realPlayers };
-            const settleGameRoundConsumer = { settleSubRound: jest.fn() };
+            const settleGameRoundConsumer = { settleSubRound: jest.fn(), anNon: jest.fn() };
             const cron = new GameCron({ definition, gameData, settleGameRoundConsumer });
 
             // act
             await cron.processRunningRounds();
 
             //assert
-            expect(cron.settleGameRoundConsumer.settleSubRound).toHaveBeenCalledWith('m1', expect.any(Object));
+            expect(cron.settleGameRoundConsumer.settleSubRound).not.toHaveBeenCalledWith('m1', expect.any(Object));
             expect(cron.settleGameRoundConsumer.settleSubRound).toHaveBeenCalledWith('m2', expect.any(Object));
-        });
-    });
-
-    describe('isExpiredRound', () => {
-        // arrange
-        const testCases = [
-            { round: { subRoundTime: new Date() }, expectedValue: false },
-            { round: { subRoundTime: new Date() - 200000 }, expectedValue: true },
-        ];
-
-        it.each(testCases)('should return correct value', (testCase) => {
-            // arrange
-            const cron = new GameCron({ definition });
-
-            // act
-            const actualValue = cron.isExpiredRound(testCase.round);
-
-            //assert
-            expect(actualValue).toBe(testCase.expectedValue);
         });
     });
 

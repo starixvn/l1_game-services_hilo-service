@@ -153,4 +153,19 @@ describe('game-cron', () => {
             expect(roundsRepository.create).toHaveBeenCalled();
         });
     });
+
+    describe('decreaseBetTracks', () => {
+        it('should do nothing', () => {
+            // arrange
+            const gameData = { ingame: { m1: { betTracks: { newGameChoice: 10 } } } };
+            const cron = new ProcessBetQueue({ gameData });
+            const playerName = 'm1';
+
+            // act
+            cron.decreaseBetTracks(playerName);
+
+            //assert
+            expect(gameData.ingame['m1'].betTracks).toStrictEqual({ newGameChoice: 10 });
+        });
+    });
 });

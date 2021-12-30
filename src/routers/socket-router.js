@@ -1,6 +1,7 @@
 import { Core } from 'sc-game-base';
 import { helpers } from 'sc-common';
 import gameSettings from '../game-settings';
+import errorCodes from '../constants/error-codes';
 
 export default class SocketRouter extends Core.Routers.BaseSocketRouter {
     init(socketClient) {
@@ -98,11 +99,11 @@ export default class SocketRouter extends Core.Routers.BaseSocketRouter {
 
     validateAnNon(runningRound) {
         if (!runningRound) {
-            return { notice: 'Phiên chơi đã kết thúc...' };
+            return { notice: errorCodes.roundEnded };
         }
 
         if (runningRound.stepCount === 0) {
-            return { notice: 'Chưa đủ điều kiện ăn non...' };
+            return { notice: errorCodes.cannotAnNon };
         }
 
         return null;

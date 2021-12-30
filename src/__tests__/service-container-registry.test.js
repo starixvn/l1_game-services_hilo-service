@@ -100,6 +100,7 @@ describe('service-container-registry', () => {
             expect(containerRegistry.container.register).toBeCalledWith({
                 gameCron: expect.any(Function),
                 processBetQueue: expect.any(Function),
+                bot: expect.any(Object),
             });
         });
     });

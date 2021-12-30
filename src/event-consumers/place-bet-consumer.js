@@ -1,6 +1,7 @@
 import { Core } from 'sc-game-base';
 import { helpers } from 'sc-common';
 import gameSettings from '../game-settings';
+import errorCodes from '../constants/error-codes';
 
 export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetConsumer {
     constructor(definition, gameData, publisher, roundsRepository, settleGameRoundConsumer) {
@@ -28,15 +29,15 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
             },
             {
                 failure: !roundId,
-                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: 'Phiên chơi đã kết thúc...' }),
+                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: errorCodes.roundEnded }),
             },
             {
                 failure: roundId && !round,
-                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: 'Phiên không tồn tại...' }),
+                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: errorCodes.roundNotExist }),
             },
             {
                 failure: round && round.ended,
-                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: 'Phiên đã kết thúc...' }),
+                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: errorCodes.subRoundEnded }),
             },
         ];
     }
@@ -63,11 +64,11 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
             },
             {
                 failure: betChoice === gameSettings.loChoice && currentCard.card === 1,
-                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: 'Không thể chọn thấp hơn 2' }),
+                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: errorCodes.lowerThan2 }),
             },
             {
                 failure: betChoice === gameSettings.hiChoice && currentCard.card === 0,
-                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: 'Không thể chọn cao hơn A' }),
+                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: errorCodes.greaterThan1 }),
             },
         ];
     }

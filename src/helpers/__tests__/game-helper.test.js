@@ -1,7 +1,7 @@
 import baseCards from '../../constants/cards';
-import cardHelper from '../card-helper';
+import gameHelper from '../game-helper';
 
-describe('game-cron', () => {
+describe('game-helper', () => {
     describe('shuffle', () => {
         it('should return enough cards', () => {
             // arrange
@@ -9,7 +9,7 @@ describe('game-cron', () => {
             const expectedCards = 52;
 
             // act
-            const actualValue = cardHelper.shuffle(cards);
+            const actualValue = gameHelper.shuffle(cards);
 
             //assert
             expect(actualValue.length).toBe(expectedCards);
@@ -28,7 +28,7 @@ describe('game-cron', () => {
             const drawnCards = [{ card: 3, type: 2 }];
 
             // act
-            const actualValue = cardHelper.isDrawnCard(testCase.card, drawnCards);
+            const actualValue = gameHelper.isDrawnCard(testCase.card, drawnCards);
 
             //assert
             expect(actualValue).toBe(testCase.expectedValue);
@@ -36,15 +36,15 @@ describe('game-cron', () => {
     });
 
     describe('drawCard', () => {
-        it('when already drawn all cards should return null', () => {
+        it('when already drawn all cards should also return card, card can be duplicate', () => {
             // arrange
             const drawnCards = baseCards;
 
             // act
-            const actualValue = cardHelper.drawCard(drawnCards);
+            const actualValue = gameHelper.drawCard(drawnCards);
 
             //assert
-            expect(actualValue).toBeNull();
+            expect(actualValue).not.toBeNull();
         });
 
         it('when 1st draw should return card', () => {
@@ -52,7 +52,7 @@ describe('game-cron', () => {
             const drawnCards = [];
 
             // act
-            const actualValue = cardHelper.drawCard(drawnCards);
+            const actualValue = gameHelper.drawCard(drawnCards);
 
             //assert
             expect(actualValue).not.toBeNull();
@@ -73,7 +73,7 @@ describe('game-cron', () => {
             const stepCount = 1;
 
             // act
-            const actualValue = cardHelper.calculateOdd(odds, testCase.card, stepCount);
+            const actualValue = gameHelper.calculateOdd(odds, testCase.card, stepCount);
 
             //assert
             expect(actualValue).toStrictEqual(testCase.expectedValue);
@@ -97,7 +97,7 @@ describe('game-cron', () => {
 
         it.each(testCases)('should return correct value', (testCase) => {
             // act
-            const actualValue = cardHelper.isWin(testCase.choice, testCase.previousCard, testCase.nextCard);
+            const actualValue = gameHelper.isWin(testCase.choice, testCase.previousCard, testCase.nextCard);
 
             //assert
             expect(actualValue).toStrictEqual(testCase.expectedValue);
@@ -122,10 +122,26 @@ describe('game-cron', () => {
 
         it.each(testCases)('should return correct value', (testCase) => {
             // act
-            const actualValue = cardHelper.getSettlementResult(testCase.previousCard, testCase.nextCard);
+            const actualValue = gameHelper.getSettlementResult(testCase.previousCard, testCase.nextCard);
 
             //assert
             expect(actualValue).toStrictEqual(testCase.expectedValue);
+        });
+    });
+
+    describe('isExpiredRound', () => {
+        // arrange
+        const testCases = [
+            { round: { subRoundTime: new Date() }, expectedValue: false },
+            { round: { subRoundTime: new Date() - 200000 }, expectedValue: true },
+        ];
+
+        it.each(testCases)('should return correct value', (testCase) => {
+            // act
+            const actualValue = gameHelper.isExpiredRound(testCase.round.subRoundTime, 120);
+
+            //assert
+            expect(actualValue).toBe(testCase.expectedValue);
         });
     });
 });
