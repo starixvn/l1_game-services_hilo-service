@@ -49,6 +49,7 @@ describe('service-container-registry', () => {
             expect(containerRegistry.container.register).toBeCalledWith({
                 roundsRepository: expect.any(Function),
                 betsRepository: expect.any(Function),
+                betLogsRepository: expect.any(Function),
             });
         });
     });
@@ -67,6 +68,9 @@ describe('service-container-registry', () => {
                 inGameConsumer: expect.any(Object),
                 placeBetConsumer: expect.any(Object),
                 settleGameRoundConsumer: expect.any(Function),
+                dealConsumer: expect.any(Object),
+                collectConsumer: expect.any(Object),
+                processCorruptedBetsConsumer: expect.any(Object),
             });
         });
     });
@@ -83,6 +87,7 @@ describe('service-container-registry', () => {
             //assert
             expect(containerRegistry.container.register).toBeCalledWith({
                 socketRouter: expect.any(Function),
+                httpRouter: expect.any(Object),
             });
         });
     });
@@ -116,6 +121,7 @@ describe('service-container-registry', () => {
 
             //assert
             expect(containerRegistry.container.register).toBeCalledWith({
+                roundQuery: expect.any(Object),
                 historyQuery: expect.any(Object),
             });
         });

@@ -1,110 +1,58 @@
 import { Core } from 'sc-game-base';
 import { helpers } from 'sc-common';
-import gameSettings from '../game-settings';
-import errorCodes from '../constants/error-codes';
 
 export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetConsumer {
-    constructor(definition, gameData, publisher, roundsRepository, settleGameRoundConsumer) {
-        super(definition, gameData, publisher);
-        this.roundsRepository = roundsRepository;
-        this.settleGameRoundConsumer = settleGameRoundConsumer;
-    }
-
-    async composeValidationCriteria(player, betChoice, freeBet, roundId) {
-        const bettingTimeValidationCriteria = (await this.composeBettingTimeValidationCriteria(roundId)) ?? [];
-        const betAmountValidationCriteria = this.composeBetAmountValidationCriteria(freeBet) || [];
-        const betChoiceValidationCriteria = this.composeBetChoiceValidationCriteria(player, betChoice) || [];
-
-        return bettingTimeValidationCriteria.concat(betChoiceValidationCriteria, betAmountValidationCriteria);
-    }
-
-    async composeBettingTimeValidationCriteria(roundId) {
-        const configs = this.gameData.gameConfigs;
-        const round = roundId ? await this.roundsRepository.findOne({ id: roundId }).lean().exec() : {};
-
-        return [
-            {
-                failure: !configs.enabled,
-                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet),
-            },
-            {
-                failure: !roundId,
-                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: errorCodes.roundEnded }),
-            },
-            {
-                failure: roundId && !round,
-                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: errorCodes.roundNotExist }),
-            },
-            {
-                failure: round && round.ended,
-                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: errorCodes.subRoundEnded }),
-            },
-        ];
-    }
-
-    composeBetAmountValidationCriteria(freeBet) {
-        const configs = this.gameData.gameConfigs;
-
-        return [
-            {
-                failure: freeBet && !configs.enableFreeBet,
-                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet),
-            },
-        ];
-    }
-
-    composeBetChoiceValidationCriteria(player, betChoice) {
+    validateBetRequest(player, amount) {
         const runningRound = this.gameData.runningRounds[player.UID];
-        const currentCard = !!runningRound ? runningRound.cards[runningRound.cards.length - 1] : {};
-
-        return [
-            {
-                failure: !this.definition.choices.includes(betChoice),
-                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet),
-            },
-            {
-                failure: betChoice === gameSettings.loChoice && currentCard.card === 1,
-                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: errorCodes.lowerThan2 }),
-            },
-            {
-                failure: betChoice === gameSettings.hiChoice && currentCard.card === 0,
-                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: errorCodes.greaterThan1 }),
-            },
-        ];
-    }
-
-    async validateBetRequest(player, betChoice, amount, freeBet, roundId) {
-        if (!amount || !betChoice) {
-            return false;
+        if (!!runningRound) {
+            return { errorCode: helpers.noticeHelper.invalidBet };
         }
 
-        const criteria = await this.composeValidationCriteria(player, betChoice, freeBet, roundId);
-        const failedCriterion = criteria.find((criterion) => criterion.failure);
-
-        if (failedCriterion) {
-            this.publisher.publishToUser(player.UID, { endBet: -1, betChoice, notice: failedCriterion.notice });
-
-            return false;
+        const configs = this.gameData.gameConfigs;
+        if (!configs.enabled) {
+            return { errorCode: helpers.noticeHelper.invalidBet };
         }
 
-        return true;
+        const settings = this.gameData.currencyGroupGames.find((x) => x.groupId.toString() === player.session.currencyGroupId);
+
+        const minBet = Math.max(player.profile.minBet, settings.minBet);
+        if (amount < minBet) {
+            return { errorCode: helpers.noticeHelper.minBet, minBet };
+        }
+
+        const maxBet = Math.min(player.profile.maxBet, settings.maxBet);
+        if (maxBet < amount) {
+            return { errorCode: helpers.noticeHelper.maxBet, maxBet };
+        }
+
+        return null;
     }
 
-    async consume(player, payload) {
-        Object.assign(payload, {
-            amount: payload.amount >> 0,
-            freeBet: payload.freeBet ?? false,
-            roundId: payload.roundId ?? this.gameData.runningRounds[player.UID]?.id,
-            receivedTime: new Date(),
-        });
-
-        const { amount, betChoice, freeBet, roundId } = payload;
-
-        if (!(await this.validateBetRequest(player, betChoice, amount, freeBet, roundId))) {
+    consume(player, payload) {
+        const isValid = payload && payload.amount;
+        if (!isValid) {
             return;
         }
 
-        const result = await this.settleGameRoundConsumer.settleSubRound(player.UID, payload);
-        this.publisher.publishToUser(player.UID, { endBet: 1, payload, result });
+        const failedCriterion = this.validateBetRequest(player, payload.amount);
+        if (!!failedCriterion) {
+            this.publisher.publishToUser(player.UID, { endBet: -1, ...failedCriterion });
+            return;
+        }
+
+        const name = player.profile.name;
+        const inGameInfo = this.gameData.ingame[name] ?? {
+            name: player.profile.name,
+            currency: player.session.currencyName,
+            system: player.session.system,
+            partnerId: player.session.partnerId,
+            betQueue: [],
+        };
+
+        if (inGameInfo.betQueue.length === 0) {
+            inGameInfo.betQueue = [{ player, payload }];
+        }
+
+        this.gameData.ingame[name] = inGameInfo;
     }
 }

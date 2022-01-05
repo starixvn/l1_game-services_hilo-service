@@ -1,109 +1,114 @@
 import { Core } from 'sc-game-base';
 import gameHelper from '../helpers/game-helper';
-import { StepModel } from '../models';
 
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
-    generateResult(runningRound) {
-        const resultFromAdmin = this.gameData.settlementResultFromAdmin;
+    constructor(params) {
+        super(params);
+        this.betLogsRepository = params.betLogsRepository;
+    }
 
-        return runningRound.id === resultFromAdmin.roundId ? resultFromAdmin.result : gameHelper.drawCard(runningRound.cards);
+    generateResult(runningRound) {
+        const resultFromAdmin = this.gameData.settlementResultFromAdmin
+            ? this.gameData.settlementResultFromAdmin[runningRound.phien]
+            : null;
+
+        return resultFromAdmin ? resultFromAdmin.result : gameHelper.drawCard(runningRound.result);
     }
 
     calculateBetResult(settlementResult, bet) {
-        const amount = bet.newGameChoice;
+        const amount = bet.amount;
+        const betWin = settlementResult.isWin ? settlementResult.totalAmount - bet.amount : 0;
 
         return {
             ...settlementResult,
             totalBetAmount: amount,
-            netWin: settlementResult.isWin ? (settlementResult.betWin - amount).toFixed(2) : 0,
-            totalWin: settlementResult.betWin.toFixed(2),
+            betWin,
+            netWin: settlementResult.isWin ? settlementResult.totalAmount.toFixed(2) : 0,
+            totalWin: settlementResult.totalAmount.toFixed(2),
             totalLost: settlementResult.isWin ? 0 : amount,
         };
     }
 
-    async settleSubRound(playerUID, payload) {
+    async settleTurn(playerUID, payload) {
         const runningRound = this.gameData.runningRounds[playerUID];
-        if (runningRound.anNon) {
-            return runningRound;
-        }
 
-        const previousCard = runningRound.cards[runningRound.cards.length - 1];
+        const previousCard = runningRound.result[runningRound.result.length - 1];
         const nextCard = this.generateResult(runningRound);
-
         const isWin = gameHelper.isWin(payload.betChoice, previousCard, nextCard);
 
-        const odds = gameHelper.calculateOdd(this.gameData.gameConfigs.odds, previousCard.card, runningRound.stepCount + 1);
-        const newStake = isWin ? runningRound.stake * (1 + odds[payload.betChoice]) : runningRound.stake;
-        await this.addStep(runningRound, previousCard, nextCard, payload.betChoice, newStake - runningRound.stake);
+        const odds = gameHelper.calculateOdd(this.gameData.gameConfigs.odds, previousCard.rank, runningRound.totalTurns + 1);
+        const newStake = isWin ? runningRound.totalAmount * (1 + odds[payload.betChoice]) : runningRound.totalAmount;
+
+        const betWin = isWin ? newStake - runningRound.totalAmount : 0;
+        await this.addBetLog(runningRound, previousCard, nextCard, payload.betChoice, betWin);
         const newInfo = {
             isWin,
-            subRoundTime: new Date(),
-            stake: newStake,
-            betWin: isWin ? newStake : 0,
-            stepCount: runningRound.stepCount + 1,
-            cards: runningRound.cards,
+            totalAmount: newStake,
+            totalTurns: runningRound.totalTurns + 1,
             result: runningRound.result,
             settlementResult: runningRound.settlementResult,
+            turnTime: new Date(),
             odds,
-            newOdds: gameHelper.calculateOdd(this.gameData.gameConfigs.odds, nextCard.card, runningRound.stepCount + 2),
-            ended: !isWin,
+            newOdds: gameHelper.calculateOdd(this.gameData.gameConfigs.odds, nextCard.rank, runningRound.totalTurns + 2),
         };
 
-        newInfo.cards.push(nextCard);
         newInfo.result.push(nextCard);
         newInfo.settlementResult.push(gameHelper.getSettlementResult(previousCard, nextCard));
-        await this.roundsRepository.updateOne({ id: runningRound.id }, { $set: newInfo }).exec();
+        await this.betsRepository.updateOne({ phien: runningRound.phien }, { $set: newInfo }).exec();
 
         const settleResult = { ...runningRound, ...newInfo };
-        await this.userBetResultPublisher.publish(runningRound.uid, settleResult);
+        await this.userBetResultPublisher.publish(playerUID, settleResult);
 
         if (isWin) {
             Object.assign(runningRound, newInfo);
         } else {
-            await this.settleBets({ runningRound, settlementResult: newInfo, roundId: runningRound.id, time: newInfo.subRoundTime });
+            await this.settleBets({ runningRound, settlementResult: newInfo, roundId: runningRound.phien, time: newInfo.turnTime });
             delete this.gameData.runningRounds[playerUID];
         }
 
         return settleResult;
     }
 
-    async addStep(runningRound, card1, card2, choice, betWin) {
-        const newStep = {
-            id: runningRound.id,
+    async addBetLog(runningRound, card1, card2, choice, betWin) {
+        const player = Object.values(this.gameData.realPlayers).find((p) => p.UID === runningRound.uid);
+        const rate = player.session.multiplier * this.gameData.exchangeRates.code[player.session.currencyCode];
+
+        const log = {
             uid: runningRound.uid,
             name: runningRound.name,
+            phien: runningRound.phien,
 
             time: new Date(),
-            stake: runningRound.stake,
-            stepCount: runningRound.stepCount + 1,
-            betWin,
-            card1,
-            card2,
+            amount: runningRound.totalAmount,
+            betwin: betWin,
             choice,
+
+            memberId: player.session.memberId,
+            siteId: player.session.siteId,
+            partnerId: player.session.partnerId,
+            currency: player.session.currencyName,
+            rate: rate,
+
+            order: runningRound.totalTurns + 1,
+            cards: [card1, card2],
         };
 
-        await StepModel.create(newStep);
-    }
-
-    async anNon(playerUid) {
-        const runningRound = this.gameData.runningRounds[playerUid];
-        const updatedInfo = { ended: true };
-        await this.roundsRepository.updateOne({ id: runningRound.id }, { $set: updatedInfo }).exec();
-
-        const newInfo = {
-            isWin: true,
-            subRoundTime: new Date(),
-            stake: runningRound.stake,
-            betWin: runningRound.stake,
-            stepCount: runningRound.stepCount,
-            cards: runningRound.cards,
-            result: runningRound.result,
-            settlementResult: runningRound.settlementResult,
-        };
-
-        await this.settleBets({ runningRound, settlementResult: newInfo, roundId: runningRound.id, time: newInfo.subRoundTime });
-        delete this.gameData.runningRounds[playerUid];
+        await this.betLogsRepository.create(log);
     }
 
     async settleRound() {}
+
+    async settleBets({ result, settlementResult, roundId, time }) {
+        await super.settleBets({ result, settlementResult, roundId, time });
+
+        const bets = await this.queryBets(roundId);
+        if (bets && bets.length) {
+            await Promise.all(
+                bets.map(async (bet) => {
+                    bet.endTime = new Date();
+                    await bet.save();
+                })
+            );
+        }
+    }
 }

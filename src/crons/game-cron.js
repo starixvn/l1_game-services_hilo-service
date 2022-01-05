@@ -10,18 +10,13 @@ export default class GameCron extends Table.Crons.TableGameCron {
 
     async processRunningRounds() {
         const runningRounds = Object.values(this.gameData.runningRounds);
+
         for (let i = 0; i < runningRounds.length; i++) {
             const r = runningRounds[i];
-            const isExpired = gameHelper.isExpiredRound(r.subRoundTime, this.definition.durations.wholeRound);
-
-            if (r.anNon || (isExpired && r.stepCount > 0)) {
-                await this.settleGameRoundConsumer.anNon(r.uid);
-                continue;
-            }
-
-            if (isExpired && r.stepCount === 0) {
+            const isExpired = gameHelper.isExpiredRound(r.turnTime, this.definition.durations.wholeRound);
+            if (isExpired) {
                 const payload = { betChoice: this.autoChooseChoice() };
-                await this.settleGameRoundConsumer.settleSubRound(r.uid, payload);
+                await this.settleGameRoundConsumer.settleTurn(r.uid, payload);
             }
         }
     }

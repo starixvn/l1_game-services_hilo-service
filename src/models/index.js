@@ -1,5 +1,4 @@
-import RoundModel from './round-model';
 import BetModel from './bet-model';
-import StepModel from './step-model';
+import BetLogModel from './bet-log-model';
 
-export { RoundModel, BetModel, StepModel };
+export { BetModel, BetLogModel };

@@ -22,7 +22,7 @@ export default {
         }
 
         const lastCard = drawnCards[drawnCards.length - 1];
-        return lastCard.card === card1.card && lastCard.type === card1.type;
+        return lastCard.rank === card1.rank && lastCard.suit === card1.suit;
     },
     drawCard: function (drawnCards) {
         const shuffleTimes = 3;
@@ -34,12 +34,12 @@ export default {
         const firstCard = cards[0];
         return this.isDrawnCard(firstCard, drawnCards) ? cards[1] : firstCard;
     },
-    calculateOdd: function (odds, card, stepCount) {
+    calculateOdd: function (odds, card, totalTurns) {
         if (card <= 1) {
             return { [gameSettings.hiChoice]: 0, [gameSettings.loChoice]: 0 };
         }
 
-        const stepOdd = 6 / (5 + stepCount);
+        const stepOdd = 6 / (5 + totalTurns);
         const hiOdd = (odds[(card + 1).toString()] / 100) * stepOdd;
         const loOdd = (odds[(15 - card).toString()] / 100) * stepOdd;
 
@@ -49,12 +49,12 @@ export default {
         const highestCardValue = 13;
 
         return {
-            pCard: previousCard.card === 0 ? highestCardValue : previousCard.card,
-            nCard: nextCard.card === 0 ? highestCardValue : nextCard.card,
+            pCard: previousCard.rank === 0 ? highestCardValue : previousCard.rank,
+            nCard: nextCard.rank === 0 ? highestCardValue : nextCard.rank,
         };
     },
     isWin: function (choice, previousCard, nextCard) {
-        if (previousCard.card <= 1 || previousCard.card === nextCard.card) {
+        if (previousCard.rank <= 1 || previousCard.rank === nextCard.rank) {
             return true;
         }
 
@@ -63,8 +63,8 @@ export default {
         return (choice === gameSettings.hiChoice && r.pCard < r.nCard) || (choice === gameSettings.loChoice && r.nCard < r.pCard);
     },
     getSettlementResult: function (previousCard, nextCard) {
-        if (previousCard.card === nextCard.card) {
-            return 'tie';
+        if (previousCard.rank === nextCard.rank) {
+            return 't';
         }
 
         const r = this.rankCardByValue(previousCard, nextCard);

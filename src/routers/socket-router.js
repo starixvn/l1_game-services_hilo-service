@@ -1,111 +1,43 @@
 import { Core } from 'sc-game-base';
-import { helpers } from 'sc-common';
-import gameSettings from '../game-settings';
-import errorCodes from '../constants/error-codes';
 
 export default class SocketRouter extends Core.Routers.BaseSocketRouter {
+    constructor(params) {
+        super(params);
+        this.dealConsumer = params.dealConsumer;
+        this.collectConsumer = params.collectConsumer;
+    }
+
     init(socketClient) {
         super.init(socketClient);
 
         this.socketClient = socketClient;
-        this.socketClient.on('newGame', this.handleNewGame.bind(this));
-        this.socketClient.on('anNon', this.handleAnNon.bind(this));
+        this.socketClient.on('deal', this.handleDeal.bind(this));
+        this.socketClient.on('collect', this.handleCollect.bind(this));
     }
 
-    async handleNewGame(payload) {
-        try {
-            const isValid = this.verify() && payload && payload.amount;
-            if (!isValid) {
-                return;
-            }
-
-            const player = this.gameData.realPlayers[this.socketClient.id];
-            const runningRound = this.gameData.runningRounds[player.UID];
-            if (!!runningRound) {
-                this.socketClient.emit(this.definition.name, { endBet: -1, ...runningRound });
-                return;
-            }
-
-            const failedCriterion = this.validateNewGame(player, payload.amount);
-            if (!!failedCriterion) {
-                this.socketClient.emit(this.definition.name, { endBet: -1, ...failedCriterion });
-                return;
-            }
-
-            const name = player.profile.name;
-            const inGameInfo = this.gameData.ingame[name] ?? {
-                name: player.profile.name,
-                currency: player.session.currencyName,
-                system: player.session.system,
-                partnerId: player.session.partnerId,
-                betQueue: [],
-            };
-
-            if (inGameInfo.betQueue.length === 0) {
-                inGameInfo.betQueue = [{ player, payload }];
-            }
-
-            this.gameData.ingame[name] = inGameInfo;
-        } catch (error) {
-            this.logService.logError(error);
-        }
-    }
-
-    handleAnNon() {
+    async handleDeal(payload) {
         try {
             if (!this.verify()) {
                 return;
             }
 
             const player = this.gameData.realPlayers[this.socketClient.id];
-            const runningRound = this.gameData.runningRounds[player.UID];
-            const failedCriterion = this.validateAnNon(runningRound);
-            if (!!failedCriterion) {
-                this.socketClient.emit(this.definition.name, { isAnNon: false, ...failedCriterion });
-                return;
-            }
-
-            runningRound.anNon = true;
+            await this.dealConsumer.consume(player, payload);
         } catch (error) {
             this.logService.logError(error);
         }
     }
 
-    validateNewGame(player, amount) {
-        const configs = this.gameData.gameConfigs;
-        if (!configs.enabled) {
-            return { errorCode: helpers.noticeHelper.invalidBet };
+    async handleCollect() {
+        try {
+            if (!this.verify()) {
+                return;
+            }
+
+            const player = this.gameData.realPlayers[this.socketClient.id];
+            await this.collectConsumer.consume(player.UID);
+        } catch (error) {
+            this.logService.logError(error);
         }
-
-        const settings = this.gameData.currencyGroupGames.find((x) => x.groupId.toString() === player.session.currencyGroupId);
-
-        const maxBetPerChoice = Math.min(player.profile.maxBet, settings.maxBetPerChoices[gameSettings.newGameChoice]);
-        if (maxBetPerChoice < amount) {
-            return { errorCode: helpers.noticeHelper.maxBetForChoice, maxBet: maxBetPerChoice };
-        }
-
-        const minBet = Math.max(player.profile.minBet, settings.minBet);
-        if (amount < minBet) {
-            return { errorCode: helpers.noticeHelper.minBet, minBet };
-        }
-
-        const maxBet = Math.min(player.profile.maxBet, settings.maxBet);
-        if (maxBet < amount) {
-            return { errorCode: helpers.noticeHelper.maxBet, maxBet };
-        }
-
-        return null;
-    }
-
-    validateAnNon(runningRound) {
-        if (!runningRound) {
-            return { notice: errorCodes.roundEnded };
-        }
-
-        if (runningRound.stepCount === 0) {
-            return { notice: errorCodes.cannotAnNon };
-        }
-
-        return null;
     }
 }

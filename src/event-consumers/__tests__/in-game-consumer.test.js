@@ -18,7 +18,7 @@ describe('in-game-consumer', () => {
         it('should return runningRound', async () => {
             // arrange
             const gameData = {
-                runningRounds: { m1: { id: 1 } },
+                runningRounds: { m1: { phien: 1 } },
                 gameConfigs: {},
                 exchangeRates: { code: {} },
                 currencyGroupGames: [],
@@ -30,7 +30,7 @@ describe('in-game-consumer', () => {
             const userInfosRepository = stubMongooseModelStupidly(mongoose.Model);
             const consumer = new InGameConsumer({}, gameData, roundQuery, {}, getBalance, userInfosRepository);
             const player = { UID: 'm1', session: {}, profile: {} };
-            const expectedValue = { id: 1 };
+            const expectedValue = { phien: 1 };
 
             // act
             const actualValue = await consumer.buildPayload(player);

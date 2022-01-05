@@ -2,10 +2,10 @@ import { Table } from 'sc-game-base';
 import gameHelper from '../helpers/game-helper';
 
 export default class GameBot extends Table.Crons.TableGameBot {
-    constructor(definition, gameData, publisher, userInfosRepository, tempBetsRepository, roundsRepository) {
-        super(definition, gameData, publisher, userInfosRepository, tempBetsRepository, roundsRepository);
+    constructor(definition, gameData, publisher, userInfosRepository, tempBetsRepository, betsRepository) {
+        super(definition, gameData, publisher, userInfosRepository, tempBetsRepository);
 
-        this.roundsRepository = roundsRepository;
+        this.betsRepository = betsRepository;
     }
 
     resetBot(bot) {
@@ -24,32 +24,32 @@ export default class GameBot extends Table.Crons.TableGameBot {
         const { exchangeRates } = this.gameData;
         const amount = this.gameData.gameConfigs.minbet;
 
-        const lastRound = await this.roundsRepository
-            .findOne({}, 'id', { sort: { id: -1 } })
+        const lastRound = (await this.betsRepository
+            .findOne({}, 'phien', { sort: { id: -1 } })
             .lean()
-            .exec();
+            .exec()) ?? { phien: 0 };
 
-        const newRound = {
-            id: (lastRound?.id ?? 0) + 1,
+        const newBet = {
             uid: bot.id,
             name: bot.name,
+            phien: lastRound.phien + 1,
+            amount,
 
-            roundStartTime: new Date(),
-            subRoundTime: new Date(),
+            thanhtoan: true,
+            time: new Date(),
+            endTime: new Date(),
+            odds: this.gameData.gameConfigs.odds,
+            memberId: 0,
+            currency: bot.currency,
+            rate: 1,
 
-            ended: true,
-            origStake: amount,
-            stake: amount,
-            betWin: 0,
-            stepCount: 0,
-
-            cards: [firstCard],
-            result: [],
+            totalAmount: amount,
+            totalTurns: 0,
+            result: [firstCard],
             settlementResult: [],
-
             exchangeRateId: exchangeRates.exId,
         };
 
-        await this.roundsRepository.create(newRound);
+        await this.betsRepository.create(newBet);
     }
 }

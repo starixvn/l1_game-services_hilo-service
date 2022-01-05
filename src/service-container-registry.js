@@ -1,18 +1,26 @@
 import { asValue, asClass } from 'awilix';
 import { Table } from 'sc-game-base';
-import { InGameConsumer, PlaceBetConsumer, SettleGameRoundConsumer } from './event-consumers';
-import { RoundModel, BetModel } from './models';
-import { SocketRouter } from './routers';
+import { BetModel, BetLogModel } from './models';
+import { SocketRouter, HttpRouter } from './routers';
 import { ProcessBetQueue, GameCron, GameBot } from './crons';
-import { HistoryQuery } from './query-apis';
+import { RoundQuery, HistoryQuery } from './query-apis';
+import {
+    InGameConsumer,
+    PlaceBetConsumer,
+    SettleGameRoundConsumer,
+    DealConsumer,
+    CollectConsumer,
+    ProcessCorruptedBetsConsumer,
+} from './event-consumers';
 
 export default class ServiceContainerRegistry extends Table.TableContainerRegistry {
     registerModels() {
         super.registerModels();
 
         this.container.register({
-            roundsRepository: asValue(RoundModel),
+            roundsRepository: asValue(BetModel),
             betsRepository: asValue(BetModel),
+            betLogsRepository: asValue(BetLogModel),
         });
     }
 
@@ -23,6 +31,9 @@ export default class ServiceContainerRegistry extends Table.TableContainerRegist
             inGameConsumer: asClass(InGameConsumer).singleton(),
             placeBetConsumer: asClass(PlaceBetConsumer).singleton(),
             settleGameRoundConsumer: asClass(SettleGameRoundConsumer).singleton().proxy(),
+            dealConsumer: asClass(DealConsumer).singleton(),
+            collectConsumer: asClass(CollectConsumer).singleton(),
+            processCorruptedBetsConsumer: asClass(ProcessCorruptedBetsConsumer).singleton(),
         });
     }
 
@@ -31,6 +42,7 @@ export default class ServiceContainerRegistry extends Table.TableContainerRegist
 
         this.container.register({
             socketRouter: asClass(SocketRouter).proxy(),
+            httpRouter: asClass(HttpRouter),
         });
     }
 
@@ -48,6 +60,7 @@ export default class ServiceContainerRegistry extends Table.TableContainerRegist
         super.registerApis();
 
         this.container.register({
+            roundQuery: asClass(RoundQuery).singleton(),
             historyQuery: asClass(HistoryQuery).singleton(),
         });
     }

@@ -2,12 +2,12 @@ export default {
     id: 45,
     name: 'Hilo',
     durations: {
-        wholeRound: 15,
-        placingBets: 10, // time for bot place game
-        lockingBet: 5, // time for bot place game
+        wholeRound: 120,
+        placingBets: 60, // time for bot place bet
+        lockingBet: 5, // time for bot place bet
     },
-    choices: ['hi', 'lo'],
-    newGameChoice: 'newGameChoice',
-    hiChoice: 'hi',
-    loChoice: 'lo',
+    choices: ['h', 'l'],
+    newGameChoice: 'amount',
+    hiChoice: 'h',
+    loChoice: 'l',
 };

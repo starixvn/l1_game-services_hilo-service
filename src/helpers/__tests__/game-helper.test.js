@@ -19,13 +19,13 @@ describe('game-helper', () => {
     describe('isDrawnCard', () => {
         // arrange
         const testCases = [
-            { card: { card: 3, type: 2 }, expectedValue: true },
-            { card: { card: 6, type: 2 }, expectedValue: false },
+            { card: { rank: 3, suit: 2 }, expectedValue: true },
+            { card: { rank: 6, suit: 2 }, expectedValue: false },
         ];
 
         it.each(testCases)('should return correct value', (testCase) => {
             // arrange
-            const drawnCards = [{ card: 3, type: 2 }];
+            const drawnCards = [{ rank: 3, suit: 2 }];
 
             // act
             const actualValue = gameHelper.isDrawnCard(testCase.card, drawnCards);
@@ -62,18 +62,18 @@ describe('game-helper', () => {
     describe('calculateOdd', () => {
         // arrange
         const testCases = [
-            { card: 0, expectedValue: { hi: 0, lo: 0 } },
-            { card: 1, expectedValue: { hi: 0, lo: 0 } },
-            { card: 10, expectedValue: { hi: 2.76, lo: 0.28 } },
+            { rank: 0, expectedValue: { h: 0, l: 0 } },
+            { rank: 1, expectedValue: { h: 0, l: 0 } },
+            { rank: 10, expectedValue: { h: 2.76, l: 0.28 } },
         ];
 
         it.each(testCases)('should return correct odds', (testCase) => {
             // arrange
             const odds = { ['11']: 276, ['5']: 28 };
-            const stepCount = 1;
+            const totalTurns = 1;
 
             // act
-            const actualValue = gameHelper.calculateOdd(odds, testCase.card, stepCount);
+            const actualValue = gameHelper.calculateOdd(odds, testCase.rank, totalTurns);
 
             //assert
             expect(actualValue).toStrictEqual(testCase.expectedValue);
@@ -83,16 +83,16 @@ describe('game-helper', () => {
     describe('isWin', () => {
         // arrange
         const testCases = [
-            { previousCard: { card: 0 }, expectedValue: true },
-            { previousCard: { card: 1 }, expectedValue: true },
-            { nextCard: { card: 0 }, previousCard: { card: 3 }, choice: 'hi', expectedValue: true },
-            { nextCard: { card: 3 }, previousCard: { card: 3 }, choice: 'hi', expectedValue: true },
-            { nextCard: { card: 3 }, previousCard: { card: 2 }, choice: 'hi', expectedValue: true },
-            { nextCard: { card: 3 }, previousCard: { card: 4 }, choice: 'hi', expectedValue: false },
-            { nextCard: { card: 1 }, previousCard: { card: 3 }, choice: 'lo', expectedValue: true },
-            { nextCard: { card: 3 }, previousCard: { card: 3 }, choice: 'lo', expectedValue: true },
-            { nextCard: { card: 3 }, previousCard: { card: 2 }, choice: 'lo', expectedValue: false },
-            { nextCard: { card: 3 }, previousCard: { card: 4 }, choice: 'lo', expectedValue: true },
+            { previousCard: { rank: 0 }, expectedValue: true },
+            { previousCard: { rank: 1 }, expectedValue: true },
+            { nextCard: { rank: 0 }, previousCard: { rank: 3 }, choice: 'h', expectedValue: true },
+            { nextCard: { rank: 3 }, previousCard: { rank: 3 }, choice: 'h', expectedValue: true },
+            { nextCard: { rank: 3 }, previousCard: { rank: 2 }, choice: 'h', expectedValue: true },
+            { nextCard: { rank: 3 }, previousCard: { rank: 4 }, choice: 'h', expectedValue: false },
+            { nextCard: { rank: 1 }, previousCard: { rank: 3 }, choice: 'l', expectedValue: true },
+            { nextCard: { rank: 3 }, previousCard: { rank: 3 }, choice: 'l', expectedValue: true },
+            { nextCard: { rank: 3 }, previousCard: { rank: 2 }, choice: 'l', expectedValue: false },
+            { nextCard: { rank: 3 }, previousCard: { rank: 4 }, choice: 'l', expectedValue: true },
         ];
 
         it.each(testCases)('should return correct value', (testCase) => {
@@ -107,17 +107,17 @@ describe('game-helper', () => {
     describe('getSettlementResult', () => {
         // arrange
         const testCases = [
-            { nextCard: { card: 3 }, previousCard: { card: 3 }, expectedValue: 'tie' },
-            { nextCard: { card: 3 }, previousCard: { card: 0 }, expectedValue: 'lo' },
-            { nextCard: { card: 1 }, previousCard: { card: 0 }, expectedValue: 'lo' },
-            { nextCard: { card: 1 }, previousCard: { card: 2 }, expectedValue: 'lo' },
+            { nextCard: { rank: 3 }, previousCard: { rank: 3 }, expectedValue: 't' },
+            { nextCard: { rank: 3 }, previousCard: { rank: 0 }, expectedValue: 'l' },
+            { nextCard: { rank: 1 }, previousCard: { rank: 0 }, expectedValue: 'l' },
+            { nextCard: { rank: 1 }, previousCard: { rank: 2 }, expectedValue: 'l' },
 
-            { nextCard: { card: 0 }, previousCard: { card: 1 }, expectedValue: 'hi' },
-            { nextCard: { card: 0 }, previousCard: { card: 2 }, expectedValue: 'hi' },
-            { nextCard: { card: 2 }, previousCard: { card: 1 }, expectedValue: 'hi' },
+            { nextCard: { rank: 0 }, previousCard: { rank: 1 }, expectedValue: 'h' },
+            { nextCard: { rank: 0 }, previousCard: { rank: 2 }, expectedValue: 'h' },
+            { nextCard: { rank: 2 }, previousCard: { rank: 1 }, expectedValue: 'h' },
 
-            { nextCard: { card: 3 }, previousCard: { card: 2 }, expectedValue: 'hi' },
-            { nextCard: { card: 3 }, previousCard: { card: 4 }, expectedValue: 'lo' },
+            { nextCard: { rank: 3 }, previousCard: { rank: 2 }, expectedValue: 'h' },
+            { nextCard: { rank: 3 }, previousCard: { rank: 4 }, expectedValue: 'l' },
         ];
 
         it.each(testCases)('should return correct value', (testCase) => {
@@ -132,13 +132,13 @@ describe('game-helper', () => {
     describe('isExpiredRound', () => {
         // arrange
         const testCases = [
-            { round: { subRoundTime: new Date() }, expectedValue: false },
-            { round: { subRoundTime: new Date() - 200000 }, expectedValue: true },
+            { round: { turnTime: new Date() }, expectedValue: false },
+            { round: { turnTime: new Date() - 200000 }, expectedValue: true },
         ];
 
         it.each(testCases)('should return correct value', (testCase) => {
             // act
-            const actualValue = gameHelper.isExpiredRound(testCase.round.subRoundTime, 120);
+            const actualValue = gameHelper.isExpiredRound(testCase.round.turnTime, 120);
 
             //assert
             expect(actualValue).toBe(testCase.expectedValue);

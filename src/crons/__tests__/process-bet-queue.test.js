@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import { stubMongooseModelStupidly } from 'jest-micro-auto-stub';
 import { ProcessBetQueue } from '../index';
 
-describe('game-cron', () => {
+describe('process-bet-queue', () => {
     describe('extends', () => {
         it('inherit Table.Crons.TableGameCron', () => {
             // act
@@ -18,17 +18,17 @@ describe('game-cron', () => {
         // arrange
         const testCases = [
             { amount: null, freeBet: null, lastRound: null, expectedValue: 1 },
-            { amount: 10, freeBet: true, lastRound: { id: 10 }, expectedValue: 11 },
+            { amount: 10, freeBet: true, lastRound: { phien: 10 }, expectedValue: 11 },
         ];
 
         it.each(testCases)('should assign round id', async (testCase) => {
             // arrange
             const definition = { choicesMapper: {} };
-            const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
-            roundsRepository.findOne().lean().exec.mockReturnValueOnce(testCase.lastRound);
+            const betsRepository = stubMongooseModelStupidly(mongoose.Model);
+            betsRepository.findOne().lean().exec.mockReturnValueOnce(testCase.lastRound);
             const placeBetPublisher = { publishGameFailedBet: jest.fn() };
             const baseMetrics = { collectBetProcessedTime: jest.fn() };
-            const cron = new ProcessBetQueue({ definition, roundsRepository, placeBetPublisher, baseMetrics });
+            const cron = new ProcessBetQueue({ definition, betsRepository, placeBetPublisher, baseMetrics });
             const player = { session: {}, profile: {} };
             const payload = { ...testCase };
             spyOn(cron, 'composeValidationCriteria').and.returnValue([]);
@@ -82,78 +82,6 @@ describe('game-cron', () => {
         });
     });
 
-    describe('handleSuccessBet', () => {
-        it('should createNewRound', async () => {
-            // arrange
-            const definition = { choicesMapper: {} };
-            const gameData = { gameConfigs: {}, ingame: {}, players: {} };
-            const betsRepository = stubMongooseModelStupidly(mongoose.Model);
-            const placeBetPublisher = { publishSuccessBet: jest.fn() };
-            const cron = new ProcessBetQueue({ definition, gameData, betsRepository, placeBetPublisher });
-            cron.createNewRound = jest.fn();
-            spyOn(cron, 'calculateCurrencyRate');
-            spyOn(cron, 'generatePlacingBetResult');
-
-            const player = { session: {}, profile: {} };
-            const balance = 1;
-            const roundId = 1;
-            const bet = {};
-
-            // act
-            await cron.handleSuccessBet(player, balance, roundId, bet);
-
-            //assert
-            expect(cron.createNewRound).toHaveBeenCalled();
-        });
-    });
-
-    describe('generatePlacingBetResult', () => {
-        it('should have odds', async () => {
-            // arrange
-            const definition = { choicesMapper: {} };
-            const gameData = {
-                runningRounds: { m1: { cards: [{ card: 0 }], odds: { hi: 0, lo: 0 } } },
-                players: {},
-                ingame: {},
-                chips: [],
-                gameConfigs: {},
-            };
-
-            const cron = new ProcessBetQueue({ definition, gameData });
-            const expectedValue = { hi: 0, lo: 0 };
-
-            const player = { UID: 'm1', session: {}, profile: {} };
-            const balance = 1;
-            const roundId = 2;
-            const rate = 3;
-
-            // act
-            const actualValue = await cron.generatePlacingBetResult(player, balance, roundId, rate);
-
-            //assert
-            expect(actualValue.odds).toStrictEqual(expectedValue);
-        });
-    });
-
-    describe('createNewRound', () => {
-        it('should call roundsRepository.create', async () => {
-            // arrange
-            const definition = { choicesMapper: {} };
-            const gameData = { exchangeRates: {}, runningRounds: {}, gameConfigs: { odds: {} } };
-            const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
-            const cron = new ProcessBetQueue({ definition, gameData, roundsRepository });
-
-            const player = { UID: 'm1', session: {}, profile: {} };
-            const payload = {};
-
-            // act
-            await cron.createNewRound(player, payload);
-
-            //assert
-            expect(roundsRepository.create).toHaveBeenCalled();
-        });
-    });
-
     describe('decreaseBetTracks', () => {
         it('should do nothing', () => {
             // arrange
@@ -166,6 +94,86 @@ describe('game-cron', () => {
 
             //assert
             expect(gameData.ingame['m1'].betTracks).toStrictEqual({ newGameChoice: 10 });
+        });
+    });
+
+    describe('upsertBet', () => {
+        const testCases = [{ session: {} }, { session: null }];
+        it.each(testCases)('should call betsRepository.updateOne', async (testCase) => {
+            // arrange
+            const definition = { choicesMapper: {} };
+            const gameData = { exchangeRates: {}, runningRounds: {}, gameConfigs: { odds: {} } };
+            const betsRepository = stubMongooseModelStupidly(mongoose.Model);
+            const cron = new ProcessBetQueue({ definition, gameData, betsRepository });
+
+            const player = { UID: 'm1', session: testCase.session, profile: {} };
+            const roundId = 1;
+            const bet = {};
+            const rate = 1;
+
+            // act
+            await cron.upsertBet(player, roundId, bet, rate);
+
+            //assert
+            expect(betsRepository.updateOne).toHaveBeenCalled();
+        });
+    });
+
+    describe('insertBetLog', () => {
+        it('should do nothing', async () => {
+            // arrange
+            const betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
+            const cron = new ProcessBetQueue({ betLogsRepository });
+
+            // act
+            await cron.insertBetLog();
+
+            //assert
+            expect(betLogsRepository.create).not.toBeCalled();
+        });
+    });
+
+    describe('generatePlacingBetResult', () => {
+        it('should have runningRound', async () => {
+            // arrange
+            const definition = { choicesMapper: {} };
+            const gameData = {
+                runningRounds: { m1: { result: [{ rank: 0 }], odds: { h: 0, l: 0 } } },
+                players: {},
+                ingame: {},
+                chips: [],
+                gameConfigs: {},
+            };
+
+            const cron = new ProcessBetQueue({ definition, gameData });
+            const expectedValue = { result: [{ rank: 0 }], odds: { h: 0, l: 0 } };
+
+            const player = { UID: 'm1', session: {}, profile: {} };
+            const balance = 1;
+            const roundId = 2;
+            const rate = 3;
+
+            // act
+            const actualValue = await cron.generatePlacingBetResult(player, balance, roundId, rate);
+
+            //assert
+            expect(actualValue.runningRound).toStrictEqual(expectedValue);
+        });
+    });
+
+    describe('adjustTotalBets', () => {
+        it('should do nothing', () => {
+            // arrange
+            const gameData = { totalBets: {} };
+            const cron = new ProcessBetQueue({});
+            const bet = {};
+            const expectedValue = { ...gameData };
+
+            // act
+            cron.adjustTotalBets(null, bet);
+
+            //assert
+            expect(gameData).toStrictEqual(expectedValue);
         });
     });
 });

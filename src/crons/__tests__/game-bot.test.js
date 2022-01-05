@@ -14,38 +14,6 @@ describe('game-bot', () => {
         });
     });
 
-    describe('placeBet', () => {
-        it('when bot already played in time should not create new round', async () => {
-            // arrange
-            const gameData = { exchangeRates: { exId: 1 }, gameConfigs: { minbet: 10 } };
-            const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
-            const cron = new GameBot({}, gameData, null, null, null, roundsRepository);
-            const bot = { id: 2, name: 'bot2', hasPlayed: true };
-
-            // act
-            await cron.placeBet(bot);
-
-            //assert
-            expect(roundsRepository.create).not.toHaveBeenCalled();
-        });
-
-        const testCases = [{ lastRound: null }, { lastRound: { id: 0 } }, { lastRound: { id: 10 } }];
-        it.each(testCases)('should create new round', async (testCase) => {
-            // arrange
-            const gameData = { exchangeRates: { exId: 1 }, gameConfigs: { minbet: 10 } };
-            const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
-            roundsRepository.findOne().lean().exec.mockReturnValueOnce(testCase.lastRound);
-            const cron = new GameBot({}, gameData, null, null, null, roundsRepository);
-            const bot = { id: 2, name: 'bot2', hasPlayed: false };
-
-            // act
-            await cron.placeBet(bot);
-
-            //assert
-            expect(roundsRepository.create).toHaveBeenCalled();
-        });
-    });
-
     describe('resetBot', () => {
         it('should reset played value', () => {
             // arrange
@@ -57,6 +25,38 @@ describe('game-bot', () => {
 
             //assert
             expect(bot.hasPlayed).toBeFalsy();
+        });
+    });
+
+    describe('placeBet', () => {
+        it('when bot already played in time should not create new bet', async () => {
+            // arrange
+            const gameData = { exchangeRates: { exId: 1 }, gameConfigs: { minbet: 10 } };
+            const betsRepository = stubMongooseModelStupidly(mongoose.Model);
+            const cron = new GameBot({}, gameData, null, null, null, betsRepository);
+            const bot = { id: 2, name: 'bot2', hasPlayed: true };
+
+            // act
+            await cron.placeBet(bot);
+
+            //assert
+            expect(betsRepository.create).not.toHaveBeenCalled();
+        });
+
+        const testCases = [{ lastRound: null }, { lastRound: { phien: 0 } }, { lastRound: { phien: 10 } }];
+        it.each(testCases)('should create new bet', async (testCase) => {
+            // arrange
+            const gameData = { exchangeRates: { exId: 1 }, gameConfigs: { minbet: 10 } };
+            const betsRepository = stubMongooseModelStupidly(mongoose.Model);
+            betsRepository.findOne().lean().exec.mockReturnValueOnce(testCase.lastRound);
+            const cron = new GameBot({}, gameData, null, null, null, betsRepository);
+            const bot = { id: 2, name: 'bot2', hasPlayed: false };
+
+            // act
+            await cron.placeBet(bot);
+
+            //assert
+            expect(betsRepository.create).toHaveBeenCalled();
         });
     });
 });

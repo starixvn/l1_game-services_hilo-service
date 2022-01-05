@@ -1,47 +1,18 @@
 import { Table } from 'sc-game-base';
-import gameSettings from '../game-settings';
 import gameHelper from '../helpers/game-helper';
 
 export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
-    constructor({
-        definition,
-        gameData,
-        placeBetPublisher,
-        placeBet,
-        logService,
-        betsRepository,
-        betLogsRepository,
-        userInfosRepository,
-        baseMetrics,
-        roundsRepository,
-    }) {
-        super({
-            definition,
-            gameData,
-            placeBetPublisher,
-            placeBet,
-            logService,
-            betsRepository,
-            betLogsRepository,
-            userInfosRepository,
-            baseMetrics,
-        });
-
-        this.roundsRepository = roundsRepository;
-    }
-
     async proceedBet(player, payload) {
-        const lastRound = await this.roundsRepository
-            .findOne({}, 'id', { sort: { id: -1 } })
+        const lastRound = (await this.betsRepository
+            .findOne({}, 'phien', { sort: { id: -1 } })
             .lean()
-            .exec();
+            .exec()) ?? { phien: 0 };
 
         Object.assign(payload, {
             amount: payload.amount >> 0,
-            roundId: (lastRound?.id ?? 0) + 1,
+            roundId: lastRound.phien + 1,
             freeBet: payload.freeBet ?? false,
             receivedTime: new Date(),
-            betChoice: gameSettings.newGameChoice,
         });
 
         await super.proceedBet(player, payload);
@@ -54,51 +25,49 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
     decreaseBetTracks() {}
     adjustTotalBets() {}
 
-    async handleSuccessBet(player, balance, roundId, bet) {
-        await this.createNewRound(player, bet);
-        await super.handleSuccessBet(player, balance, roundId, bet);
-    }
-
-    generatePlacingBetResult(player, balance, bet, rate) {
-        const ownBet = super.generatePlacingBetResult(player, balance, bet, rate);
-
-        const runningRound = this.gameData.runningRounds[player.UID];
-        ownBet.cards = runningRound.cards;
-        ownBet.odds = runningRound.odds;
-
-        return ownBet;
-    }
-
-    async createNewRound(player, payload) {
+    async upsertBet(player, roundId, bet, rate) {
         const firstCard = gameHelper.drawCard([]);
         const { exchangeRates } = this.gameData;
 
-        const newRound = {
-            id: payload.roundId,
+        const newBet = {
             uid: player.UID,
             name: player.profile.name,
+            phien: roundId,
+            amount: bet.amount,
 
-            roundStartTime: new Date(),
-            subRoundTime: new Date(),
-
-            ended: false,
-            origStake: payload.amount,
-            stake: payload.amount,
-            betWin: 0,
-            stepCount: 0,
-
-            cards: [firstCard],
-            result: [],
+            time: new Date(),
+            odds: this.gameData.gameConfigs.odds,
+            rate,
+            totalAmount: bet.amount,
+            result: [firstCard],
             settlementResult: [],
-
             exchangeRateId: exchangeRates.exId,
+
+            totalTurns: 0,
+            turnTime: new Date(),
         };
 
-        await this.roundsRepository.create(newRound);
+        const existingBetFilter = { uid: player.UID, phien: roundId, freeBet: bet.freeBet };
 
-        newRound.odds = gameHelper.calculateOdd(this.gameData.gameConfigs.odds, firstCard.card, 1);
-        this.gameData.runningRounds[player.UID] = newRound;
+        if (player.session) {
+            newBet.memberId = player.session.memberId;
+            newBet.siteId = player.session.siteId;
+            newBet.partnerId = player.session.partnerId;
+            newBet.currency = player.session.currencyName;
+        }
 
-        return newRound;
+        await this.betsRepository.updateOne(existingBetFilter, { $setOnInsert: newBet }, { upsert: true, setDefaultsOnInsert: true });
+
+        newBet.odds = gameHelper.calculateOdd(this.gameData.gameConfigs.odds, firstCard.rank, 1);
+        this.gameData.runningRounds[player.UID] = newBet;
+    }
+
+    async insertBetLog() {}
+
+    generatePlacingBetResult(player, balance, bet, rate) {
+        const ownBet = super.generatePlacingBetResult(player, balance, bet, rate);
+        ownBet.runningRound = this.gameData.runningRounds[player.UID];
+
+        return ownBet;
     }
 }

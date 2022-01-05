@@ -15,501 +15,210 @@ describe('place-bet-consumer', () => {
         });
     });
 
-    describe('composeValidationCriteria', () => {
-        const testCases = [{ criterion: [] }, { criterion: null }];
-        it.each(testCases)('should return correct value', async (testCase) => {
+    describe('validateBetRequest', () => {
+        it('when player has already bet return invalidBet', () => {
             // arrange
-            const consumer = new PlaceBetConsumer();
-            spyOn(consumer, 'composeBettingTimeValidationCriteria').and.returnValue(testCase.criterion);
-            spyOn(consumer, 'composeBetAmountValidationCriteria').and.returnValue(testCase.criterion);
-            spyOn(consumer, 'composeBetChoiceValidationCriteria').and.returnValue(testCase.criterion);
-            const expectedValue = [];
+            const gameData = { gameConfigs: { enabled: false }, runningRounds: { m1: {} } };
+            const consumer = new PlaceBetConsumer(null, gameData);
+            const expectedValue = { errorCode: helpers.noticeHelper.invalidBet };
+            const player = { UID: 'm1' };
+            const amount = 10;
 
             // act
-            const actualValue = await consumer.composeValidationCriteria();
+            const actualValue = consumer.validateBetRequest(player, amount);
 
             //assert
             expect(actualValue).toStrictEqual(expectedValue);
         });
-    });
 
-    describe('composeBettingTimeValidationCriteria', () => {
-        let testCases = [
-            { enabled: false, expectedValue: { failure: true, notice: { errorCode: helpers.noticeHelper.invalidBet } } },
-            { enabled: true, expectedValue: { failure: false, notice: { errorCode: helpers.noticeHelper.invalidBet } } },
-        ];
-        it.each(testCases)('should check game enabled or not', async (testCase) => {
+        it('when game not enabled should return invalidBet', () => {
             // arrange
-            const definition = {};
-            const gameData = { gameConfigs: { enabled: testCase.enabled } };
-            const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
-            const consumer = new PlaceBetConsumer(definition, gameData, {}, roundsRepository);
-            const roundId = undefined;
+            const gameData = { gameConfigs: { enabled: false }, runningRounds: {} };
+            const consumer = new PlaceBetConsumer(null, gameData);
+            const expectedValue = { errorCode: helpers.noticeHelper.invalidBet };
+            const player = { UID: 'm1' };
+            const amount = 10;
 
             // act
-            const actualValue = await consumer.composeBettingTimeValidationCriteria(roundId);
+            const actualValue = consumer.validateBetRequest(player, amount);
 
             //assert
-            expect(actualValue[0]).toStrictEqual(testCase.expectedValue);
+            expect(actualValue).toStrictEqual(expectedValue);
         });
 
-        testCases = [
-            {
-                roundId: undefined,
-                expectedValue: {
-                    failure: true,
-                    notice: { errorCode: helpers.noticeHelper.invalidBet, message: 'Phiên chơi đã kết thúc...' },
-                },
-            },
-            {
-                roundId: 10,
-                expectedValue: {
-                    failure: false,
-                    notice: { errorCode: helpers.noticeHelper.invalidBet, message: 'Phiên chơi đã kết thúc...' },
-                },
-            },
-        ];
-        it.each(testCases)('should check round id', async (testCase) => {
+        it('when amount < minBet should return helpers.noticeHelper.minBet', () => {
             // arrange
-            const definition = {};
-            const gameData = { gameConfigs: { enabled: true } };
-            const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
-            const consumer = new PlaceBetConsumer(definition, gameData, {}, roundsRepository);
-            const roundId = testCase.roundId;
-
-            // act
-            const actualValue = await consumer.composeBettingTimeValidationCriteria(roundId);
-
-            //assert
-            expect(actualValue[1]).toStrictEqual(testCase.expectedValue);
-        });
-
-        it('when round not exist should return failed', async () => {
-            // arrange
-            const definition = {};
-            const gameData = { gameConfigs: { enabled: true } };
-            const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
-            roundsRepository.findOne().lean().exec.mockReturnValueOnce(null);
-            const consumer = new PlaceBetConsumer(definition, gameData, {}, roundsRepository);
-            const roundId = 1;
-            const expectedValue = {
-                failure: true,
-                notice: { errorCode: helpers.noticeHelper.invalidBet, message: 'Phiên không tồn tại...' },
-            };
-
-            // act
-            const actualValue = await consumer.composeBettingTimeValidationCriteria(roundId);
-
-            //assert
-            expect(actualValue[2]).toStrictEqual(expectedValue);
-        });
-
-        it('when round exist should not failed', async () => {
-            // arrange
-            const definition = {};
-            const gameData = { gameConfigs: { enabled: true } };
-            const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
-            roundsRepository.findOne().lean().exec.mockReturnValueOnce({ id: 10 });
-
-            const consumer = new PlaceBetConsumer(definition, gameData, {}, roundsRepository);
-            const roundId = 1;
-            const expectedValue = {
-                failure: false,
-                notice: { errorCode: helpers.noticeHelper.invalidBet, message: 'Phiên không tồn tại...' },
-            };
-
-            // act
-            const actualValue = await consumer.composeBettingTimeValidationCriteria(roundId);
-
-            //assert
-            expect(actualValue[2]).toStrictEqual(expectedValue);
-        });
-
-        it('when round not exists should not failed ended criterion', async () => {
-            // arrange
-            const definition = {};
-            const gameData = { gameConfigs: { enabled: true } };
-            const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
-            roundsRepository.findOne().lean().exec.mockReturnValueOnce(null);
-            const consumer = new PlaceBetConsumer(definition, gameData, {}, roundsRepository);
-            const roundId = 1;
-            const expectedValue = {
-                failure: null,
-                notice: { errorCode: helpers.noticeHelper.invalidBet, message: 'Phiên đã kết thúc...' },
-            };
-
-            // act
-            const actualValue = await consumer.composeBettingTimeValidationCriteria(roundId);
-
-            //assert
-            expect(actualValue[3]).toStrictEqual(expectedValue);
-        });
-
-        it('when round not ended should not failed ended criterion', async () => {
-            // arrange
-            const definition = {};
-            const gameData = { gameConfigs: { enabled: true } };
-            const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
-            roundsRepository.findOne().lean().exec.mockReturnValueOnce({ id: 10, ended: false });
-            const consumer = new PlaceBetConsumer(definition, gameData, {}, roundsRepository);
-            const roundId = 1;
-            const expectedValue = {
-                failure: false,
-                notice: { errorCode: helpers.noticeHelper.invalidBet, message: 'Phiên đã kết thúc...' },
-            };
-
-            // act
-            const actualValue = await consumer.composeBettingTimeValidationCriteria(roundId);
-
-            //assert
-            expect(actualValue[3]).toStrictEqual(expectedValue);
-        });
-
-        it('when round ended should failed ended criterion', async () => {
-            // arrange
-            const definition = {};
-            const gameData = { gameConfigs: { enabled: true } };
-            const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
-            roundsRepository.findOne().lean().exec.mockReturnValueOnce({ id: 10, ended: true });
-
-            const consumer = new PlaceBetConsumer(definition, gameData, {}, roundsRepository);
-            const roundId = 1;
-            const expectedValue = {
-                failure: true,
-                notice: { errorCode: helpers.noticeHelper.invalidBet, message: 'Phiên đã kết thúc...' },
-            };
-
-            // act
-            const actualValue = await consumer.composeBettingTimeValidationCriteria(roundId);
-
-            //assert
-            expect(actualValue[3]).toStrictEqual(expectedValue);
-        });
-    });
-
-    describe('composeBetAmountValidationCriteria', () => {
-        let testCases = [
-            { freeBet: false, enableFreeBet: false, expectedFailure: false },
-            { freeBet: false, enableFreeBet: true, expectedFailure: false },
-            { freeBet: true, enableFreeBet: false, expectedFailure: true },
-            { freeBet: true, enableFreeBet: true, expectedFailure: false },
-        ];
-        it.each(testCases)('should validate base on enableFreeBet', async (testCase) => {
-            // arrange
-            const definition = {};
             const gameData = {
-                currencyGroupGames: [{ groupId: 'g1', maxBetPerChoices: {} }],
-                gameConfigs: { enabled: true, enableFreeBet: testCase.enableFreeBet },
+                gameConfigs: { enabled: true },
+                currencyGroupGames: [{ groupId: 1, maxBetPerChoices: { newGameChoice: 100 }, minBet: 30 }],
+                runningRounds: {},
             };
-            const consumer = new PlaceBetConsumer(definition, gameData, {});
-            const expectedValue = {
-                failure: testCase.expectedFailure,
-                notice: { errorCode: helpers.noticeHelper.invalidBet },
-            };
-            const player = { profile: {}, session: { currencyGroupId: 'g1' } };
-            const betChoice = 'hi';
+            const consumer = new PlaceBetConsumer(null, gameData);
+            const expectedValue = { errorCode: helpers.noticeHelper.minBet, minBet: 30 };
+            const player = { session: { currencyGroupId: '1' }, profile: { minBet: 20, maxBet: 100 } };
             const amount = 10;
-            const freeBet = testCase.freeBet;
 
             // act
-            const actualValue = await consumer.composeBetAmountValidationCriteria(freeBet);
+            const actualValue = consumer.validateBetRequest(player, amount);
 
             //assert
-            expect(actualValue[0]).toStrictEqual(expectedValue);
-        });
-    });
-
-    describe('composeBetChoiceValidationCriteria', () => {
-        it('when bet choice not in definition.choices should failed choices criterion', () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { runningRounds: {} };
-            const consumer = new PlaceBetConsumer(definition, gameData, {});
-            const expectedValue = { failure: true, notice: { errorCode: helpers.noticeHelper.invalidBet } };
-            const player = { profile: { maxBet: 8, maxBet: 6 }, session: { currencyGroupId: 'g1' } };
-            const betChoice = 'hi';
-
-            // act
-            const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
-
-            //assert
-            expect(actualValue[0]).toStrictEqual(expectedValue);
+            expect(actualValue).toStrictEqual(expectedValue);
         });
 
-        it('when bet choice in definition.choices should not failed choices criterion', () => {
+        it('when maxBet < amount should return helpers.noticeHelper.maxBet', () => {
             // arrange
-            const definition = { choices: ['hi', 'lo'] };
-            const gameData = { runningRounds: {} };
-            const consumer = new PlaceBetConsumer(definition, gameData, {});
-            const expectedValue = { failure: false, notice: { errorCode: helpers.noticeHelper.invalidBet } };
-            const player = { profile: { maxBet: 8, maxBet: 6 }, session: { currencyGroupId: 'g1' } };
-            const betChoice = 'hi';
-
-            // act
-            const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
-
-            //assert
-            expect(actualValue[0]).toStrictEqual(expectedValue);
-        });
-
-        it('when loChoice and card is 2 should failed loChoice criterion', () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { cards: [{ card: 1 }] } } };
-            const consumer = new PlaceBetConsumer(definition, gameData, {});
-            const expectedValue = {
-                failure: true,
-                notice: { errorCode: helpers.noticeHelper.invalidBet, message: 'Không thể chọn thấp hơn 2' },
+            const gameData = {
+                gameConfigs: { enabled: true },
+                currencyGroupGames: [{ groupId: 1, maxBetPerChoices: { newGameChoice: 100 }, minBet: 1, maxBet: 4 }],
+                runningRounds: {},
             };
-            const player = { UID: 'm1' };
-            const betChoice = 'lo';
-
-            // act
-            const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
-
-            //assert
-            expect(actualValue[1]).toStrictEqual(expectedValue);
-        });
-
-        it('when loChoice and card is not 2 should not failed loChoice criterion', () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { cards: [{ card: 1 }, { card: 3 }] } } };
-            const consumer = new PlaceBetConsumer(definition, gameData, {});
-            const expectedValue = {
-                failure: false,
-                notice: { errorCode: helpers.noticeHelper.invalidBet, message: 'Không thể chọn thấp hơn 2' },
-            };
-            const player = { UID: 'm1' };
-            const betChoice = 'lo';
-
-            // act
-            const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
-
-            //assert
-            expect(actualValue[1]).toStrictEqual(expectedValue);
-        });
-
-        it('when hiChoice and card is not 2 should not failed loChoice criterion', () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { cards: [{ card: 1 }, { card: 3 }] } } };
-            const consumer = new PlaceBetConsumer(definition, gameData, {});
-            const expectedValue = {
-                failure: false,
-                notice: { errorCode: helpers.noticeHelper.invalidBet, message: 'Không thể chọn thấp hơn 2' },
-            };
-            const player = { UID: 'm1' };
-            const betChoice = 'hi';
-
-            // act
-            const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
-
-            //assert
-            expect(actualValue[1]).toStrictEqual(expectedValue);
-        });
-
-        it('when hiChoice and card is 2 should not failed loChoice criterion', () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { cards: [{ card: 1 }, { card: 1 }] } } };
-            const consumer = new PlaceBetConsumer(definition, gameData, {});
-            const expectedValue = {
-                failure: false,
-                notice: { errorCode: helpers.noticeHelper.invalidBet, message: 'Không thể chọn thấp hơn 2' },
-            };
-            const player = { UID: 'm1' };
-            const betChoice = 'hi';
-
-            // act
-            const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
-
-            //assert
-            expect(actualValue[1]).toStrictEqual(expectedValue);
-        });
-
-        it('when hiChoice and card is 1 should failed hiChoice criterion', () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { cards: [{ card: 0 }] } } };
-            const consumer = new PlaceBetConsumer(definition, gameData, {});
-            const expectedValue = {
-                failure: true,
-                notice: { errorCode: helpers.noticeHelper.invalidBet, message: 'Không thể chọn cao hơn A' },
-            };
-            const player = { UID: 'm1' };
-            const betChoice = 'hi';
-
-            // act
-            const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
-
-            //assert
-            expect(actualValue[2]).toStrictEqual(expectedValue);
-        });
-
-        it('when hiChoice and card is not 1 should not failed hiChoice criterion', () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { cards: [{ card: 1 }, { card: 3 }] } } };
-            const consumer = new PlaceBetConsumer(definition, gameData, {});
-            const expectedValue = {
-                failure: false,
-                notice: { errorCode: helpers.noticeHelper.invalidBet, message: 'Không thể chọn cao hơn A' },
-            };
-            const player = { UID: 'm1' };
-            const betChoice = 'hi';
-
-            // act
-            const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
-
-            //assert
-            expect(actualValue[2]).toStrictEqual(expectedValue);
-        });
-
-        it('when loChoice and card is not 1 should not failed hiChoice criterion', () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { cards: [{ card: 1 }, { card: 3 }] } } };
-            const consumer = new PlaceBetConsumer(definition, gameData, {});
-            const expectedValue = {
-                failure: false,
-                notice: { errorCode: helpers.noticeHelper.invalidBet, message: 'Không thể chọn cao hơn A' },
-            };
-            const player = { UID: 'm1' };
-            const betChoice = 'lo';
-
-            // act
-            const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
-
-            //assert
-            expect(actualValue[2]).toStrictEqual(expectedValue);
-        });
-
-        it('when loChoice and card is 2 should not failed hiChoice criterion', () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { cards: [{ card: 1 }, { card: 0 }] } } };
-            const consumer = new PlaceBetConsumer(definition, gameData, {});
-            const expectedValue = {
-                failure: false,
-                notice: { errorCode: helpers.noticeHelper.invalidBet, message: 'Không thể chọn cao hơn A' },
-            };
-            const player = { UID: 'm1' };
-            const betChoice = 'lo';
-
-            // act
-            const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
-
-            //assert
-            expect(actualValue[2]).toStrictEqual(expectedValue);
-        });
-    });
-
-    describe('validateBetRequest', () => {
-        it('when not have amount should return failed', async () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { cards: [{ card: 1 }, { card: 0 }] } } };
-            const consumer = new PlaceBetConsumer(definition, gameData, {});
-            const player = { UID: 'm1' };
-            const amount = 0;
-            const betChoice = 'lo';
-
-            // act
-            const actualValue = await consumer.validateBetRequest(player, betChoice, amount);
-
-            //assert
-            expect(actualValue).toBeFalse();
-        });
-
-        it('when not have betChoice should return failed', async () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { cards: [{ card: 1 }, { card: 0 }] } } };
-            const consumer = new PlaceBetConsumer(definition, gameData, {});
-            const player = { UID: 'm1' };
+            const consumer = new PlaceBetConsumer(null, gameData);
+            const expectedValue = { errorCode: helpers.noticeHelper.maxBet, maxBet: 4 };
+            const player = { session: { currencyGroupId: '1' }, profile: { minBet: 1, maxBet: 100 } };
             const amount = 10;
-            const betChoice = null;
 
             // act
-            const actualValue = await consumer.validateBetRequest(player, betChoice, amount);
+            const actualValue = consumer.validateBetRequest(player, amount);
 
             //assert
-            expect(actualValue).toBeFalse();
+            expect(actualValue).toStrictEqual(expectedValue);
         });
 
-        it('when have failedCriterion should return failed', async () => {
+        it('when not has error should return null', () => {
             // arrange
-            const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { cards: [{ card: 1 }, { card: 0 }] } } };
-            const publisher = { publishToUser: jest.fn() };
-            const consumer = new PlaceBetConsumer(definition, gameData, publisher);
-            const player = { UID: 'm1' };
+            const gameData = {
+                gameConfigs: { enabled: true },
+                currencyGroupGames: [{ groupId: 1, maxBetPerChoices: { newGameChoice: 100 }, minBet: 1, maxBet: 100 }],
+                runningRounds: {},
+            };
+            const consumer = new PlaceBetConsumer(null, gameData);
+            const player = { session: { currencyGroupId: '1' }, profile: { minBet: 1, maxBet: 100 } };
             const amount = 10;
-            const betChoice = 'hi';
-            spyOn(consumer, 'composeValidationCriteria').and.returnValue([{ failure: true }]);
 
             // act
-            const actualValue = await consumer.validateBetRequest(player, betChoice, amount);
+            const actualValue = consumer.validateBetRequest(player, amount);
 
             //assert
-            expect(actualValue).toBeFalse();
-        });
-
-        it('when not have failedCriterion should return true', async () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { cards: [{ card: 1 }, { card: 0 }] } } };
-            const publisher = { publishToUser: jest.fn() };
-            const consumer = new PlaceBetConsumer(definition, gameData, publisher);
-            const player = { UID: 'm1' };
-            const amount = 10;
-            const betChoice = 'hi';
-            spyOn(consumer, 'composeValidationCriteria').and.returnValue([]);
-
-            // act
-            const actualValue = await consumer.validateBetRequest(player, betChoice, amount);
-
-            //assert
-            expect(actualValue).toBeTruthy();
+            expect(actualValue).toBeNull();
         });
     });
 
     describe('consume', () => {
-        it('when validateBetRequest failed should not call settleGameRoundConsumer.settleSubRound', async () => {
+        // arrange
+        const gameData = {
+            realPlayers: {
+                m1: { UID: 'm1' },
+                m2: { UID: 'm2' },
+                m3: { UID: 'm3', profile: { name: 'm3' } },
+                m4: { UID: 'm4', profile: { name: 'm4' }, session: {} },
+            },
+            runningRounds: { m1: { uid: 'm1' } },
+            ingame: { m1: { betQueue: [] }, m3: { betQueue: [] } },
+        };
+
+        it('when not has payload should not validateBetRequest', async () => {
             // arrange
-            const definition = { choices: [] };
-            const gameData = { runningRounds: { m2: { cards: [{ card: 1 }, { card: 0 }] } } };
-            const publisher = { publishToUser: jest.fn() };
-            const settleGameRoundConsumer = { settleSubRound: jest.fn() };
-            const consumer = new PlaceBetConsumer(definition, gameData, publisher, null, settleGameRoundConsumer);
-            const player = { UID: 'm1' };
-            spyOn(consumer, 'validateBetRequest').and.returnValue(false);
-            const payload = {};
+            const consumer = new PlaceBetConsumer();
+            spyOn(consumer, 'validateBetRequest');
+            const payload = null;
 
             // act
-            await consumer.consume(player, payload);
+            await consumer.consume({}, payload);
 
             //assert
-            expect(settleGameRoundConsumer.settleSubRound).not.toBeCalled();
+            expect(consumer.validateBetRequest).not.toBeCalled();
         });
 
-        it('when validateBetRequest past should call settleGameRoundConsumer.settleSubRound', async () => {
+        it('when not has amount should not validateBetRequest', async () => {
             // arrange
-            const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { cards: [{ card: 1 }, { card: 0 }] } } };
+            const consumer = new PlaceBetConsumer();
+            spyOn(consumer, 'validateBetRequest');
+            const payload = { amount: 0 };
+
+            // act
+            await consumer.consume({}, payload);
+
+            //assert
+            expect(consumer.validateBetRequest).not.toBeCalled();
+        });
+
+        it('when validateBetRequest failed should endBet', async () => {
+            // arrange
             const publisher = { publishToUser: jest.fn() };
-            const settleGameRoundConsumer = { settleSubRound: jest.fn() };
-            const consumer = new PlaceBetConsumer(definition, gameData, publisher, null, settleGameRoundConsumer);
+            const consumer = new PlaceBetConsumer(null, null, publisher);
+            spyOn(consumer, 'validateBetRequest').and.returnValue({ failure: true });
+            const payload = { amount: 10 };
             const player = { UID: 'm1' };
-            spyOn(consumer, 'validateBetRequest').and.returnValue(true);
-            const payload = {};
 
             // act
             await consumer.consume(player, payload);
 
             //assert
-            expect(settleGameRoundConsumer.settleSubRound).toBeCalled();
+            expect(publisher.publishToUser).toBeCalledWith('m1', expect.objectContaining({ endBet: -1, failure: true }));
+        });
+
+        it('when validateBetRequest pass but player already ingame should keep old ingame info', async () => {
+            // arrange
+            const gameData = { realPlayers: { m1: { profile: { name: 'm1' } } }, ingame: { m1: { profile: {} } } };
+            const consumer = new PlaceBetConsumer(null, gameData, null);
+            spyOn(consumer, 'validateBetRequest').and.returnValue(null);
+            const payload = { amount: 10 };
+            const player = { UID: 'm1', session: {}, profile: {} };
+            const expectedInfo = { profile: {} };
+
+            // act
+            await consumer.consume(player, payload);
+
+            //assert
+            expect(gameData.ingame['m1']).toStrictEqual(expectedInfo);
+        });
+
+        it('when validateBetRequest pass and player not ingame should add player to ingame', async () => {
+            // arrange
+            const gameData = { realPlayers: { m1: { profile: { name: 'm1' } } }, ingame: { m1: { profile: {} } } };
+            const consumer = new PlaceBetConsumer(null, gameData, null);
+            spyOn(consumer, 'validateBetRequest').and.returnValue(null);
+            const player = { UID: 'm4', session: {}, profile: { name: 'm4' } };
+            const payload = { amount: 10 };
+
+            // act
+            await consumer.consume(player, payload);
+
+            //assert
+            expect(gameData.ingame['m4']).not.toBeUndefined();
+        });
+
+        it('when validateBetRequest pass and player has betQueue should not add new betQueue', async () => {
+            // arrange
+            const gameData = {
+                realPlayers: { m1: { profile: { name: 'm1' }, session: {} } },
+                ingame: { m1: { betQueue: [{}] } },
+            };
+
+            const consumer = new PlaceBetConsumer(null, gameData, null);
+            spyOn(consumer, 'validateBetRequest').and.returnValue(null);
+            const player = { UID: 'm1', session: {}, profile: { name: 'm1' } };
+            const payload = { amount: 10 };
+
+            // act
+            await consumer.consume(player, payload);
+
+            //assert
+            expect(gameData.ingame['m1'].betQueue.length).toBe(1);
+        });
+
+        it('when validateBetRequest pass and player does not have betQueue should not add new betQueue', async () => {
+            // arrange
+            const consumer = new PlaceBetConsumer(null, gameData, null);
+            spyOn(consumer, 'validateBetRequest').and.returnValue(null);
+            const player = { UID: 'm4', session: {}, profile: { name: 'm4' } };
+            const payload = { amount: 10 };
+
+            // act
+            await consumer.consume(player, payload);
+
+            //assert
+            expect(gameData.ingame['m4'].betQueue.length).toBe(1);
         });
     });
 });

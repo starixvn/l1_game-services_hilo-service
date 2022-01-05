@@ -1,33 +1,8 @@
 import { Core } from 'sc-game-base';
 import baseCards from '../../constants/cards';
 import { SettleGameRoundConsumer } from '../index';
-
-const stepModel = {
-    called: false,
-};
-
-jest.mock('../../models', () => {
-    return {
-        StepModel: {
-            create: () => {
-                stepModel.called = true;
-            },
-        },
-    };
-});
-
-jest.mock('random-js', () => {
-    return {
-        Random: function () {
-            return {
-                integer: (min, max) => max, // not shuffle base card
-            };
-        },
-        MersenneTwister19937: {
-            autoSeed: () => {},
-        },
-    };
-});
+import mongoose from 'mongoose';
+import { stubMongooseModelStupidly } from 'jest-micro-auto-stub';
 
 describe('settle-game-round-consumer', () => {
     describe('extends', () => {
@@ -43,10 +18,10 @@ describe('settle-game-round-consumer', () => {
     describe('generateResult', () => {
         it('when resultFromAdmin is set for round should return resultFromAdmin', () => {
             // arrange
-            const gameData = { settlementResultFromAdmin: { roundId: 10, result: { card: 2 } } };
+            const gameData = { settlementResultFromAdmin: { 10: { result: { rank: 2 } } } };
             const consumer = new SettleGameRoundConsumer({ gameData });
-            const expectedValue = { card: 2 };
-            const runningRound = { id: 10 };
+            const expectedValue = { rank: 2 };
+            const runningRound = { phien: 10 };
 
             // act
             const actualValue = consumer.generateResult(runningRound);
@@ -55,18 +30,19 @@ describe('settle-game-round-consumer', () => {
             expect(actualValue).toStrictEqual(expectedValue);
         });
 
-        it('when resultFromAdmin is not set for round should generate new result', () => {
+        const testCases = [{ settlementResultFromAdmin: null }, { settlementResultFromAdmin: { 10: { result: { rank: 2 } } } }];
+        it.each(testCases)('when resultFromAdmin is not set for round should generate new result', (testCase) => {
             // arrange
-            const gameData = { settlementResultFromAdmin: { roundId: 10, result: { card: 2 } } };
+            const gameData = { settlementResultFromAdmin: testCase.settlementResultFromAdmin };
             const consumer = new SettleGameRoundConsumer({ gameData });
             const expectedValue = null;
-            const runningRound = { id: 11, cards: [...baseCards] };
+            const runningRound = { phien: 11, result: [...baseCards] };
 
             // act
             const actualValue = consumer.generateResult(runningRound);
 
             //assert
-            expect(actualValue).not.toBe(null);
+            expect(actualValue).not.toBe(expectedValue);
         });
     });
 
@@ -75,10 +51,11 @@ describe('settle-game-round-consumer', () => {
             // arrange
             const gameData = {};
             const consumer = new SettleGameRoundConsumer({ gameData });
-            const settlementResult = { isWin: false, betWin: 0 };
-            const bet = { newGameChoice: 10 };
+            const settlementResult = { isWin: false, totalAmount: 0 };
+            const bet = { amount: 10 };
             const expectedValue = {
                 isWin: false,
+                totalAmount: 0,
                 betWin: 0,
                 totalBetAmount: 10,
                 netWin: 0,
@@ -97,15 +74,16 @@ describe('settle-game-round-consumer', () => {
             // arrange
             const gameData = {};
             const consumer = new SettleGameRoundConsumer({ gameData });
-            const settlementResult = { isWin: true, betWin: 20 };
-            const bet = { newGameChoice: 10 };
+            const settlementResult = { isWin: true, totalAmount: 20 };
+            const bet = { amount: 10 };
             const expectedValue = {
                 isWin: true,
-                betWin: 20,
                 totalBetAmount: 10,
-                netWin: '10.00',
+                betWin: 10,
+                netWin: '20.00',
                 totalWin: '20.00',
                 totalLost: 0,
+                totalAmount: 20,
             };
 
             // act
@@ -116,118 +94,66 @@ describe('settle-game-round-consumer', () => {
         });
     });
 
-    describe('settleSubRound', () => {
-        it('when an non runningRound should return runningRound', async () => {
-            // arrange
-            const gameData = { runningRounds: { m1: { anNon: true } } };
-            const consumer = new SettleGameRoundConsumer({ gameData });
-            const playerUid = 'm1';
-            const payload = {};
-            const expectedValue = { anNon: true };
-
-            // act
-            const actualValue = await consumer.settleSubRound(playerUid, payload);
-
-            //assert
-            expect(actualValue).toStrictEqual(expectedValue);
-        });
-
+    describe('settleTurn', () => {
         const testCases = [
             {
-                previousCards: [
-                    { card: 0, type: 0 },
-                    { card: 0, type: 1 },
-                    { card: 0, type: 2 },
-                    { card: 0, type: 3 },
-                    { card: 1, type: 0 },
-                    { card: 1, type: 1 },
-                    { card: 1, type: 2 },
-                    { card: 1, type: 3 },
-                    { card: 2, type: 3 },
-                ],
-                betChoice: 'hi',
+                previousCards: [{ rank: 2, suit: 3 }],
+                betChoice: 'h',
             },
             {
-                previousCards: [
-                    { card: 0, type: 0 },
-                    { card: 0, type: 1 },
-                    { card: 0, type: 2 },
-                    { card: 0, type: 3 },
-                    { card: 1, type: 0 },
-                    { card: 1, type: 1 },
-                    { card: 1, type: 2 },
-                    { card: 1, type: 3 },
-                    { card: 2, type: 3 },
-                ],
-                betChoice: 'lo',
+                previousCards: [{ rank: 2, suit: 3 }],
+                betChoice: 'l',
             },
         ];
-        it.each(testCases)('when not an non runningRound should add new step', async (testCase) => {
+        it.each(testCases)('should add new bet log', async (testCase) => {
             // arrange
             const gameData = {
                 runningRounds: {
-                    m1: { anNon: false, cards: testCase.previousCards, id: 10, result: [], settlementResult: [] },
+                    m1: { phien: 10, result: testCase.previousCards, settlementResult: [] },
                 },
-                settlementResultFromAdmin: {},
+                settlementResultFromAdmin: { 10: { result: { rank: 1 } } },
                 gameConfigs: { odds: {} },
             };
 
-            const roundsRepository = {
+            const betsRepository = {
                 updateOne: () => {
                     return { exec: jest.fn() };
                 },
             };
 
             const userBetResultPublisher = { publish: jest.fn() };
-            const consumer = new SettleGameRoundConsumer({ gameData, roundsRepository, userBetResultPublisher });
+            const consumer = new SettleGameRoundConsumer({ gameData, betsRepository, userBetResultPublisher });
             const playerUid = 'm1';
             const payload = { betChoice: testCase.betChoice };
-            spyOn(consumer, 'addStep');
+            spyOn(consumer, 'addBetLog');
             spyOn(consumer, 'settleBets');
 
             // act
-            await consumer.settleSubRound(playerUid, payload);
+            await consumer.settleTurn(playerUid, payload);
 
             //assert
-            expect(consumer.addStep).toHaveBeenCalled();
+            expect(consumer.addBetLog).toHaveBeenCalled();
         });
     });
 
-    describe('addStep', () => {
-        it('should call StepModel.create', async () => {
+    describe('addBetLog', () => {
+        it('should call betLogsRepository.create', async () => {
             // arrange
-            stepModel.called = false;
-            const gameData = {};
-            const consumer = new SettleGameRoundConsumer({ gameData });
-            const runningRound = { stepCount: 3 };
-
-            // act
-            await consumer.addStep(runningRound);
-
-            //assert
-            expect(stepModel.called).toBeTruthy();
-        });
-    });
-
-    describe('anNon', () => {
-        it('should call settleBets', async () => {
-            // arrange
-            const gameData = { runningRounds: { m1: {} } };
-            const roundsRepository = {
-                updateOne: () => {
-                    return { exec: jest.fn() };
-                },
+            const gameData = {
+                realPlayers: { m1: { uid: 'm1', session: {} } },
+                exchangeRates: { code: [] },
             };
-
-            const consumer = new SettleGameRoundConsumer({ gameData, roundsRepository });
-            const playerUid = 'm1';
-            spyOn(consumer, 'settleBets');
+            const betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
+            const consumer = new SettleGameRoundConsumer({ gameData, betLogsRepository });
+            const runningRound = { totalTurns: 3 };
+            const card1 = { rank: 3, suit: 0 };
+            const card2 = { rank: 4, suit: 0 };
 
             // act
-            await consumer.anNon(playerUid);
+            await consumer.addBetLog(runningRound, card1, card2, 'h', 10);
 
             //assert
-            expect(consumer.settleBets).toHaveBeenCalled();
+            expect(betLogsRepository.create).toBeCalled();
         });
     });
 
@@ -242,6 +168,54 @@ describe('settle-game-round-consumer', () => {
 
             //assert
             expect(consumer.generateResult).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('settleBets', () => {
+        it('when not have bet should not call bet with end time', async () => {
+            // arrange
+            const gameData = { gameConfigs: {} };
+            const definition = {};
+            const userBetResultPublisher = { publish: jest.fn() };
+            const roundResultPublisher = { publishRoundResult: jest.fn() };
+            const consumer = new SettleGameRoundConsumer({ gameData, definition, userBetResultPublisher, roundResultPublisher });
+            const bet = { save: jest.fn() };
+            spyOn(consumer, 'queryBets').and.returnValue([]);
+            consumer.endGame = async () => {
+                return {
+                    isOk: true,
+                };
+            };
+            const params = { result: {}, settlementResult: { totalAmount: 10 }, roundId: 1, time: new Date() };
+
+            // act
+            await consumer.settleBets(params);
+
+            //assert
+            expect(bet.save).not.toHaveBeenCalled();
+        });
+
+        it('should save bet with end time', async () => {
+            // arrange
+            const gameData = { gameConfigs: {} };
+            const definition = {};
+            const userBetResultPublisher = { publish: jest.fn() };
+            const roundResultPublisher = { publishRoundResult: jest.fn() };
+            const consumer = new SettleGameRoundConsumer({ gameData, definition, userBetResultPublisher, roundResultPublisher });
+            const bet = { save: jest.fn() };
+            spyOn(consumer, 'queryBets').and.returnValue([bet]);
+            consumer.endGame = async () => {
+                return {
+                    isOk: true,
+                };
+            };
+            const params = { result: {}, settlementResult: { totalAmount: 10 }, roundId: 1, time: new Date() };
+
+            // act
+            await consumer.settleBets(params);
+
+            //assert
+            expect(bet.save).toHaveBeenCalled();
         });
     });
 });
