@@ -1,5 +1,7 @@
 import { Table } from 'sc-game-base';
 import { GameCron } from '../index';
+import mongoose from 'mongoose';
+import { stubMongooseModelStupidly } from 'jest-micro-auto-stub';
 
 describe('game-cron', () => {
     // arrange
@@ -12,6 +14,46 @@ describe('game-cron', () => {
 
             //assert
             expect(cron instanceof Table.Crons.TableGameCron);
+        });
+    });
+
+    describe('start', () => {
+        it('should processCorruptedBetsConsumer', async () => {
+            // arrange
+            const processCorruptedBetsConsumer = { consume: jest.fn() };
+            const gameData = {};
+            const bot = { resetInRoomTrackings: jest.fn() };
+            const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
+            const archiveStatusesRepository = stubMongooseModelStupidly(mongoose.Model);
+            const gameConfigsRepository = stubMongooseModelStupidly(mongoose.Model);
+            const notificationRepository = stubMongooseModelStupidly(mongoose.Model);
+            const exchangeRatesRepository = stubMongooseModelStupidly(mongoose.Model);
+            const currencyGroupGamesRepository = stubMongooseModelStupidly(mongoose.Model);
+            const partnerConfigRepository = stubMongooseModelStupidly(mongoose.Model);
+            const currencyGroupRepository = stubMongooseModelStupidly(mongoose.Model);
+            const currencyRepository = stubMongooseModelStupidly(mongoose.Model);
+            const logService = { logError: jest.fn() };
+            const cron = new GameCron({
+                definition,
+                gameData,
+                processCorruptedBetsConsumer,
+                bot,
+                roundsRepository,
+                archiveStatusesRepository,
+                gameConfigsRepository,
+                notificationRepository,
+                exchangeRatesRepository,
+                currencyGroupGamesRepository,
+                partnerConfigRepository,
+                currencyGroupRepository,
+                currencyRepository,
+            });
+
+            // act
+            await cron.start();
+
+            //assert
+            expect(processCorruptedBetsConsumer.consume).toHaveBeenCalled();
         });
     });
 
@@ -35,9 +77,9 @@ describe('game-cron', () => {
             // arrange
             const expiredTime = new Date() - 200000;
             const runningRounds = {
-                m1: { turnTime: expiredTime, uid: 'm1', totalTurns: 1 },
-                m2: { turnTime: expiredTime, uid: 'm2', totalTurns: 0 },
-                m3: { turnTime: new Date(), uid: 'm3' },
+                m1: { turnEndTime: expiredTime, uid: 'm1', totalTurns: 1 },
+                m2: { turnEndTime: expiredTime, uid: 'm2', totalTurns: 0 },
+                m3: { turnEndTime: new Date(), uid: 'm3' },
             };
             const realPlayers = { m1: { UID: 'm1' }, m2: { UID: 'm2' } };
             const gameData = { runningRounds, realPlayers };

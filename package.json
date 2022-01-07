@@ -11,27 +11,29 @@
         "dev": "nodemon --es-module-specifier-resolution=node --watch ./src ./src/app.js",
         "debug": "nodemon --es-module-specifier-resolution=node --watch ./ --inspect ./src/app.js",
         "prod": "node --max-old-space-size=8192 --es-module-specifier-resolution=node ./src/app.js",
-        "reg": "npm set registry http://npm.lumigame.com",
-        "test": "jest",
-        "test-coverage": "jest --collect-coverage"
+        "reg": "npm set registry https://npm.lumigame.com",
+        "test": "jest --testPathPattern=__tests__",
+        "test-coverage": "jest --collect-coverage --testPathPattern=__tests__",
+        "test-:-integration-:-setup-test-data": "node --es-module-specifier-resolution=node ./tests/integration-tests/stubs/test-data-setup.js",
+        "test-:-integration-:-start-service": "node --es-module-specifier-resolution=node ./tests/integration-tests/game-service-setup/game-service-app.js",
+        "test-:-integration-:-start-test": "jest --testPathPattern=tests/integration-tests/  --detectOpenHandles --ci --reporters=default --reporters=jest-junit"
     },
     "jestSonar": {
         "reportPath": "reports",
         "reportFile": "test-reporter.xml",
         "indent": 4
     },
+    "jest": {
+        "testResultsProcessor": "jest-junit"
+    },
     "dependencies": {
-        "@types/jest": "^26.0.24",
-        "jest-extended": "^0.11.5",
-        "jest-micro-auto-stub": "^1.0.7",
-        "jest-sonar-reporter": "^2.0.0",
         "nodemon": "^2.0.4",
         "random-js": "^2.1.0",
-        "sc-game-base": "2.1.2-beta.0"
+        "sc-game-base": "2.2.2-beta.0"
     },
     "devDependencies": {
-        "@babel/core": "^7.14.3",
-        "@babel/preset-env": "^7.14.2",
+        "@babel/core": "^7.0.0",
+        "@babel/preset-env": "^7.12.11",
         "@commitlint/cli": "^9.1.2",
         "@commitlint/config-conventional": "^9.1.2",
         "@semantic-release/changelog": "^5.0.1",
@@ -40,12 +42,18 @@
         "@semantic-release/gitlab": "^6.0.4",
         "@semantic-release/npm": "^7.0.5",
         "@semantic-release/release-notes-generator": "^9.0.1",
-        "babel-jest": "^27.0.1",
+        "babel-jest": "^26.6.3",
         "husky": "^4.2.5",
         "install": "^0.13.0",
-        "jest": "26.6.3",
+        "jest": "^26.6.3",
+        "jest-junit": "^12.2.0",
         "sc-semantic-release": "^1.1.0",
-        "semantic-release": "^17.1.1"
+        "semantic-release": "^17.1.1",
+        "jest-extended": "^0.11.5",
+        "jest-micro-auto-stub": "^1.0.7",
+        "jest-sonar-reporter": "^2.0.0",
+        "@types/jest": "^26.0.20",
+        "sc-game-service-integration-utils": "1.0.0-beta.20"
     },
     "husky": {
         "hooks": {

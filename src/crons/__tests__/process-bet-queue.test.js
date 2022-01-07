@@ -101,7 +101,7 @@ describe('process-bet-queue', () => {
         const testCases = [{ session: {} }, { session: null }];
         it.each(testCases)('should call betsRepository.updateOne', async (testCase) => {
             // arrange
-            const definition = { choicesMapper: {} };
+            const definition = { choicesMapper: {}, durations: {} };
             const gameData = { exchangeRates: {}, runningRounds: {}, gameConfigs: { odds: {} } };
             const betsRepository = stubMongooseModelStupidly(mongoose.Model);
             const cron = new ProcessBetQueue({ definition, gameData, betsRepository });

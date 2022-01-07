@@ -218,4 +218,59 @@ describe('settle-game-round-consumer', () => {
             expect(bet.save).toHaveBeenCalled();
         });
     });
+
+    describe('isWin', () => {
+        // arrange
+        const testCases = [
+            { previousCard: { rank: 0 }, expectedValue: true },
+            { previousCard: { rank: 1 }, expectedValue: true },
+            { nextCard: { rank: 0 }, previousCard: { rank: 3 }, choice: 'h', expectedValue: true },
+            { nextCard: { rank: 3 }, previousCard: { rank: 3 }, choice: 'h', expectedValue: true },
+            { nextCard: { rank: 3 }, previousCard: { rank: 2 }, choice: 'h', expectedValue: true },
+            { nextCard: { rank: 3 }, previousCard: { rank: 4 }, choice: 'h', expectedValue: false },
+            { nextCard: { rank: 1 }, previousCard: { rank: 3 }, choice: 'l', expectedValue: true },
+            { nextCard: { rank: 3 }, previousCard: { rank: 3 }, choice: 'l', expectedValue: true },
+            { nextCard: { rank: 3 }, previousCard: { rank: 2 }, choice: 'l', expectedValue: false },
+            { nextCard: { rank: 3 }, previousCard: { rank: 4 }, choice: 'l', expectedValue: true },
+        ];
+
+        it.each(testCases)('should return correct value', (testCase) => {
+            // arrange
+            const consumer = new SettleGameRoundConsumer({});
+
+            // act
+            const actualValue = consumer.isWin(testCase.choice, testCase.previousCard, testCase.nextCard);
+
+            //assert
+            expect(actualValue).toStrictEqual(testCase.expectedValue);
+        });
+    });
+
+    describe('getSettlementResult', () => {
+        // arrange
+        const testCases = [
+            { nextCard: { rank: 3 }, previousCard: { rank: 3 }, expectedValue: 't' },
+            { nextCard: { rank: 3 }, previousCard: { rank: 0 }, expectedValue: 'l' },
+            { nextCard: { rank: 1 }, previousCard: { rank: 0 }, expectedValue: 'l' },
+            { nextCard: { rank: 1 }, previousCard: { rank: 2 }, expectedValue: 'l' },
+
+            { nextCard: { rank: 0 }, previousCard: { rank: 1 }, expectedValue: 'h' },
+            { nextCard: { rank: 0 }, previousCard: { rank: 2 }, expectedValue: 'h' },
+            { nextCard: { rank: 2 }, previousCard: { rank: 1 }, expectedValue: 'h' },
+
+            { nextCard: { rank: 3 }, previousCard: { rank: 2 }, expectedValue: 'h' },
+            { nextCard: { rank: 3 }, previousCard: { rank: 4 }, expectedValue: 'l' },
+        ];
+
+        it.each(testCases)('should return correct value', (testCase) => {
+            // arrange
+            const consumer = new SettleGameRoundConsumer({});
+
+            // act
+            const actualValue = consumer.getSettlementResult(testCase.previousCard, testCase.nextCard);
+
+            //assert
+            expect(actualValue).toStrictEqual(testCase.expectedValue);
+        });
+    });
 });

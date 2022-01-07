@@ -29,9 +29,11 @@ export default class CollectConsumer {
             return;
         }
 
+        const turnTime = new Date();
         const newInfo = {
             isWin: true,
-            turnTime: new Date(),
+            turnTime: turnTime,
+            turnEndTime: new Date(turnTime.getTime() + this.definition.durations.wholeRound * 1000),
             totalAmount: runningRound.totalAmount,
             totalTurns: runningRound.totalTurns,
             result: runningRound.result,

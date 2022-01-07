@@ -1,5 +1,6 @@
 import { Core } from 'sc-game-base';
 import gameHelper from '../helpers/game-helper';
+import gameSettings from '../game-settings';
 
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
     constructor(params) {
@@ -34,7 +35,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         const previousCard = runningRound.result[runningRound.result.length - 1];
         const nextCard = this.generateResult(runningRound);
-        const isWin = gameHelper.isWin(payload.betChoice, previousCard, nextCard);
+        const isWin = this.isWin(payload.betChoice, previousCard, nextCard);
 
         const odds = gameHelper.calculateOdd(this.gameData.gameConfigs.odds, previousCard.rank, runningRound.totalTurns + 1);
         const newStake = isWin ? runningRound.totalAmount * (1 + odds[payload.betChoice]) : runningRound.totalAmount;
@@ -53,7 +54,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         };
 
         newInfo.result.push(nextCard);
-        newInfo.settlementResult.push(gameHelper.getSettlementResult(previousCard, nextCard));
+        newInfo.settlementResult.push(this.getSettlementResult(previousCard, nextCard));
         await this.betsRepository.updateOne({ phien: runningRound.phien }, { $set: newInfo }).exec();
 
         const settleResult = { ...runningRound, ...newInfo };
@@ -110,5 +111,34 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 })
             );
         }
+    }
+
+    isWin(choice, previousCard, nextCard) {
+        if (previousCard.rank <= 1 || previousCard.rank === nextCard.rank) {
+            return true;
+        }
+
+        const r = this.rankCardByValue(previousCard, nextCard);
+
+        return (choice === gameSettings.hiChoice && r.pCard < r.nCard) || (choice === gameSettings.loChoice && r.nCard < r.pCard);
+    }
+
+    getSettlementResult(previousCard, nextCard) {
+        if (previousCard.rank === nextCard.rank) {
+            return gameSettings.tieResult;
+        }
+
+        const r = this.rankCardByValue(previousCard, nextCard);
+
+        return r.pCard < r.nCard ? gameSettings.hiChoice : gameSettings.loChoice;
+    }
+
+    rankCardByValue(previousCard, nextCard) {
+        const highestCardValue = 13;
+
+        return {
+            pCard: previousCard.rank === 0 ? highestCardValue : previousCard.rank,
+            nCard: nextCard.rank === 0 ? highestCardValue : nextCard.rank,
+        };
     }
 }

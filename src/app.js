@@ -13,9 +13,6 @@ export const run = async () => {
 
     await app.run();
     await app.startGame(container);
-
-    const processCorruptedBetsConsumer = container.resolve('processCorruptedBetsConsumer');
-    await processCorruptedBetsConsumer.consume();
 };
 
 run();

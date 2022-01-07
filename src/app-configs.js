@@ -1,5 +1,5 @@
 export default {
-    hostingPort: 5005,
+    hostingPort: 5001,
     apiSettings: {
         enabledApi: true,
         apiUrl: 'http://l3-api-proxy.nexdev.net/local3/game-api',
@@ -11,8 +11,7 @@ export default {
         useAuthenticate: true,
         requestTimeout: 10000,
         placeBetTimeout: 4500,
-        hitJackpotTimeout: 200000,
-        enableApiLogs: true,
+        enabledApiLogs: true,
     },
     mainServerApiSettings: {
         url: 'http://localhost:8080/api',
@@ -34,7 +33,7 @@ export default {
     database: {
         url: 'mongodb://127.0.0.1:27017',
         options: {
-            dbName: 'minigame',
+            dbName: 'minigame2',
             useNewUrlParser: true,
             useUnifiedTopology: true,
             auto_reconnect: true,

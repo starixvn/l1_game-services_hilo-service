@@ -3,6 +3,16 @@ import { Random as RandomJS, MersenneTwister19937 } from 'random-js';
 import gameHelper from '../helpers/game-helper';
 
 export default class GameCron extends Table.Crons.TableGameCron {
+    constructor(params) {
+        super(params);
+        this.processCorruptedBetsConsumer = params.processCorruptedBetsConsumer;
+    }
+
+    async start() {
+        await super.start();
+        await this.processCorruptedBetsConsumer.consume();
+    }
+
     async proceed() {
         await this.processRunningRounds();
         await super.proceed();
@@ -10,11 +20,11 @@ export default class GameCron extends Table.Crons.TableGameCron {
 
     async processRunningRounds() {
         const runningRounds = Object.values(this.gameData.runningRounds);
+        const currentTime = new Date();
 
         for (let i = 0; i < runningRounds.length; i++) {
             const r = runningRounds[i];
-            const isExpired = gameHelper.isExpiredRound(r.turnTime, this.definition.durations.wholeRound);
-            if (isExpired) {
+            if (r.turnEndTime < currentTime) {
                 const payload = { betChoice: this.autoChooseChoice() };
                 await this.settleGameRoundConsumer.settleTurn(r.uid, payload);
             }

@@ -10,4 +10,5 @@ export default {
     newGameChoice: 'amount',
     hiChoice: 'h',
     loChoice: 'l',
+    tieResult: 't',
 };

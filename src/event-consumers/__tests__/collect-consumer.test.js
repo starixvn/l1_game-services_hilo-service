@@ -43,7 +43,8 @@ describe('collect-consumer', () => {
             const publisher = { publishToUser: jest.fn() };
             const gameData = { runningRounds: { m1: { phien: 2 } } };
             const settleGameRoundConsumer = { settleBets: jest.fn() };
-            const consumer = new CollectConsumer(null, gameData, publisher, settleGameRoundConsumer);
+            const definition = { durations: {} };
+            const consumer = new CollectConsumer(definition, gameData, publisher, settleGameRoundConsumer);
             spyOn(consumer, 'validate').and.returnValue(null);
             const playerUid = 'm1';
 

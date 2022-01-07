@@ -29,13 +29,14 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
         const firstCard = gameHelper.drawCard([]);
         const { exchangeRates } = this.gameData;
 
+        const turnTime = new Date();
         const newBet = {
             uid: player.UID,
             name: player.profile.name,
             phien: roundId,
             amount: bet.amount,
 
-            time: new Date(),
+            time: turnTime,
             odds: this.gameData.gameConfigs.odds,
             rate,
             totalAmount: bet.amount,
@@ -44,7 +45,8 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
             exchangeRateId: exchangeRates.exId,
 
             totalTurns: 0,
-            turnTime: new Date(),
+            turnTime: turnTime,
+            turnEndTime: new Date(turnTime.getTime() + this.definition.durations.wholeRound * 1000),
         };
 
         const existingBetFilter = { uid: player.UID, phien: roundId, freeBet: bet.freeBet };
