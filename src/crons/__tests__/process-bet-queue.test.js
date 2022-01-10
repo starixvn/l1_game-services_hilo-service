@@ -17,18 +17,18 @@ describe('process-bet-queue', () => {
     describe('proceedBet', () => {
         // arrange
         const testCases = [
-            { amount: null, freeBet: null, lastRound: null, expectedValue: 1 },
-            { amount: 10, freeBet: true, lastRound: { phien: 10 }, expectedValue: 11 },
+            { amount: null, freeBet: null, lastRound: null, expectedValue: 10 },
+            { amount: 10, freeBet: true, lastRound: { phien: 10 }, expectedValue: 10 },
         ];
 
         it.each(testCases)('should assign round id', async (testCase) => {
             // arrange
             const definition = { choicesMapper: {} };
             const betsRepository = stubMongooseModelStupidly(mongoose.Model);
-            betsRepository.findOne().lean().exec.mockReturnValueOnce(testCase.lastRound);
             const placeBetPublisher = { publishGameFailedBet: jest.fn() };
             const baseMetrics = { collectBetProcessedTime: jest.fn() };
-            const cron = new ProcessBetQueue({ definition, betsRepository, placeBetPublisher, baseMetrics });
+            const gameData = { roundId: 10 };
+            const cron = new ProcessBetQueue({ definition, gameData, betsRepository, placeBetPublisher, baseMetrics });
             const player = { session: {}, profile: {} };
             const payload = { ...testCase };
             spyOn(cron, 'composeValidationCriteria').and.returnValue([]);
@@ -102,7 +102,7 @@ describe('process-bet-queue', () => {
         it.each(testCases)('should call betsRepository.updateOne', async (testCase) => {
             // arrange
             const definition = { choicesMapper: {}, durations: {} };
-            const gameData = { exchangeRates: {}, runningRounds: {}, gameConfigs: { odds: {} } };
+            const gameData = { exchangeRates: {}, runningRounds: {}, gameConfigs: { odds: {} }, roundId: 10 };
             const betsRepository = stubMongooseModelStupidly(mongoose.Model);
             const cron = new ProcessBetQueue({ definition, gameData, betsRepository });
 
@@ -116,6 +116,7 @@ describe('process-bet-queue', () => {
 
             //assert
             expect(betsRepository.updateOne).toHaveBeenCalled();
+            expect(gameData.roundId).toBe(11);
         });
     });
 

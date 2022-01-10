@@ -1,7 +1,12 @@
 import { Table } from 'sc-game-base';
 import { GameBot } from '../index';
-import mongoose from 'mongoose';
-import { stubMongooseModelStupidly } from 'jest-micro-auto-stub';
+
+const userInfosRepository = {
+    noOfDocuments: 10,
+    countDocuments: () => {
+        return { exec: () => userInfosRepository.noOfDocuments };
+    },
+};
 
 describe('game-bot', () => {
     describe('extends', () => {
@@ -14,49 +19,75 @@ describe('game-bot', () => {
         });
     });
 
-    describe('resetBot', () => {
-        it('should reset played value', () => {
-            // arrange
-            const cron = new GameBot();
-            const bot = { id: 2, name: 'bot2', hasPlayed: true };
-
-            // act
-            cron.resetBot(bot);
-
-            //assert
-            expect(bot.hasPlayed).toBeFalsy();
-        });
-    });
-
     describe('placeBet', () => {
-        it('when bot already played in time should not create new bet', async () => {
+        it('when not have config should not increase round id', async () => {
             // arrange
-            const gameData = { exchangeRates: { exId: 1 }, gameConfigs: { minbet: 10 } };
-            const betsRepository = stubMongooseModelStupidly(mongoose.Model);
-            const cron = new GameBot({}, gameData, null, null, null, betsRepository);
-            const bot = { id: 2, name: 'bot2', hasPlayed: true };
+            const gameData = { gameConfigs: null, roundId: 10 };
+            const cron = new GameBot({}, gameData);
+            const expectedValue = 10;
 
             // act
-            await cron.placeBet(bot);
+            await cron.run();
 
             //assert
-            expect(betsRepository.create).not.toHaveBeenCalled();
+            expect(gameData.roundId).toBe(expectedValue);
         });
 
-        const testCases = [{ lastRound: null }, { lastRound: { phien: 0 } }, { lastRound: { phien: 10 } }];
-        it.each(testCases)('should create new bet', async (testCase) => {
+        it('when bot not enabled should not increase round id', async () => {
             // arrange
-            const gameData = { exchangeRates: { exId: 1 }, gameConfigs: { minbet: 10 } };
-            const betsRepository = stubMongooseModelStupidly(mongoose.Model);
-            betsRepository.findOne().lean().exec.mockReturnValueOnce(testCase.lastRound);
-            const cron = new GameBot({}, gameData, null, null, null, betsRepository);
-            const bot = { id: 2, name: 'bot2', hasPlayed: false };
+            const gameData = { gameConfigs: { botenabled: false }, roundId: 10 };
+            const cron = new GameBot({}, gameData);
+            const expectedValue = 10;
 
             // act
-            await cron.placeBet(bot);
+            await cron.run();
 
             //assert
-            expect(betsRepository.create).toHaveBeenCalled();
+            expect(gameData.roundId).toBe(expectedValue);
+        });
+
+        it('when maxNumberOfBots=0 should not increase round id', async () => {
+            // arrange
+            const gameData = {
+                gameConfigs: {
+                    botenabled: true,
+                    hour_maxbot: Array(24).fill(10),
+                },
+                roundId: 10,
+            };
+
+            userInfosRepository.noOfDocuments = 0;
+            const cron = new GameBot({}, gameData, userInfosRepository);
+            const expectedValue = 10;
+
+            // act
+            await cron.run();
+
+            //assert
+            expect(gameData.roundId).toBe(expectedValue);
+        });
+
+        it('when maxNumberOfBots>0 should increase round id in range 1 -> maxNumberOfBots', async () => {
+            // arrange
+            const gameData = {
+                gameConfigs: {
+                    botenabled: true,
+                    hour_maxbot: Array(24).fill(10),
+                },
+                roundId: 10,
+            };
+
+            userInfosRepository.noOfDocuments = 10;
+            const cron = new GameBot({}, gameData, null, userInfosRepository);
+            spyOn(cron, 'processDisabledBots');
+            await cron.reset();
+
+            // act
+            await cron.run();
+
+            console.log(gameData.roundId);
+            //assert
+            expect(11 <= gameData.roundId && gameData.roundId <= 110).toBeTruthy();
         });
     });
 });

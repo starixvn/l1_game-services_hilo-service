@@ -59,7 +59,7 @@ describe('game-helper', () => {
         });
     });
 
-    describe('calculateOdd', () => {
+    describe('calculateOdds', () => {
         // arrange
         const testCases = [
             { rank: 0, expectedValue: { h: 0, l: 0 } },
@@ -73,7 +73,7 @@ describe('game-helper', () => {
             const totalTurns = 1;
 
             // act
-            const actualValue = gameHelper.calculateOdd(odds, testCase.rank, totalTurns);
+            const actualValue = gameHelper.calculateOdds(odds, testCase.rank, totalTurns);
 
             //assert
             expect(actualValue).toStrictEqual(testCase.expectedValue);

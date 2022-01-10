@@ -1,6 +1,7 @@
 import { GameClientDriver, normalUser } from 'sc-game-service-integration-utils';
 import { socketOptions } from './stubs/test-data';
 import { initUserSession } from './helpers';
+import gameSettings from '../../src/game-settings';
 
 const JEST_ASSERT_WAITING_RESPONSE_TIMEOUT = 60000;
 
@@ -28,15 +29,23 @@ describe('event deal', () => {
             });
         });
 
-        it('should return game configs, odds', (done) => {
-            // Act
-            gameClientDriver.sendInGameEvent();
+        it('when deal is valid should return endBet=1', (done) => {
+            // arrange
+            gameClientDriver.sendBetEvent(null, 100);
+
+            let startDeal = false;
+            gameClientDriver.handleEndBetEvent((endBetData) => {
+                if (endBetData?.endBet) {
+                    startDeal = true;
+                    gameClientDriver.emit('deal', { betChoice: 'h' });
+                }
+            });
 
             // Assert
-            gameClientDriver.handleInGameEvent((inGameData) => {
-                expect(inGameData.gameConfigs).not.toBeNull();
-                expect(inGameData.odds).not.toBeNull();
-                done();
+            gameClientDriver.on(gameSettings.name, (endBetData) => {
+                if (startDeal && endBetData?.endBet) {
+                    done();
+                }
             });
         });
     });

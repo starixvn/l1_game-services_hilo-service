@@ -34,15 +34,15 @@ export default {
         const firstCard = cards[0];
         return this.isDrawnCard(firstCard, drawnCards) ? cards[1] : firstCard;
     },
-    calculateOdd: function (odds, card, totalTurns) {
+    calculateOdds: function (odds, card, totalTurns) {
         if (card <= 1) {
             return { [gameSettings.hiChoice]: 0, [gameSettings.loChoice]: 0 };
         }
 
-        const stepOdd = 6 / (5 + totalTurns);
-        const hiOdd = (odds[(card + 1).toString()] / 100) * stepOdd;
-        const loOdd = (odds[(15 - card).toString()] / 100) * stepOdd;
+        const stepOdds = 6 / (5 + totalTurns);
+        const hiOdds = (odds[(card + 1).toString()] / 100) * stepOdds;
+        const loOdds = (odds[(15 - card).toString()] / 100) * stepOdds;
 
-        return { [gameSettings.hiChoice]: hiOdd, [gameSettings.loChoice]: loOdd };
+        return { [gameSettings.hiChoice]: hiOdds, [gameSettings.loChoice]: loOdds };
     },
 };

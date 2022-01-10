@@ -37,7 +37,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const nextCard = this.generateResult(runningRound);
         const isWin = this.isWin(payload.betChoice, previousCard, nextCard);
 
-        const odds = gameHelper.calculateOdd(this.gameData.gameConfigs.odds, previousCard.rank, runningRound.totalTurns + 1);
+        const odds = gameHelper.calculateOdds(this.gameData.gameConfigs.odds, previousCard.rank, runningRound.totalTurns + 1);
         const newStake = isWin ? runningRound.totalAmount * (1 + odds[payload.betChoice]) : runningRound.totalAmount;
 
         const betWin = isWin ? newStake - runningRound.totalAmount : 0;
@@ -50,7 +50,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             settlementResult: runningRound.settlementResult,
             turnTime: new Date(),
             odds,
-            newOdds: gameHelper.calculateOdd(this.gameData.gameConfigs.odds, nextCard.rank, runningRound.totalTurns + 2),
+            newOdds: gameHelper.calculateOdds(this.gameData.gameConfigs.odds, nextCard.rank, runningRound.totalTurns + 2),
         };
 
         newInfo.result.push(nextCard);

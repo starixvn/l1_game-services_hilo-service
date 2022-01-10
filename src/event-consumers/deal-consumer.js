@@ -11,16 +11,15 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
     }
 
     async composeValidationCriteria(player, betChoice, freeBet, roundId) {
-        const bettingTimeValidationCriteria = (await this.composeBettingTimeValidationCriteria(roundId)) ?? [];
+        const bettingTimeValidationCriteria = this.composeBettingTimeValidationCriteria(roundId) ?? [];
         const betAmountValidationCriteria = this.composeBetAmountValidationCriteria(freeBet) || [];
         const betChoiceValidationCriteria = this.composeBetChoiceValidationCriteria(player, betChoice) || [];
 
         return bettingTimeValidationCriteria.concat(betChoiceValidationCriteria, betAmountValidationCriteria);
     }
 
-    async composeBettingTimeValidationCriteria(roundId) {
+    composeBettingTimeValidationCriteria(roundId) {
         const configs = this.gameData.gameConfigs;
-        const round = roundId ? await this.betsRepository.findOne({ phien: roundId }).lean().exec() : {};
 
         return [
             {
@@ -29,15 +28,7 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
             },
             {
                 failure: !roundId,
-                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: errorCodes.roundEnded }),
-            },
-            {
-                failure: roundId && !round,
                 notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: errorCodes.roundNotExist }),
-            },
-            {
-                failure: round && round.thanhtoan,
-                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: errorCodes.turnEnded }),
             },
         ];
     }
@@ -99,10 +90,12 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
 
         const { betChoice, freeBet, roundId } = payload;
 
+        console.log('Deal1');
         if (!(await this.validateBetRequest(player, betChoice, freeBet, roundId))) {
             return;
         }
 
+        console.log('Deal2');
         const result = await this.settleGameRoundConsumer.settleTurn(player.UID, payload);
         this.publisher.publishToUser(player.UID, { endBet: 1, payload, result });
     }

@@ -39,7 +39,7 @@ describe('deal-consumer', () => {
             { enabled: false, expectedValue: { failure: true, notice: { errorCode: helpers.noticeHelper.invalidBet } } },
             { enabled: true, expectedValue: { failure: false, notice: { errorCode: helpers.noticeHelper.invalidBet } } },
         ];
-        it.each(testCases)('should check game enabled or not', async (testCase) => {
+        it.each(testCases)('should check game enabled or not', (testCase) => {
             // arrange
             const definition = {};
             const gameData = { gameConfigs: { enabled: testCase.enabled } };
@@ -48,7 +48,7 @@ describe('deal-consumer', () => {
             const roundId = undefined;
 
             // act
-            const actualValue = await consumer.composeBettingTimeValidationCriteria(roundId);
+            const actualValue = consumer.composeBettingTimeValidationCriteria(roundId);
 
             //assert
             expect(actualValue[0]).toStrictEqual(testCase.expectedValue);
@@ -59,18 +59,18 @@ describe('deal-consumer', () => {
                 roundId: undefined,
                 expectedValue: {
                     failure: true,
-                    notice: { errorCode: helpers.noticeHelper.invalidBet, message: errorCodes.roundEnded },
+                    notice: { errorCode: helpers.noticeHelper.invalidBet, message: errorCodes.roundNotExist },
                 },
             },
             {
                 roundId: 10,
                 expectedValue: {
                     failure: false,
-                    notice: { errorCode: helpers.noticeHelper.invalidBet, message: errorCodes.roundEnded },
+                    notice: { errorCode: helpers.noticeHelper.invalidBet, message: errorCodes.roundNotExist },
                 },
             },
         ];
-        it.each(testCases)('should check round id', async (testCase) => {
+        it.each(testCases)('should check round id', (testCase) => {
             // arrange
             const definition = {};
             const gameData = { gameConfigs: { enabled: true } };
@@ -79,112 +79,10 @@ describe('deal-consumer', () => {
             const roundId = testCase.roundId;
 
             // act
-            const actualValue = await consumer.composeBettingTimeValidationCriteria(roundId);
+            const actualValue = consumer.composeBettingTimeValidationCriteria(roundId);
 
             //assert
             expect(actualValue[1]).toStrictEqual(testCase.expectedValue);
-        });
-
-        it('when round not exist should return failed', async () => {
-            // arrange
-            const definition = {};
-            const gameData = { gameConfigs: { enabled: true } };
-            const betsRepository = stubMongooseModelStupidly(mongoose.Model);
-            betsRepository.findOne().lean().exec.mockReturnValueOnce(null);
-            const consumer = new DealConsumer(definition, gameData, {}, betsRepository);
-            const roundId = 1;
-            const expectedValue = {
-                failure: true,
-                notice: { errorCode: helpers.noticeHelper.invalidBet, message: errorCodes.roundNotExist },
-            };
-
-            // act
-            const actualValue = await consumer.composeBettingTimeValidationCriteria(roundId);
-
-            //assert
-            expect(actualValue[2]).toStrictEqual(expectedValue);
-        });
-
-        it('when round exist should not failed', async () => {
-            // arrange
-            const definition = {};
-            const gameData = { gameConfigs: { enabled: true } };
-            const betsRepository = stubMongooseModelStupidly(mongoose.Model);
-            betsRepository.findOne().lean().exec.mockReturnValueOnce({ phien: 10 });
-
-            const consumer = new DealConsumer(definition, gameData, {}, betsRepository);
-            const roundId = 1;
-            const expectedValue = {
-                failure: false,
-                notice: { errorCode: helpers.noticeHelper.invalidBet, message: errorCodes.roundNotExist },
-            };
-
-            // act
-            const actualValue = await consumer.composeBettingTimeValidationCriteria(roundId);
-
-            //assert
-            expect(actualValue[2]).toStrictEqual(expectedValue);
-        });
-
-        it('when round not exists should not failed ended criterion', async () => {
-            // arrange
-            const definition = {};
-            const gameData = { gameConfigs: { enabled: true } };
-            const betsRepository = stubMongooseModelStupidly(mongoose.Model);
-            betsRepository.findOne().lean().exec.mockReturnValueOnce(null);
-            const consumer = new DealConsumer(definition, gameData, {}, betsRepository);
-            const roundId = 1;
-            const expectedValue = {
-                failure: null,
-                notice: { errorCode: helpers.noticeHelper.invalidBet, message: errorCodes.turnEnded },
-            };
-
-            // act
-            const actualValue = await consumer.composeBettingTimeValidationCriteria(roundId);
-
-            //assert
-            expect(actualValue[3]).toStrictEqual(expectedValue);
-        });
-
-        it('when round not ended should not failed ended criterion', async () => {
-            // arrange
-            const definition = {};
-            const gameData = { gameConfigs: { enabled: true } };
-            const betsRepository = stubMongooseModelStupidly(mongoose.Model);
-            betsRepository.findOne().lean().exec.mockReturnValueOnce({ phien: 10, thanhtoan: false });
-            const consumer = new DealConsumer(definition, gameData, {}, betsRepository);
-            const roundId = 1;
-            const expectedValue = {
-                failure: false,
-                notice: { errorCode: helpers.noticeHelper.invalidBet, message: errorCodes.turnEnded },
-            };
-
-            // act
-            const actualValue = await consumer.composeBettingTimeValidationCriteria(roundId);
-
-            //assert
-            expect(actualValue[3]).toStrictEqual(expectedValue);
-        });
-
-        it('when round ended should failed ended criterion', async () => {
-            // arrange
-            const definition = {};
-            const gameData = { gameConfigs: { enabled: true } };
-            const betsRepository = stubMongooseModelStupidly(mongoose.Model);
-            betsRepository.findOne().lean().exec.mockReturnValueOnce({ phien: 10, thanhtoan: true });
-
-            const consumer = new DealConsumer(definition, gameData, {}, betsRepository);
-            const roundId = 1;
-            const expectedValue = {
-                failure: true,
-                notice: { errorCode: helpers.noticeHelper.invalidBet, message: errorCodes.turnEnded },
-            };
-
-            // act
-            const actualValue = await consumer.composeBettingTimeValidationCriteria(roundId);
-
-            //assert
-            expect(actualValue[3]).toStrictEqual(expectedValue);
         });
     });
 

@@ -1,6 +1,5 @@
 import { Table } from 'sc-game-base';
 import { Random as RandomJS, MersenneTwister19937 } from 'random-js';
-import gameHelper from '../helpers/game-helper';
 
 export default class GameCron extends Table.Crons.TableGameCron {
     constructor(params) {
@@ -11,6 +10,13 @@ export default class GameCron extends Table.Crons.TableGameCron {
     async start() {
         await super.start();
         await this.processCorruptedBetsConsumer.consume();
+
+        const lastRound = await this.roundsRepository
+            .findOne({}, 'phien', { sort: { id: -1 } })
+            .lean()
+            .exec();
+
+        this.gameData.roundId = lastRound ? lastRound.phien + 1 : await this.getLastArchiveRound();
     }
 
     async proceed() {
@@ -24,7 +30,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
 
         for (let i = 0; i < runningRounds.length; i++) {
             const r = runningRounds[i];
-            if (r.turnEndTime < currentTime) {
+            if (r.turnEndTime <= currentTime) {
                 const payload = { betChoice: this.autoChooseChoice() };
                 await this.settleGameRoundConsumer.settleTurn(r.uid, payload);
             }

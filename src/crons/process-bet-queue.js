@@ -3,14 +3,9 @@ import gameHelper from '../helpers/game-helper';
 
 export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
     async proceedBet(player, payload) {
-        const lastRound = (await this.betsRepository
-            .findOne({}, 'phien', { sort: { id: -1 } })
-            .lean()
-            .exec()) ?? { phien: 0 };
-
         Object.assign(payload, {
             amount: payload.amount >> 0,
-            roundId: lastRound.phien + 1,
+            roundId: this.gameData.roundId,
             freeBet: payload.freeBet ?? false,
             receivedTime: new Date(),
         });
@@ -60,8 +55,9 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
 
         await this.betsRepository.updateOne(existingBetFilter, { $setOnInsert: newBet }, { upsert: true, setDefaultsOnInsert: true });
 
-        newBet.odds = gameHelper.calculateOdd(this.gameData.gameConfigs.odds, firstCard.rank, 1);
+        newBet.odds = gameHelper.calculateOdds(this.gameData.gameConfigs.odds, firstCard.rank, 1);
         this.gameData.runningRounds[player.UID] = newBet;
+        this.gameData.roundId++;
     }
 
     async insertBetLog() {}
