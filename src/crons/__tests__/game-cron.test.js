@@ -76,7 +76,7 @@ describe('game-cron', () => {
     describe('proceed', () => {
         it('always processRunningRounds', async () => {
             // arrange
-            const gameData = {};
+            const gameData = { ingame: {} };
             const cron = new GameCron({ definition, gameData });
             spyOn(cron, 'processRunningRounds');
 
@@ -94,21 +94,22 @@ describe('game-cron', () => {
             const dt = new Date();
             const expiredTime = new Date(dt.getTime() - 120000);
             const runningRounds = {
-                m1: { turnEndTime: expiredTime, uid: 'm1', totalTurns: 1 },
-                m2: { turnEndTime: expiredTime, uid: 'm2', totalTurns: 0 },
+                m1: { turnEndTime: expiredTime, uid: 'm1', totalTurns: 0 },
+                m2: { turnEndTime: expiredTime, uid: 'm2', totalTurns: 1 },
                 m3: { turnEndTime: new Date(dt.getTime() + 20000), uid: 'm3' },
             };
             const realPlayers = { m1: { UID: 'm1' }, m2: { UID: 'm2' } };
             const gameData = { runningRounds, realPlayers };
-            const settleGameRoundConsumer = { settleTurn: jest.fn(), collect: jest.fn() };
-            const cron = new GameCron({ definition, gameData, settleGameRoundConsumer });
+            const settleGameRoundConsumer = { settleTurn: jest.fn() };
+            const collectConsumer = { consume: jest.fn() };
+            const cron = new GameCron({ definition, gameData, settleGameRoundConsumer, collectConsumer });
 
             // act
             await cron.processRunningRounds();
 
             //assert
             expect(cron.settleGameRoundConsumer.settleTurn).toHaveBeenCalledWith('m1', expect.any(Object));
-            expect(cron.settleGameRoundConsumer.settleTurn).toHaveBeenCalledWith('m2', expect.any(Object));
+            expect(collectConsumer.consume).toHaveBeenCalled();
             expect(cron.settleGameRoundConsumer.settleTurn).not.toHaveBeenCalledWith('m3', expect.any(Object));
         });
     });
@@ -129,6 +130,21 @@ describe('game-cron', () => {
             //assert
             expect(Math.abs(choiceCounts.hi / testCount - 0.5) <= 0.05).toBeTruthy();
             expect(Math.abs(choiceCounts.lo / testCount - 0.5) <= 0.05).toBeTruthy();
+        });
+    });
+
+    describe('resetForNewRound', () => {
+        it('should do nothing', () => {
+            // arrange
+            const gameData = { ingame: { m1: { betTracks: { newGameChoice: 10 } } }, settlementResultFromAdmin: { 10: {} } };
+            const cron = new GameCron({ gameData });
+
+            // act
+            cron.resetForNewRound();
+
+            //assert
+            expect(gameData.ingame.m1).not.toBeNull();
+            expect(gameData.settlementResultFromAdmin['10']).not.toBeNull();
         });
     });
 });

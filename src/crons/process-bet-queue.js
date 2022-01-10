@@ -1,8 +1,16 @@
 import { Table } from 'sc-game-base';
-import gameHelper from '../helpers/game-helper';
+import gameHelper from '../helpers/deck-helper';
+import oddsGenerator from '../generators/odds-generator';
+import gameSettings from '../game-settings';
 
 export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
-    async proceedBet(player, payload) {
+    constructor(params) {
+        super(params);
+
+        this.settleGameRoundConsumer = params.settleGameRoundConsumer;
+    }
+
+    async bet(player, payload) {
         Object.assign(payload, {
             amount: payload.amount >> 0,
             roundId: this.gameData.roundId,
@@ -11,6 +19,55 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
         });
 
         await super.proceedBet(player, payload);
+    }
+
+    async collect(player) {
+        const runningRound = this.gameData.runningRounds[player.UID];
+        if (!runningRound) {
+            return;
+        }
+
+        const turnTime = new Date();
+        const newInfo = {
+            isWin: true,
+            turnTime: turnTime,
+            turnEndTime: new Date(turnTime.getTime() + gameSettings.turnTime * 1000),
+            totalAmount: runningRound.totalAmount,
+            totalTurns: runningRound.totalTurns,
+            result: runningRound.result,
+            settlementResult: runningRound.settlementResult,
+        };
+
+        await this.settleGameRoundConsumer.settleBets({
+            result: runningRound,
+            settlementResult: newInfo,
+            roundId: runningRound.phien,
+            time: newInfo.turnTime,
+        });
+
+        delete this.gameData.runningRounds[player.UID];
+    }
+
+    async deal(player, bet) {
+        const runningRound = this.gameData.runningRounds[player.UID];
+        if (!!runningRound && runningRound.totalTurns === bet.order) {
+            const result = await this.settleGameRoundConsumer.settleTurn(player.UID, bet);
+            this.placeBetPublisher.publishToUser(player.UID, { endBet: 1, bet, result });
+        }
+    }
+
+    async proceedBet(player, payload) {
+        switch (payload.action) {
+            case gameSettings.actions.bet:
+                await this.bet(player, payload.bet);
+                break;
+            case gameSettings.actions.collect:
+                await this.collect(player);
+                break;
+            case gameSettings.actions.deal:
+                await this.deal(player, payload.bet);
+                break;
+        }
     }
 
     async composeValidationCriteria(player, payload) {
@@ -41,7 +98,7 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
 
             totalTurns: 0,
             turnTime: turnTime,
-            turnEndTime: new Date(turnTime.getTime() + this.definition.durations.wholeRound * 1000),
+            turnEndTime: new Date(turnTime.getTime() + gameSettings.turnTime * 1000),
         };
 
         const existingBetFilter = { uid: player.UID, phien: roundId, freeBet: bet.freeBet };
@@ -55,7 +112,7 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
 
         await this.betsRepository.updateOne(existingBetFilter, { $setOnInsert: newBet }, { upsert: true, setDefaultsOnInsert: true });
 
-        newBet.odds = gameHelper.calculateOdds(this.gameData.gameConfigs.odds, firstCard.rank, 1);
+        newBet.odds = oddsGenerator.generate(this.gameData.gameConfigs.odds, firstCard.rank, 1);
         this.gameData.runningRounds[player.UID] = newBet;
         this.gameData.roundId++;
     }

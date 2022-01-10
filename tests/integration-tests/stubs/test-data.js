@@ -9,15 +9,15 @@ const gameConfig = {
     minBet: 10,
     maxBet: 3000,
     maxBetPerChoices: { even: 3000, odd: 3000, red3: 3000, white3: 3000, red4: 1000, white4: 1000, red2: 3000 },
-    odds: { even: 1.97, odd: 1.97, red3: 3.76, white3: 3.76, red4: 14.5, white4: 14.5, red2: 2.5 },
+    odds: { 3: 5, 4: 10, 5: 28, 6: 44, 7: 83, 8: 90, 9: 127, 10: 183, 11: 276, 12: 452, 13: 1020 },
 };
 
 const currencyData = { code: 'USD', name: '$US' };
 
 const rounds = [
     {
-        uid: 'm1',
-        name: 'player1',
+        uid: '61dd4c8a4cd022afdc871b0f',
+        name: 'NormalUser',
         phien: 2,
         amount: 10,
 

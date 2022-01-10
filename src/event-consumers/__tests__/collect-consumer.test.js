@@ -29,30 +29,30 @@ describe('collect-consumer', () => {
             const gameData = { runningRounds: { m1: {} } };
             const consumer = new CollectConsumer(null, gameData, publisher);
             spyOn(consumer, 'validate').and.returnValue({ failed: true });
-            const playerUid = 'm1';
+            const player = { UID: 'm1', profile: { name: 'm1' } };
 
             // act
-            await consumer.consume(playerUid);
+            await consumer.consume(player);
 
             //assert
-            expect(publisher.publishToUser).toBeCalledWith('m1', expect.objectContaining({ isCollect: false, failed: true }));
+            expect(publisher.publishToUser).toBeCalledWith('m1', expect.objectContaining({ isCollect: -1, failed: true }));
         });
 
-        it('when validate passed should call settleGameRoundConsumer.settleBets', async () => {
+        it('when validate passed should push collect info to queue', async () => {
             // arrange
             const publisher = { publishToUser: jest.fn() };
-            const gameData = { runningRounds: { m1: { phien: 2 } } };
+            const gameData = { runningRounds: { m1: { phien: 2 } }, ingame: { m1: { betQueue: [] } } };
             const settleGameRoundConsumer = { settleBets: jest.fn() };
             const definition = { durations: {} };
             const consumer = new CollectConsumer(definition, gameData, publisher, settleGameRoundConsumer);
             spyOn(consumer, 'validate').and.returnValue(null);
-            const playerUid = 'm1';
+            const player = { UID: 'm1', profile: { name: 'm1' } };
 
             // act
-            await consumer.consume(playerUid);
+            await consumer.consume(player);
 
             //assert
-            expect(settleGameRoundConsumer.settleBets).toBeCalledWith(expect.objectContaining({ roundId: 2 }));
+            expect(gameData.ingame.m1.betQueue.length > 0).toBeTruthy();
         });
     });
 });

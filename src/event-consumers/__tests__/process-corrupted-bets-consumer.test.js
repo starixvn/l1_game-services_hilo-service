@@ -7,9 +7,9 @@ describe('in-game-consumer', () => {
         const testCases = [
             {
                 bets: [
-                    { uid: 'm1', thanhtoan: false },
-                    { uid: 'm2', thanhtoan: false },
-                    { uid: 'm4', thanhtoan: false },
+                    { uid: 'm1', thanhtoan: false, totalTurns: 0 },
+                    { uid: 'm2', thanhtoan: false, totalTurns: 1 },
+                    { uid: 'm4', thanhtoan: false, totalTurns: 2 },
                 ],
                 expectedCallTimes: 3,
             },

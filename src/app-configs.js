@@ -26,7 +26,7 @@ export default {
     socketOptions: {
         pingInterval: 60 * 1000,
         pingTimeout: 60 * 1000,
-        transports: ['websocket', 'polling'],
+        transports: ['websocket'],
         allowUpgrades: false,
     },
     enabledLogs: true,
@@ -57,5 +57,5 @@ export default {
         'http://games.lumigame.com',
         'http://admin.lumigame.com',
     ],
-    useMsgpackParser: true,
+    useMsgpackParser: false,
 };

@@ -85,7 +85,6 @@ describe('game-bot', () => {
             // act
             await cron.run();
 
-            console.log(gameData.roundId);
             //assert
             expect(11 <= gameData.roundId && gameData.roundId <= 110).toBeTruthy();
         });

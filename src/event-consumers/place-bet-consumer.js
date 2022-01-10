@@ -1,5 +1,6 @@
 import { Core } from 'sc-game-base';
 import { helpers } from 'sc-common';
+import gameSettings from '../game-settings';
 
 export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetConsumer {
     validateBetRequest(player, amount) {
@@ -50,7 +51,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
         };
 
         if (inGameInfo.betQueue.length === 0) {
-            inGameInfo.betQueue = [{ player, payload }];
+            inGameInfo.betQueue = [{ player, payload: { action: gameSettings.actions.bet, bet: payload } }];
         }
 
         this.gameData.ingame[name] = inGameInfo;

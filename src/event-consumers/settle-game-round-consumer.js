@@ -1,6 +1,7 @@
 import { Core } from 'sc-game-base';
-import gameHelper from '../helpers/game-helper';
+import gameHelper from '../helpers/deck-helper';
 import gameSettings from '../game-settings';
+import oddsGenerator from '../generators/odds-generator';
 
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
     constructor(params) {
@@ -37,7 +38,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const nextCard = this.generateResult(runningRound);
         const isWin = this.isWin(payload.betChoice, previousCard, nextCard);
 
-        const odds = gameHelper.calculateOdds(this.gameData.gameConfigs.odds, previousCard.rank, runningRound.totalTurns + 1);
+        const odds = oddsGenerator.generate(this.gameData.gameConfigs.odds, previousCard.rank, runningRound.totalTurns + 1);
+
         const newStake = isWin ? runningRound.totalAmount * (1 + odds[payload.betChoice]) : runningRound.totalAmount;
 
         const betWin = isWin ? newStake - runningRound.totalAmount : 0;
@@ -50,7 +52,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             settlementResult: runningRound.settlementResult,
             turnTime: new Date(),
             odds,
-            newOdds: gameHelper.calculateOdds(this.gameData.gameConfigs.odds, nextCard.rank, runningRound.totalTurns + 2),
+            newOdds: oddsGenerator.generate(this.gameData.gameConfigs.odds, nextCard.rank, runningRound.totalTurns + 2),
         };
 
         newInfo.result.push(nextCard);

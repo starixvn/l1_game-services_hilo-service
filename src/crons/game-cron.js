@@ -1,10 +1,12 @@
+import Chance from 'chance';
 import { Table } from 'sc-game-base';
-import { Random as RandomJS, MersenneTwister19937 } from 'random-js';
 
 export default class GameCron extends Table.Crons.TableGameCron {
     constructor(params) {
         super(params);
         this.processCorruptedBetsConsumer = params.processCorruptedBetsConsumer;
+        this.collectConsumer = params.collectConsumer;
+        this.chance = new Chance();
     }
 
     async start() {
@@ -31,17 +33,19 @@ export default class GameCron extends Table.Crons.TableGameCron {
 
         for (let i = 0; i < runningRounds.length; i++) {
             const r = runningRounds[i];
-            if (r.turnEndTime <= currentTime) {
+            if (r.turnEndTime <= currentTime && r.totalTurns === 0) {
                 const payload = { betChoice: this.autoChooseChoice() };
                 await this.settleGameRoundConsumer.settleTurn(r.uid, payload);
+            }
+
+            if (r.turnEndTime <= currentTime && r.totalTurns > 0) {
+                await this.collectConsumer.consume({ UID: r.uid });
             }
         }
     }
 
     autoChooseChoice() {
-        const random5 = new RandomJS(MersenneTwister19937.autoSeed());
-        const choiceIndex = random5.integer(0, 1);
-
+        const choiceIndex = this.chance.integer({ min: 0, max: 1 });
         return this.definition.choices[choiceIndex];
     }
 
@@ -53,4 +57,6 @@ export default class GameCron extends Table.Crons.TableGameCron {
                 .map((user) => this.settleGameRoundConsumer.settleRound(user.name))
         );
     }
+
+    resetForNewRound() {}
 }

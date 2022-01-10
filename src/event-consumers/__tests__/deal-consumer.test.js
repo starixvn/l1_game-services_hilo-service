@@ -377,14 +377,18 @@ describe('deal-consumer', () => {
             expect(settleGameRoundConsumer.settleTurn).not.toBeCalled();
         });
 
-        it('when validateBetRequest past should call settleGameRoundConsumer.settleTurn', async () => {
+        it('when validateBetRequest past should push deal info to queue', async () => {
             // arrange
             const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { result: [{ rank: 1 }, { rank: 0 }] } } };
+            const gameData = {
+                runningRounds: { m1: { result: [{ rank: 1 }, { rank: 0 }] } },
+                ingame: { m1: { betQueue: [] } },
+            };
             const publisher = { publishToUser: jest.fn() };
             const settleGameRoundConsumer = { settleTurn: jest.fn() };
             const consumer = new DealConsumer(definition, gameData, publisher, null, settleGameRoundConsumer);
-            const player = { UID: 'm1' };
+
+            const player = { UID: 'm1', profile: { name: 'm1' } };
             spyOn(consumer, 'validateBetRequest').and.returnValue(true);
             const payload = {};
 
@@ -392,7 +396,7 @@ describe('deal-consumer', () => {
             await consumer.consume(player, payload);
 
             //assert
-            expect(settleGameRoundConsumer.settleTurn).toBeCalled();
+            expect(gameData.ingame.m1.betQueue.length > 0).toBeTruthy();
         });
     });
 });

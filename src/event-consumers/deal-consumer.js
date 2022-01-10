@@ -71,7 +71,6 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
 
         const criteria = await this.composeValidationCriteria(player, betChoice, freeBet, roundId);
         const failedCriterion = criteria.find((criterion) => criterion.failure);
-
         if (failedCriterion) {
             this.publisher.publishToUser(player.UID, { endBet: -1, betChoice, notice: failedCriterion.notice });
 
@@ -82,21 +81,21 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
     }
 
     async consume(player, payload) {
+        const runningRound = this.gameData.runningRounds[player.UID] ?? { phien: 0, order: 0 };
+
         Object.assign(payload, {
             freeBet: payload.freeBet ?? false,
-            roundId: payload.roundId ?? this.gameData.runningRounds[player.UID]?.phien,
+            roundId: payload.roundId ?? runningRound.phien,
+            order: runningRound.totalTurns,
             receivedTime: new Date(),
         });
 
         const { betChoice, freeBet, roundId } = payload;
 
-        console.log('Deal1');
         if (!(await this.validateBetRequest(player, betChoice, freeBet, roundId))) {
             return;
         }
 
-        console.log('Deal2');
-        const result = await this.settleGameRoundConsumer.settleTurn(player.UID, payload);
-        this.publisher.publishToUser(player.UID, { endBet: 1, payload, result });
+        this.gameData.ingame[player.profile.name].betQueue.push({ player, payload: { action: gameSettings.actions.deal, bet: payload } });
     }
 }

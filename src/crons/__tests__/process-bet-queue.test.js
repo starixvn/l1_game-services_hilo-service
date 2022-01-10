@@ -2,6 +2,7 @@ import { Table } from 'sc-game-base';
 import mongoose from 'mongoose';
 import { stubMongooseModelStupidly } from 'jest-micro-auto-stub';
 import { ProcessBetQueue } from '../index';
+import gameSettings from '../../game-settings';
 
 describe('process-bet-queue', () => {
     describe('extends', () => {
@@ -14,7 +15,7 @@ describe('process-bet-queue', () => {
         });
     });
 
-    describe('proceedBet', () => {
+    describe('bet', () => {
         // arrange
         const testCases = [
             { amount: null, freeBet: null, lastRound: null, expectedValue: 10 },
@@ -37,10 +38,137 @@ describe('process-bet-queue', () => {
             cron.placeBet.mockReturnValueOnce({ response: { notice: {} } });
 
             // act
-            await cron.proceedBet(player, payload);
+            await cron.bet(player, payload);
 
             //assert
             expect(payload.roundId).toBe(testCase.expectedValue);
+        });
+    });
+
+    describe('collect', () => {
+        it('when not have running round should not call settleGameRoundConsumer.settleBets', async () => {
+            // arrange
+            const settleGameRoundConsumer = { settleBets: jest.fn() };
+            const gameData = { runningRounds: {} };
+            const cron = new ProcessBetQueue({ settleGameRoundConsumer, gameData });
+            const player = { session: {}, profile: {} };
+
+            // act
+            await cron.collect(player);
+
+            //assert
+            expect(settleGameRoundConsumer.settleBets).not.toBeCalled();
+        });
+
+        it('when have running round should call settleGameRoundConsumer.settleBets', async () => {
+            // arrange
+            const settleGameRoundConsumer = { settleBets: jest.fn() };
+            const gameData = { runningRounds: { m1: {} } };
+            const cron = new ProcessBetQueue({ settleGameRoundConsumer, gameData });
+            const player = { UID: 'm1', session: {}, profile: {} };
+
+            // act
+            await cron.collect(player);
+
+            //assert
+            expect(settleGameRoundConsumer.settleBets).toBeCalled();
+        });
+    });
+
+    describe('deal', () => {
+        it('when not have running round should not call settleGameRoundConsumer.settleTurn', async () => {
+            // arrange
+            const settleGameRoundConsumer = { settleTurn: jest.fn() };
+            const gameData = { runningRounds: {} };
+            const cron = new ProcessBetQueue({ settleGameRoundConsumer, gameData });
+            const player = { session: {}, profile: {} };
+
+            // act
+            await cron.deal(player);
+
+            //assert
+            expect(settleGameRoundConsumer.settleTurn).not.toBeCalled();
+        });
+
+        it('when bet order is mismatch should not call settleGameRoundConsumer.settleTurn', async () => {
+            // arrange
+            const settleGameRoundConsumer = { settleTurn: jest.fn() };
+            const gameData = { runningRounds: { m1: { totalTurns: 3 } } };
+            const cron = new ProcessBetQueue({ settleGameRoundConsumer, gameData });
+            const player = { UID: 'm1', session: {}, profile: { name: 'm1' } };
+            const bet = { order: 2 };
+
+            // act
+            await cron.deal(player, bet);
+
+            //assert
+            expect(settleGameRoundConsumer.settleTurn).not.toBeCalled();
+        });
+
+        it('when all info correct should call settleGameRoundConsumer.settleTurn', async () => {
+            // arrange
+            const settleGameRoundConsumer = { settleTurn: jest.fn() };
+            const gameData = { runningRounds: { m1: { totalTurns: 3 } } };
+            const placeBetPublisher = { publishToUser: jest.fn() };
+            const cron = new ProcessBetQueue({ settleGameRoundConsumer, gameData, placeBetPublisher });
+            const player = { UID: 'm1', session: {}, profile: { name: 'm1' } };
+            const bet = { order: 3 };
+
+            // act
+            await cron.deal(player, bet);
+
+            //assert
+            expect(settleGameRoundConsumer.settleTurn).toBeCalled();
+        });
+    });
+
+    describe('proceedBet', () => {
+        it('when bet should call bet function', async () => {
+            // arrange
+            const settleGameRoundConsumer = { settleBets: jest.fn() };
+            const gameData = { runningRounds: {} };
+            const cron = new ProcessBetQueue({ settleGameRoundConsumer, gameData });
+            cron.bet = jest.fn();
+            const player = { session: {}, profile: {} };
+            const payload = { action: gameSettings.actions.bet };
+
+            // act
+            await cron.proceedBet(player, payload);
+
+            //assert
+            expect(cron.bet).toBeCalled();
+        });
+
+        it('when collect should call collect function', async () => {
+            // arrange
+            const settleGameRoundConsumer = { settleBets: jest.fn() };
+            const gameData = { runningRounds: {} };
+            const cron = new ProcessBetQueue({ settleGameRoundConsumer, gameData });
+            cron.collect = jest.fn();
+            const player = { session: {}, profile: {} };
+            const payload = { action: gameSettings.actions.collect };
+
+            // act
+            await cron.proceedBet(player, payload);
+
+            //assert
+            expect(cron.collect).toBeCalled();
+        });
+
+        it('when deal should call deal function', async () => {
+            // arrange
+            const settleGameRoundConsumer = { settleBets: jest.fn() };
+            const gameData = { runningRounds: {} };
+            const cron = new ProcessBetQueue({ settleGameRoundConsumer, gameData });
+            cron.deal = jest.fn();
+            const player = { session: {}, profile: {} };
+            const payload = { action: gameSettings.actions.deal };
+
+            // act
+            await cron.proceedBet(player, payload);
+
+            //assert
+            expect(cron.deal).toBeCalled();
         });
     });
 

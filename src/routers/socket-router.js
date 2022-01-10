@@ -35,7 +35,7 @@ export default class SocketRouter extends Core.Routers.BaseSocketRouter {
             }
 
             const player = this.gameData.realPlayers[this.socketClient.id];
-            await this.collectConsumer.consume(player.UID);
+            await this.collectConsumer.consume(player);
         } catch (error) {
             this.logService.logError(error);
         }

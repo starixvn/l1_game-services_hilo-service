@@ -5,48 +5,79 @@ import gameSettings from '../../src/game-settings';
 
 const JEST_ASSERT_WAITING_RESPONSE_TIMEOUT = 60000;
 
-describe('event deal', () => {
+describe('event deal - already have running round', () => {
+    let gameClientDriver;
     beforeAll(() => {
         // set timeout for jest, waiting for socket response
         jest.setTimeout(JEST_ASSERT_WAITING_RESPONSE_TIMEOUT);
+        gameClientDriver = new GameClientDriver(socketOptions, initUserSession(normalUser));
     });
 
-    describe('Happy Path Cases', () => {
-        let gameClientDriver;
-        beforeAll(() => {
-            // Arrange
-            gameClientDriver = new GameClientDriver(socketOptions, initUserSession(normalUser));
-        });
+    afterAll(() => {
+        gameClientDriver.close();
+    });
 
-        afterAll(() => {
-            gameClientDriver.close();
+    it('should start and allow game client connect to.', (done) => {
+        // Assert
+        gameClientDriver.handleSignedInEvent(() => {
+            done();
         });
+    });
 
-        it('should start and allow game client connect to.', (done) => {
-            // Assert
-            gameClientDriver.handleSignedInEvent(() => {
+    it('when deal is valid should return endBet', (done) => {
+        // arrange
+        gameClientDriver.sendBetEvent(null, 20);
+        let startDeal = false;
+        const endDealFunc = (endBetData) => {
+            if (startDeal && endBetData?.endBet) {
                 done();
-            });
+            }
+        };
+
+        gameClientDriver.handleEndBetEvent((endBetData) => {
+            if (endBetData?.endBet) {
+                startDeal = true;
+                gameClientDriver.emit('deal', { betChoice: 'h' });
+                gameClientDriver.on(gameSettings.name, endDealFunc);
+            }
         });
+    });
+});
 
-        it('when deal is valid should return endBet=1', (done) => {
-            // arrange
-            gameClientDriver.sendBetEvent(null, 100);
+describe('event deal - not yet have running round', () => {
+    let gameClientDriver;
+    beforeAll(() => {
+        // set timeout for jest, waiting for socket response
+        jest.setTimeout(JEST_ASSERT_WAITING_RESPONSE_TIMEOUT);
+        gameClientDriver = new GameClientDriver(socketOptions, initUserSession(normalUser));
+    });
 
-            let startDeal = false;
-            gameClientDriver.handleEndBetEvent((endBetData) => {
-                if (endBetData?.endBet) {
-                    startDeal = true;
-                    gameClientDriver.emit('deal', { betChoice: 'h' });
-                }
-            });
+    afterAll(() => {
+        gameClientDriver.close();
+    });
 
-            // Assert
-            gameClientDriver.on(gameSettings.name, (endBetData) => {
-                if (startDeal && endBetData?.endBet) {
-                    done();
-                }
-            });
+    it('should start and allow game client connect to.', (done) => {
+        // Assert
+        gameClientDriver.handleSignedInEvent(() => {
+            done();
+        });
+    });
+
+    it('should return endBet=-1', (done) => {
+        // arrange
+        gameClientDriver.emit('collect', null);
+
+        // Assert
+        gameClientDriver.on(gameSettings.name, (resp) => {
+            if (resp.isCollect || resp.settlementResult !== null) {
+                gameClientDriver.emit('deal', { betChoice: 'l' });
+                done();
+            }
+
+            if (resp?.endBet && resp.bet?.betChoice === 'l') {
+                expect(resp.endBet).toBe(-1);
+                done();
+            }
         });
     });
 });

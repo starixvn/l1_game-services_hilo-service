@@ -1,11 +1,11 @@
 import errorCodes from '../constants/error-codes';
+import gameSettings from '../game-settings';
 
 export default class CollectConsumer {
-    constructor(definition, gameData, publisher, settleGameRoundConsumer) {
+    constructor(definition, gameData, publisher) {
         this.definition = definition;
         this.gameData = gameData;
         this.publisher = publisher;
-        this.settleGameRoundConsumer = settleGameRoundConsumer;
     }
 
     validate(runningRound) {
@@ -20,33 +20,15 @@ export default class CollectConsumer {
         return null;
     }
 
-    async consume(playerUid) {
-        const runningRound = this.gameData.runningRounds[playerUid];
+    async consume(player) {
+        const runningRound = this.gameData.runningRounds[player.UID];
         const failedCriterion = this.validate(runningRound);
 
         if (!!failedCriterion) {
-            this.publisher.publishToUser(playerUid, { isCollect: false, ...failedCriterion });
+            this.publisher.publishToUser(player.UID, { isCollect: -1, ...failedCriterion });
             return;
         }
 
-        const turnTime = new Date();
-        const newInfo = {
-            isWin: true,
-            turnTime: turnTime,
-            turnEndTime: new Date(turnTime.getTime() + this.definition.durations.wholeRound * 1000),
-            totalAmount: runningRound.totalAmount,
-            totalTurns: runningRound.totalTurns,
-            result: runningRound.result,
-            settlementResult: runningRound.settlementResult,
-        };
-
-        await this.settleGameRoundConsumer.settleBets({
-            result: runningRound,
-            settlementResult: newInfo,
-            roundId: runningRound.phien,
-            time: newInfo.turnTime,
-        });
-
-        delete this.gameData.runningRounds[playerUid];
+        this.gameData.ingame[player.profile.name].betQueue.push({ player, payload: { action: gameSettings.actions.collect } });
     }
 }
