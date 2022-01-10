@@ -22,6 +22,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
     async proceed() {
         await this.processRunningRounds();
         await super.proceed();
+        await this.proceeedAutoSettlement();
     }
 
     async processRunningRounds() {
@@ -42,5 +43,14 @@ export default class GameCron extends Table.Crons.TableGameCron {
         const choiceIndex = random5.integer(0, 1);
 
         return this.definition.choices[choiceIndex];
+    }
+
+    async proceeedAutoSettlement() {
+        const now = new Date();
+        await Promise.all(
+            Object.values(this.gameData.ingame)
+                .filter((user) => user.endTime.getTime() >= now.getTime())
+                .map((user) => this.settleGameRoundConsumer.settleRound(user.name))
+        );
     }
 }
