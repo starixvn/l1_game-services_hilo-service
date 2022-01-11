@@ -19,12 +19,12 @@ export default class GameCron extends Table.Crons.TableGameCron {
             .exec();
 
         this.gameData.roundId = lastRound ? lastRound.phien + 1 : await this.getLastArchiveRound();
+        await this.proceedUnsettledBets();
     }
 
     async proceed() {
         await this.processRunningRounds();
         await super.proceed();
-        await this.proceeedAutoSettlement();
     }
 
     async processRunningRounds() {
@@ -49,13 +49,17 @@ export default class GameCron extends Table.Crons.TableGameCron {
         return this.definition.choices[choiceIndex];
     }
 
-    async proceeedAutoSettlement() {
-        const now = new Date();
-        await Promise.all(
-            Object.values(this.gameData.ingame)
-                .filter((user) => user.endTime.getTime() >= now.getTime())
-                .map((user) => this.settleGameRoundConsumer.settleRound(user.name))
-        );
+    async proceedUnsettledBets() {
+        const unsettledBets = await this.roundsRepository.find({ endTime: null }).lean().exec();
+        unsettledBets.forEach((bet) => {
+            if (bet.totalTurns === 0) {
+                bet.betwin = bet.amount;
+            }
+
+            this.gameData.runningRounds[bet.uid] = bet;
+        });
+
+        await Promise.all(Object.values(this.gameData.runningRounds).map((bet) => this.collectConsumer.consume({ UID: bet.uid })));
     }
 
     resetForNewRound() {}
