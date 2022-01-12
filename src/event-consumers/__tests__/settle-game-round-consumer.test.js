@@ -174,7 +174,10 @@ describe('settle-game-round-consumer', () => {
     describe('settleBets', () => {
         it('when not have bet should not call bet with end time', async () => {
             // arrange
-            const gameData = { gameConfigs: {} };
+            const gameData = {
+                gameConfigs: {},
+                runningRounds: { m1: { result: {}, settlementBetResult: { totalAmount: 10 }, phien: 1, endTime: new Date() } },
+            };
             const definition = {};
             const userBetResultPublisher = { publish: jest.fn() };
             const roundResultPublisher = { publishRoundResult: jest.fn() };
@@ -186,10 +189,9 @@ describe('settle-game-round-consumer', () => {
                     isOk: true,
                 };
             };
-            const params = { result: {}, settlementResult: { totalAmount: 10 }, roundId: 1, time: new Date() };
 
             // act
-            await consumer.settleBets(params);
+            await consumer.settleBets('m1');
 
             //assert
             expect(bet.save).not.toHaveBeenCalled();
@@ -197,7 +199,10 @@ describe('settle-game-round-consumer', () => {
 
         it('should save bet with end time', async () => {
             // arrange
-            const gameData = { gameConfigs: {} };
+            const gameData = {
+                gameConfigs: {},
+                runningRounds: { m1: { result: {}, settlementBetResult: { totalAmount: 10 }, phien: 1, endTime: new Date() } },
+            };
             const definition = {};
             const userBetResultPublisher = { publish: jest.fn() };
             const roundResultPublisher = { publishRoundResult: jest.fn() };
@@ -209,10 +214,9 @@ describe('settle-game-round-consumer', () => {
                     isOk: true,
                 };
             };
-            const params = { result: {}, settlementResult: { totalAmount: 10 }, roundId: 1, time: new Date() };
 
             // act
-            await consumer.settleBets(params);
+            await consumer.settleBets('m1');
 
             //assert
             expect(bet.save).toHaveBeenCalled();

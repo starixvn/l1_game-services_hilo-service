@@ -30,12 +30,11 @@ describe('game-cron', () => {
 
     describe('start', () => {
         // arrange
-        const processCorruptedBetsConsumer = { consume: jest.fn() };
-        const gameData = {};
+        const gameData = { runningRounds: {} };
+        roundsRepository.find().lean().exec.mockReturnValue([]);
         const cron = new GameCron({
             definition,
             gameData,
-            processCorruptedBetsConsumer,
             bot,
             roundsRepository,
             archiveStatusesRepository,
@@ -48,14 +47,6 @@ describe('game-cron', () => {
             currencyRepository,
         });
 
-        it('should processCorruptedBetsConsumer', async () => {
-            // act
-            await cron.start();
-
-            //assert
-            expect(processCorruptedBetsConsumer.consume).toHaveBeenCalled();
-        });
-
         const testCases = [
             { lastRound: null, expectedValue: 10 },
             { lastRound: { phien: 10 }, expectedValue: 11 },
@@ -64,12 +55,14 @@ describe('game-cron', () => {
             // arrange
             roundsRepository.findOne().lean().exec.mockReturnValue(testCase.lastRound);
             spyOn(cron, 'getLastArchiveRound').and.returnValue(10);
+            spyOn(cron, 'proceedUnsettledBets');
 
             // act
             await cron.start();
 
             //assert
             expect(gameData.roundId).toStrictEqual(testCase.expectedValue);
+            expect(cron.proceedUnsettledBets).toHaveBeenCalled();
         });
     });
 
@@ -145,6 +138,26 @@ describe('game-cron', () => {
             //assert
             expect(gameData.ingame.m1).not.toBeNull();
             expect(gameData.settlementResultFromAdmin['10']).not.toBeNull();
+        });
+    });
+
+    describe('proceedUnsettledBets', () => {
+        it('should call collectConsumer.consume', async () => {
+            // arrange
+            const gameData = { runningRounds: {} };
+            const rounds = [
+                { totalTurns: 0, uid: 'm1' },
+                { totalTurns: 1, uid: 'm2' },
+            ];
+            roundsRepository.find().lean().exec.mockReturnValue(rounds);
+            const collectConsumer = { consume: jest.fn() };
+            const cron = new GameCron({ gameData, roundsRepository, collectConsumer });
+
+            // act
+            await cron.proceedUnsettledBets();
+
+            //assert
+            expect(collectConsumer.consume).toHaveBeenCalled();
         });
     });
 });

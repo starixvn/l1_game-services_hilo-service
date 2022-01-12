@@ -4,14 +4,12 @@ import { Table } from 'sc-game-base';
 export default class GameCron extends Table.Crons.TableGameCron {
     constructor(params) {
         super(params);
-        this.processCorruptedBetsConsumer = params.processCorruptedBetsConsumer;
         this.collectConsumer = params.collectConsumer;
         this.chance = new Chance();
     }
 
     async start() {
         await super.start();
-        await this.processCorruptedBetsConsumer.consume();
 
         const lastRound = await this.roundsRepository
             .findOne({}, 'phien', { sort: { id: -1 } })

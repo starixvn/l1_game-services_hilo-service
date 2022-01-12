@@ -28,7 +28,8 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
         }
 
         const turnTime = new Date();
-        const newInfo = {
+        runningRound.turnTime = turnTime;
+        runningRound.settlementBetResult = {
             isWin: true,
             turnTime: turnTime,
             turnEndTime: new Date(turnTime.getTime() + gameSettings.turnTime * 1000),
@@ -38,13 +39,7 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
             settlementResult: runningRound.settlementResult,
         };
 
-        await this.settleGameRoundConsumer.settleBets({
-            result: runningRound,
-            settlementResult: newInfo,
-            roundId: runningRound.phien,
-            time: newInfo.turnTime,
-        });
-
+        await this.settleGameRoundConsumer.settleBets(runningRound.uid);
         delete this.gameData.runningRounds[player.UID];
     }
 

@@ -44,7 +44,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         const betWin = isWin ? newStake - runningRound.totalAmount : 0;
         await this.addBetLog(runningRound, previousCard, nextCard, payload.betChoice, betWin);
-        const newInfo = {
+        const settlementBetResult = {
             isWin,
             totalAmount: newStake,
             totalTurns: runningRound.totalTurns + 1,
@@ -55,17 +55,18 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             newOdds: oddsGenerator.generate(this.gameData.gameConfigs.odds, nextCard.rank, runningRound.totalTurns + 2),
         };
 
-        newInfo.result.push(nextCard);
-        newInfo.settlementResult.push(this.getSettlementResult(previousCard, nextCard));
-        await this.betsRepository.updateOne({ phien: runningRound.phien }, { $set: newInfo }).exec();
+        settlementBetResult.result.push(nextCard);
+        settlementBetResult.settlementResult.push(this.getSettlementResult(previousCard, nextCard));
+        await this.betsRepository.updateOne({ phien: runningRound.phien }, { $set: settlementBetResult }).exec();
 
-        const settleResult = { ...runningRound, ...newInfo };
+        const settleResult = { ...runningRound, ...settlementBetResult };
         await this.userBetResultPublisher.publish(playerUID, settleResult);
+        runningRound.settlementBetResult = settlementBetResult;
 
         if (isWin) {
-            Object.assign(runningRound, newInfo);
+            Object.assign(runningRound, settlementBetResult);
         } else {
-            await this.settleBets({ runningRound, settlementResult: newInfo, roundId: runningRound.phien, time: newInfo.turnTime });
+            await this.settleBets(playerUID);
             delete this.gameData.runningRounds[playerUID];
         }
 
@@ -101,18 +102,33 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
     async settleRound() {}
 
-    async settleBets({ result, settlementResult, roundId, time }) {
-        await super.settleBets({ result, settlementResult, roundId, time });
-
+    async settleBets(playerUid) {
+        const result = this.gameData.runningRounds[playerUid];
+        const { settlementBetResult: settlementResult, phien: roundId } = result;
+        const time = settlementResult.turnTime;
         const bets = await this.queryBets(roundId);
+
         if (bets && bets.length) {
+            const { odds } = this.gameData.gameConfigs;
+
             await Promise.all(
                 bets.map(async (bet) => {
+                    const betResult = this.calculateBetResult(settlementResult, bet, odds);
+
+                    bet.betwin = betResult.totalWin;
+                    bet.thanhtoan = true;
                     bet.endTime = new Date();
+
                     await bet.save();
+                    await this.callEndGame(bet, roundId, time, betResult);
+
+                    this.captureBetResult(bet.uid, betResult, bet.rate);
+                    await this.userBetResultPublisher.publish(bet.uid, betResult);
                 })
             );
         }
+
+        this.roundResultPublisher.publishRoundResult(this.collectRoundResult(result, settlementResult, roundId));
     }
 
     isWin(choice, previousCard, nextCard) {

@@ -70,7 +70,6 @@ describe('service-container-registry', () => {
                 settleGameRoundConsumer: expect.any(Function),
                 dealConsumer: expect.any(Object),
                 collectConsumer: expect.any(Object),
-                processCorruptedBetsConsumer: expect.any(Object),
             });
         });
     });
