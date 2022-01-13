@@ -11,7 +11,7 @@ describe('odds-generator', () => {
 
         it.each(testCases)('should return correct odds', (testCase) => {
             // arrange
-            const odds = { ['11']: 276, ['5']: 28 };
+            const odds = { ['h_11']: 276, ['h_5']: 28, ['l_5']: 276, ['l_11']: 28 };
             const totalTurns = 1;
 
             // act

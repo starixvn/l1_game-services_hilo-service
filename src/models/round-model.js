@@ -21,11 +21,10 @@ const schema = new mongoose.Schema({
     rate: { type: Number, require: true },
     partnerId: { type: String, default: '' },
 
-    totalAmount: { type: Number, default: 0 },
     totalTurns: { type: Number, default: 0 },
     result: { type: Array },
     settlementResult: { type: Array },
     exchangeRateId: { type: Number, required: true },
 });
 
-export default mongoose.model(`${gameSettings.name}_bet`, schema);
+export default mongoose.model(`${gameSettings.name}_round`, schema);

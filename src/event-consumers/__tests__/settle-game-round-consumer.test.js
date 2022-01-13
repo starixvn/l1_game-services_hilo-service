@@ -18,10 +18,10 @@ describe('settle-game-round-consumer', () => {
     describe('generateResult', () => {
         it('when resultFromAdmin is set for round should return resultFromAdmin', () => {
             // arrange
-            const gameData = { settlementResultFromAdmin: { 10: { result: { rank: 2 } } } };
+            const gameData = { settlementResultFromAdmin: { 10: { result: [{ rank: 2 }] } } };
             const consumer = new SettleGameRoundConsumer({ gameData });
             const expectedValue = { rank: 2 };
-            const runningRound = { phien: 10 };
+            const runningRound = { phien: 10, result: [], totalTurns: 0 };
 
             // act
             const actualValue = consumer.generateResult(runningRound);
@@ -30,13 +30,13 @@ describe('settle-game-round-consumer', () => {
             expect(actualValue).toStrictEqual(expectedValue);
         });
 
-        const testCases = [{ settlementResultFromAdmin: null }, { settlementResultFromAdmin: { 10: { result: { rank: 2 } } } }];
+        const testCases = [{ settlementResultFromAdmin: null }, { settlementResultFromAdmin: { 10: { result: [{ rank: 2 }] } } }];
         it.each(testCases)('when resultFromAdmin is not set for round should generate new result', (testCase) => {
             // arrange
             const gameData = { settlementResultFromAdmin: testCase.settlementResultFromAdmin };
             const consumer = new SettleGameRoundConsumer({ gameData });
             const expectedValue = null;
-            const runningRound = { phien: 11, result: [...baseCards] };
+            const runningRound = { phien: 11, result: [...baseCards], totalTurns: 3 };
 
             // act
             const actualValue = consumer.generateResult(runningRound);
@@ -51,12 +51,11 @@ describe('settle-game-round-consumer', () => {
             // arrange
             const gameData = {};
             const consumer = new SettleGameRoundConsumer({ gameData });
-            const settlementResult = { isWin: false, totalAmount: 0 };
+            const settlementResult = { isWin: false, betwin: 0 };
             const bet = { amount: 10 };
             const expectedValue = {
                 isWin: false,
-                totalAmount: 0,
-                betWin: 0,
+                betwin: 0,
                 totalBetAmount: 10,
                 netWin: 0,
                 totalWin: '0.00',
@@ -74,16 +73,15 @@ describe('settle-game-round-consumer', () => {
             // arrange
             const gameData = {};
             const consumer = new SettleGameRoundConsumer({ gameData });
-            const settlementResult = { isWin: true, totalAmount: 20 };
+            const settlementResult = { isWin: true, betwin: 20 };
             const bet = { amount: 10 };
             const expectedValue = {
                 isWin: true,
                 totalBetAmount: 10,
-                betWin: 10,
-                netWin: '20.00',
+                netWin: '10.00',
                 totalWin: '20.00',
                 totalLost: 0,
-                totalAmount: 20,
+                betwin: 20,
             };
 
             // act
@@ -176,7 +174,7 @@ describe('settle-game-round-consumer', () => {
             // arrange
             const gameData = {
                 gameConfigs: {},
-                runningRounds: { m1: { result: {}, settlementBetResult: { totalAmount: 10 }, phien: 1, endTime: new Date() } },
+                runningRounds: { m1: { result: {}, settlementBetResult: { betwin: 10 }, phien: 1, endTime: new Date() } },
             };
             const definition = {};
             const userBetResultPublisher = { publish: jest.fn() };
@@ -201,7 +199,7 @@ describe('settle-game-round-consumer', () => {
             // arrange
             const gameData = {
                 gameConfigs: {},
-                runningRounds: { m1: { result: {}, settlementBetResult: { totalAmount: 10 }, phien: 1, endTime: new Date() } },
+                runningRounds: { m1: { result: {}, settlementBetResult: { betwin: 10 }, phien: 1, endTime: new Date() } },
             };
             const definition = {};
             const userBetResultPublisher = { publish: jest.fn() };

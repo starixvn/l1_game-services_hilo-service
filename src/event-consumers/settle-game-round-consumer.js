@@ -10,23 +10,22 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     generateResult(runningRound) {
-        const resultFromAdmin = this.gameData.settlementResultFromAdmin
-            ? this.gameData.settlementResultFromAdmin[runningRound.phien]
-            : null;
+        const roundFromAdmin = this.gameData.settlementResultFromAdmin ? this.gameData.settlementResultFromAdmin[runningRound.phien] : null;
 
-        return resultFromAdmin ? resultFromAdmin.result : gameHelper.drawCard(runningRound.result);
+        return !!roundFromAdmin && runningRound.totalTurns < roundFromAdmin.result.length
+            ? roundFromAdmin.result[runningRound.totalTurns]
+            : gameHelper.drawCard(runningRound.result);
     }
 
     calculateBetResult(settlementResult, bet) {
         const amount = bet.amount;
-        const betWin = settlementResult.isWin ? settlementResult.totalAmount - bet.amount : 0;
+        const betWin = settlementResult.isWin ? settlementResult.betwin - bet.amount : 0;
 
         return {
             ...settlementResult,
             totalBetAmount: amount,
-            betWin,
-            netWin: settlementResult.isWin ? settlementResult.totalAmount.toFixed(2) : 0,
-            totalWin: settlementResult.totalAmount.toFixed(2),
+            netWin: settlementResult.isWin ? betWin.toFixed(2) : 0,
+            totalWin: settlementResult.betwin.toFixed(2),
             totalLost: settlementResult.isWin ? 0 : amount,
         };
     }
@@ -40,13 +39,13 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         const odds = oddsGenerator.generate(this.gameData.gameConfigs.odds, previousCard.rank, runningRound.totalTurns + 1);
 
-        const newStake = isWin ? runningRound.totalAmount * (1 + odds[payload.betChoice]) : runningRound.totalAmount;
+        const newStake = isWin ? runningRound.betwin * (1 + odds[payload.betChoice]) : runningRound.betwin;
 
-        const betWin = isWin ? newStake - runningRound.totalAmount : 0;
+        const betWin = isWin ? newStake - runningRound.betwin : 0;
         await this.addBetLog(runningRound, previousCard, nextCard, payload.betChoice, betWin);
         const settlementBetResult = {
             isWin,
-            totalAmount: newStake,
+            betwin: newStake,
             totalTurns: runningRound.totalTurns + 1,
             result: runningRound.result,
             settlementResult: runningRound.settlementResult,
@@ -83,7 +82,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             phien: runningRound.phien,
 
             time: new Date(),
-            amount: runningRound.totalAmount,
+            amount: runningRound.betWin,
             betwin: betWin,
             choice,
 

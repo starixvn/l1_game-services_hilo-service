@@ -48,14 +48,8 @@ export default class GameCron extends Table.Crons.TableGameCron {
     }
 
     async proceedUnsettledBets() {
-        await this.roundsRepository.updateMany({ endTime: null, totalTurns: 0, betwin: 0 }, { betwin: '$amount' });
-
         const unsettledBets = await this.roundsRepository.find({ endTime: null }).lean().exec();
         unsettledBets.forEach((bet) => {
-            if (bet.totalTurns === 0) {
-                bet.betwin = bet.amount;
-            }
-
             this.gameData.runningRounds[bet.uid] = bet;
         });
 

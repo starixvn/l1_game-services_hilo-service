@@ -7,8 +7,8 @@ export default {
         }
 
         const stepOdds = 6 / (5 + totalTurns);
-        const hiOdds = (odds[(card + 1).toString()] / 100) * stepOdds;
-        const loOdds = (odds[(15 - card).toString()] / 100) * stepOdds;
+        const hiOdds = (odds[`h_${card + 1}`] / 100) * stepOdds;
+        const loOdds = (odds[`l_${card + 1}`] / 100) * stepOdds;
 
         return { [gameSettings.hiChoice]: hiOdds, [gameSettings.loChoice]: loOdds };
     },

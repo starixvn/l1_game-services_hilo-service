@@ -1,6 +1,6 @@
 import { asValue, asClass } from 'awilix';
 import { Table } from 'sc-game-base';
-import { BetModel, BetLogModel } from './models';
+import { RoundModel, BetLogModel } from './models';
 import { SocketRouter, HttpRouter } from './routers';
 import { ProcessBetQueue, GameCron, GameBot } from './crons';
 import { RoundQuery, HistoryQuery } from './query-apis';
@@ -11,8 +11,8 @@ export default class ServiceContainerRegistry extends Table.TableContainerRegist
         super.registerModels();
 
         this.container.register({
-            roundsRepository: asValue(BetModel),
-            betsRepository: asValue(BetModel),
+            roundsRepository: asValue(RoundModel),
+            betsRepository: asValue(RoundModel),
             betLogsRepository: asValue(BetLogModel),
         });
     }
