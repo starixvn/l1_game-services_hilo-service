@@ -1,21 +1,5 @@
 export default [
     {
-        rank: 0,
-        suit: 0,
-    },
-    {
-        rank: 0,
-        suit: 1,
-    },
-    {
-        rank: 0,
-        suit: 2,
-    },
-    {
-        rank: 0,
-        suit: 3,
-    },
-    {
         rank: 1,
         suit: 0,
     },
@@ -205,6 +189,22 @@ export default [
     },
     {
         rank: 12,
+        suit: 3,
+    },
+    {
+        rank: 13,
+        suit: 0,
+    },
+    {
+        rank: 13,
+        suit: 1,
+    },
+    {
+        rank: 13,
+        suit: 2,
+    },
+    {
+        rank: 13,
         suit: 3,
     },
 ];

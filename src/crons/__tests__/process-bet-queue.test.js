@@ -267,7 +267,7 @@ describe('process-bet-queue', () => {
             // arrange
             const definition = { choicesMapper: {} };
             const gameData = {
-                runningRounds: { m1: { result: [{ rank: 0 }], odds: { h: 0, l: 0 } } },
+                runningRounds: { m1: { result: [{ rank: 1 }], odds: { h: 0, l: 0 } } },
                 players: {},
                 ingame: {},
                 chips: [],
@@ -275,7 +275,7 @@ describe('process-bet-queue', () => {
             };
 
             const cron = new ProcessBetQueue({ definition, gameData });
-            const expectedValue = { result: [{ rank: 0 }], odds: { h: 0, l: 0 } };
+            const expectedValue = { result: [{ rank: 1 }], odds: { h: 0, l: 0 } };
 
             const player = { UID: 'm1', session: {}, profile: {} };
             const balance = 1;

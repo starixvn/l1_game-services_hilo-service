@@ -18,9 +18,9 @@ describe('settle-game-round-consumer', () => {
     describe('generateResult', () => {
         it('when resultFromAdmin is set for round should return resultFromAdmin', () => {
             // arrange
-            const gameData = { settlementResultFromAdmin: { 10: { result: [{ rank: 2 }] } } };
+            const gameData = { settlementResultFromAdmin: { 10: { result: [{ rank: 3 }] } } };
             const consumer = new SettleGameRoundConsumer({ gameData });
-            const expectedValue = { rank: 2 };
+            const expectedValue = { rank: 3 };
             const runningRound = { phien: 10, result: [], totalTurns: 0 };
 
             // act
@@ -30,7 +30,7 @@ describe('settle-game-round-consumer', () => {
             expect(actualValue).toStrictEqual(expectedValue);
         });
 
-        const testCases = [{ settlementResultFromAdmin: null }, { settlementResultFromAdmin: { 10: { result: [{ rank: 2 }] } } }];
+        const testCases = [{ settlementResultFromAdmin: null }, { settlementResultFromAdmin: { 10: { result: [{ rank: 3 }] } } }];
         it.each(testCases)('when resultFromAdmin is not set for round should generate new result', (testCase) => {
             // arrange
             const gameData = { settlementResultFromAdmin: testCase.settlementResultFromAdmin };
@@ -95,11 +95,11 @@ describe('settle-game-round-consumer', () => {
     describe('settleTurn', () => {
         const testCases = [
             {
-                previousCards: [{ rank: 2, suit: 3 }],
+                previousCards: [{ rank: 4, suit: 3 }],
                 betChoice: 'h',
             },
             {
-                previousCards: [{ rank: 2, suit: 3 }],
+                previousCards: [{ rank: 4, suit: 3 }],
                 betChoice: 'l',
             },
         ];
@@ -109,7 +109,7 @@ describe('settle-game-round-consumer', () => {
                 runningRounds: {
                     m1: { phien: 10, result: testCase.previousCards, settlementResult: [] },
                 },
-                settlementResultFromAdmin: { 10: { result: { rank: 1 } } },
+                settlementResultFromAdmin: { 10: { result: [{ rank: 3 }] } },
                 gameConfigs: { odds: {} },
             };
 
@@ -144,8 +144,8 @@ describe('settle-game-round-consumer', () => {
             const betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
             const consumer = new SettleGameRoundConsumer({ gameData, betLogsRepository });
             const runningRound = { totalTurns: 3 };
-            const card1 = { rank: 3, suit: 0 };
-            const card2 = { rank: 4, suit: 0 };
+            const card1 = { rank: 4, suit: 0 };
+            const card2 = { rank: 5, suit: 0 };
 
             // act
             await consumer.addBetLog(runningRound, card1, card2, 'h', 10);
@@ -224,16 +224,16 @@ describe('settle-game-round-consumer', () => {
     describe('isWin', () => {
         // arrange
         const testCases = [
-            { previousCard: { rank: 0 }, expectedValue: true },
             { previousCard: { rank: 1 }, expectedValue: true },
-            { nextCard: { rank: 0 }, previousCard: { rank: 3 }, choice: 'h', expectedValue: true },
-            { nextCard: { rank: 3 }, previousCard: { rank: 3 }, choice: 'h', expectedValue: true },
-            { nextCard: { rank: 3 }, previousCard: { rank: 2 }, choice: 'h', expectedValue: true },
-            { nextCard: { rank: 3 }, previousCard: { rank: 4 }, choice: 'h', expectedValue: false },
-            { nextCard: { rank: 1 }, previousCard: { rank: 3 }, choice: 'l', expectedValue: true },
-            { nextCard: { rank: 3 }, previousCard: { rank: 3 }, choice: 'l', expectedValue: true },
-            { nextCard: { rank: 3 }, previousCard: { rank: 2 }, choice: 'l', expectedValue: false },
-            { nextCard: { rank: 3 }, previousCard: { rank: 4 }, choice: 'l', expectedValue: true },
+            { previousCard: { rank: 2 }, expectedValue: true },
+            { nextCard: { rank: 1 }, previousCard: { rank: 4 }, choice: 'h', expectedValue: true },
+            { nextCard: { rank: 4 }, previousCard: { rank: 4 }, choice: 'h', expectedValue: true },
+            { nextCard: { rank: 4 }, previousCard: { rank: 3 }, choice: 'h', expectedValue: true },
+            { nextCard: { rank: 4 }, previousCard: { rank: 5 }, choice: 'h', expectedValue: false },
+            { nextCard: { rank: 2 }, previousCard: { rank: 4 }, choice: 'l', expectedValue: true },
+            { nextCard: { rank: 4 }, previousCard: { rank: 4 }, choice: 'l', expectedValue: true },
+            { nextCard: { rank: 4 }, previousCard: { rank: 3 }, choice: 'l', expectedValue: false },
+            { nextCard: { rank: 4 }, previousCard: { rank: 5 }, choice: 'l', expectedValue: true },
         ];
 
         it.each(testCases)('should return correct value', (testCase) => {
@@ -251,17 +251,17 @@ describe('settle-game-round-consumer', () => {
     describe('getSettlementResult', () => {
         // arrange
         const testCases = [
-            { nextCard: { rank: 3 }, previousCard: { rank: 3 }, expectedValue: 't' },
-            { nextCard: { rank: 3 }, previousCard: { rank: 0 }, expectedValue: 'l' },
-            { nextCard: { rank: 1 }, previousCard: { rank: 0 }, expectedValue: 'l' },
-            { nextCard: { rank: 1 }, previousCard: { rank: 2 }, expectedValue: 'l' },
+            { nextCard: { rank: 4 }, previousCard: { rank: 4 }, expectedValue: 't' },
+            { nextCard: { rank: 4 }, previousCard: { rank: 1 }, expectedValue: 'l' },
+            { nextCard: { rank: 2 }, previousCard: { rank: 1 }, expectedValue: 'l' },
+            { nextCard: { rank: 2 }, previousCard: { rank: 3 }, expectedValue: 'l' },
 
-            { nextCard: { rank: 0 }, previousCard: { rank: 1 }, expectedValue: 'h' },
-            { nextCard: { rank: 0 }, previousCard: { rank: 2 }, expectedValue: 'h' },
-            { nextCard: { rank: 2 }, previousCard: { rank: 1 }, expectedValue: 'h' },
-
+            { nextCard: { rank: 1 }, previousCard: { rank: 2 }, expectedValue: 'h' },
+            { nextCard: { rank: 1 }, previousCard: { rank: 3 }, expectedValue: 'h' },
             { nextCard: { rank: 3 }, previousCard: { rank: 2 }, expectedValue: 'h' },
-            { nextCard: { rank: 3 }, previousCard: { rank: 4 }, expectedValue: 'l' },
+
+            { nextCard: { rank: 4 }, previousCard: { rank: 3 }, expectedValue: 'h' },
+            { nextCard: { rank: 4 }, previousCard: { rank: 5 }, expectedValue: 'l' },
         ];
 
         it.each(testCases)('should return correct value', (testCase) => {

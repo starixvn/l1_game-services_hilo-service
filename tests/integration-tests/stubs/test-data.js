@@ -83,8 +83,8 @@ const rounds = [
         betwin: 10,
         totalTurns: 1,
         result: [
-            { rank: 3, suit: 2 },
-            { rank: 4, suit: 0 },
+            { rank: 4, suit: 2 },
+            { rank: 5, suit: 0 },
         ],
         settlementResult: ['h'],
         exchangeRateId: 1282,

@@ -154,7 +154,7 @@ describe('deal-consumer', () => {
         it('when loChoice and card is 2 should failed loChoice criterion', () => {
             // arrange
             const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { result: [{ rank: 1 }] } } };
+            const gameData = { runningRounds: { m1: { result: [{ rank: 2 }] } } };
             const consumer = new DealConsumer(definition, gameData, {});
             const expectedValue = {
                 failure: true,
@@ -173,7 +173,7 @@ describe('deal-consumer', () => {
         it('when loChoice and card is not 2 should not failed loChoice criterion', () => {
             // arrange
             const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { result: [{ rank: 1 }, { rank: 3 }] } } };
+            const gameData = { runningRounds: { m1: { result: [{ rank: 2 }, { rank: 4 }] } } };
             const consumer = new DealConsumer(definition, gameData, {});
             const expectedValue = {
                 failure: false,
@@ -192,7 +192,7 @@ describe('deal-consumer', () => {
         it('when hiChoice and card is not 2 should not failed loChoice criterion', () => {
             // arrange
             const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { result: [{ rank: 1 }, { rank: 3 }] } } };
+            const gameData = { runningRounds: { m1: { result: [{ rank: 2 }, { rank: 4 }] } } };
             const consumer = new DealConsumer(definition, gameData, {});
             const expectedValue = {
                 failure: false,
@@ -211,7 +211,7 @@ describe('deal-consumer', () => {
         it('when hiChoice and card is 2 should not failed loChoice criterion', () => {
             // arrange
             const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { result: [{ rank: 1 }, { rank: 1 }] } } };
+            const gameData = { runningRounds: { m1: { result: [{ rank: 2 }, { rank: 2 }] } } };
             const consumer = new DealConsumer(definition, gameData, {});
             const expectedValue = {
                 failure: false,
@@ -230,7 +230,7 @@ describe('deal-consumer', () => {
         it('when hiChoice and card is 1 should failed hiChoice criterion', () => {
             // arrange
             const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { result: [{ rank: 0 }] } } };
+            const gameData = { runningRounds: { m1: { result: [{ rank: 1 }] } } };
             const consumer = new DealConsumer(definition, gameData, {});
             const expectedValue = {
                 failure: true,
@@ -249,7 +249,7 @@ describe('deal-consumer', () => {
         it('when hiChoice and card is not 1 should not failed hiChoice criterion', () => {
             // arrange
             const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { result: [{ rank: 1 }, { rank: 3 }] } } };
+            const gameData = { runningRounds: { m1: { result: [{ rank: 2 }, { rank: 4 }] } } };
             const consumer = new DealConsumer(definition, gameData, {});
             const expectedValue = {
                 failure: false,
@@ -268,7 +268,7 @@ describe('deal-consumer', () => {
         it('when loChoice and card is not 1 should not failed hiChoice criterion', () => {
             // arrange
             const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { result: [{ rank: 1 }, { rank: 3 }] } } };
+            const gameData = { runningRounds: { m1: { result: [{ rank: 2 }, { rank: 4 }] } } };
             const consumer = new DealConsumer(definition, gameData, {});
             const expectedValue = {
                 failure: false,
@@ -287,7 +287,7 @@ describe('deal-consumer', () => {
         it('when loChoice and card is 2 should not failed hiChoice criterion', () => {
             // arrange
             const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { result: [{ rank: 1 }, { rank: 0 }] } } };
+            const gameData = { runningRounds: { m1: { result: [{ rank: 2 }, { rank: 1 }] } } };
             const consumer = new DealConsumer(definition, gameData, {});
             const expectedValue = {
                 failure: false,
@@ -308,7 +308,7 @@ describe('deal-consumer', () => {
         it('when not have betChoice should return failed', async () => {
             // arrange
             const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { result: [{ rank: 1 }, { rank: 0 }] } } };
+            const gameData = { runningRounds: { m1: { result: [{ rank: 2 }, { rank: 1 }] } } };
             const consumer = new DealConsumer(definition, gameData, {});
             const player = { UID: 'm1' };
             const amount = 10;
@@ -324,7 +324,7 @@ describe('deal-consumer', () => {
         it('when have failedCriterion should return failed', async () => {
             // arrange
             const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { result: [{ rank: 1 }, { rank: 0 }] } } };
+            const gameData = { runningRounds: { m1: { result: [{ rank: 2 }, { rank: 1 }] } } };
             const publisher = { publishToUser: jest.fn() };
             const consumer = new DealConsumer(definition, gameData, publisher);
             const player = { UID: 'm1' };
@@ -342,7 +342,7 @@ describe('deal-consumer', () => {
         it('when not have failedCriterion should return true', async () => {
             // arrange
             const definition = { choices: [] };
-            const gameData = { runningRounds: { m1: { result: [{ rank: 1 }, { rank: 0 }] } } };
+            const gameData = { runningRounds: { m1: { result: [{ rank: 2 }, { rank: 1 }] } } };
             const publisher = { publishToUser: jest.fn() };
             const consumer = new DealConsumer(definition, gameData, publisher);
             const player = { UID: 'm1' };
@@ -362,7 +362,7 @@ describe('deal-consumer', () => {
         it('when validateBetRequest failed should not call settleGameRoundConsumer.settleTurn', async () => {
             // arrange
             const definition = { choices: [] };
-            const gameData = { runningRounds: { m2: { result: [{ rank: 1 }, { rank: 0 }] } } };
+            const gameData = { runningRounds: { m2: { result: [{ rank: 2 }, { rank: 1 }] } } };
             const publisher = { publishToUser: jest.fn() };
             const settleGameRoundConsumer = { settleTurn: jest.fn() };
             const consumer = new DealConsumer(definition, gameData, publisher, null, settleGameRoundConsumer);
@@ -381,7 +381,7 @@ describe('deal-consumer', () => {
             // arrange
             const definition = { choices: [] };
             const gameData = {
-                runningRounds: { m1: { result: [{ rank: 1 }, { rank: 0 }] } },
+                runningRounds: { m1: { result: [{ rank: 2 }, { rank: 1 }] } },
                 ingame: { m1: { betQueue: [] } },
             };
             const publisher = { publishToUser: jest.fn() };

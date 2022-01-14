@@ -131,7 +131,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     isWin(choice, previousCard, nextCard) {
-        if (previousCard.rank <= 1 || previousCard.rank === nextCard.rank) {
+        if (previousCard.rank <= 2 || previousCard.rank === nextCard.rank) {
             return true;
         }
 
@@ -151,11 +151,11 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     rankCardByValue(previousCard, nextCard) {
-        const highestCardValue = 13;
+        const highestCardValue = 14;
 
         return {
-            pCard: previousCard.rank === 0 ? highestCardValue : previousCard.rank,
-            nCard: nextCard.rank === 0 ? highestCardValue : nextCard.rank,
+            pCard: previousCard.rank === 1 ? highestCardValue : previousCard.rank,
+            nCard: nextCard.rank === 1 ? highestCardValue : nextCard.rank,
         };
     }
 }

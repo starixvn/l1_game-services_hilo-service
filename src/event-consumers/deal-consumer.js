@@ -54,11 +54,11 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
                 notice: this.getNoticeObj(helpers.noticeHelper.invalidBet),
             },
             {
-                failure: betChoice === gameSettings.loChoice && currentCard.rank === 1,
+                failure: betChoice === gameSettings.loChoice && currentCard.rank === 2,
                 notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: errorCodes.lowerThan2 }),
             },
             {
-                failure: betChoice === gameSettings.hiChoice && currentCard.rank === 0,
+                failure: betChoice === gameSettings.hiChoice && currentCard.rank === 1,
                 notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: errorCodes.greaterThan1 }),
             },
         ];
