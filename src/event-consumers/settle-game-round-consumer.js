@@ -10,10 +10,10 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     generateResult(runningRound) {
-        const roundFromAdmin = this.gameData.settlementResultFromAdmin ? this.gameData.settlementResultFromAdmin[runningRound.phien] : null;
+        const resultFromAdmin = this.gameData.settlementResultFromAdmin ? this.gameData.settlementResultFromAdmin[runningRound.name] : null;
 
-        return !!roundFromAdmin && runningRound.totalTurns < roundFromAdmin.result.length
-            ? roundFromAdmin.result[runningRound.totalTurns]
+        return !!resultFromAdmin && runningRound.totalTurns < resultFromAdmin.length
+            ? gameHelper.getCardFromAdmin(resultFromAdmin[runningRound.totalTurns], runningRound.result)
             : gameHelper.drawCard(runningRound.result);
     }
 

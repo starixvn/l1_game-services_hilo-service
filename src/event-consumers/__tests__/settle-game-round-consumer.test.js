@@ -16,27 +16,27 @@ describe('settle-game-round-consumer', () => {
     });
 
     describe('generateResult', () => {
-        it('when resultFromAdmin is set for round should return resultFromAdmin', () => {
+        it('when resultFromAdmin is set for user should return resultFromAdmin', () => {
             // arrange
-            const gameData = { settlementResultFromAdmin: { 10: { result: [{ rank: 3 }] } } };
+            const gameData = { settlementResultFromAdmin: { player: [2] } };
             const consumer = new SettleGameRoundConsumer({ gameData });
             const expectedValue = { rank: 3 };
-            const runningRound = { phien: 10, result: [], totalTurns: 0 };
+            const runningRound = { name: 'player', phien: 10, result: [], totalTurns: 0 };
 
             // act
             const actualValue = consumer.generateResult(runningRound);
 
             //assert
-            expect(actualValue).toStrictEqual(expectedValue);
+            expect(actualValue.rank).toStrictEqual(expectedValue.rank);
         });
 
-        const testCases = [{ settlementResultFromAdmin: null }, { settlementResultFromAdmin: { 10: { result: [{ rank: 3 }] } } }];
-        it.each(testCases)('when resultFromAdmin is not set for round should generate new result', (testCase) => {
+        const testCases = [{ settlementResultFromAdmin: null }, { settlementResultFromAdmin: { player: [2] } }];
+        it.each(testCases)('when resultFromAdmin is not set for user should generate new result', (testCase) => {
             // arrange
             const gameData = { settlementResultFromAdmin: testCase.settlementResultFromAdmin };
             const consumer = new SettleGameRoundConsumer({ gameData });
             const expectedValue = null;
-            const runningRound = { phien: 11, result: [...baseCards], totalTurns: 3 };
+            const runningRound = { name: 'player01', phien: 11, result: [...baseCards], totalTurns: 3 };
 
             // act
             const actualValue = consumer.generateResult(runningRound);

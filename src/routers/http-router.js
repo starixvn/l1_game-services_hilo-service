@@ -17,14 +17,14 @@ export default class HttpRouter extends Table.Routers.TableHttpRouter {
 
     async handleSetResult(params, res) {
         try {
-            if (!params || !params.roundId || !params.result) {
+            if (!params || !params.name || !params.result) {
                 this.logService.logError('receives a result cheating call with invalid params.');
                 res.send({ error: true });
                 return;
             }
 
             this.logService.logWarning(`receives a result cheating call ${JSON.stringify(params)}.`);
-            this.gameData.settlementResultFromAdmin[params.roundId] = params.result;
+            this.gameData.settlementResultFromAdmin[params.name] = params.result;
             res.send({ error: false });
         } catch (error) {
             this.logService.logError(error);

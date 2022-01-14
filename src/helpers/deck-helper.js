@@ -20,4 +20,15 @@ export default {
 
         return cards[0];
     },
+    getCardFromAdmin: function (cardRank, drawnCards) {
+        const chance = new Chance();
+        let cards = [...baseCards];
+
+        if (drawnCards.length > 0) {
+            const excludedCard = drawnCards[drawnCards.length - 1];
+            cards.filter((x) => x.rank !== excludedCard.rank && x.suit !== excludedCard.suit);
+        }
+
+        return chance.pickone(cards.filter((x) => x.rank === cardRank));
+    },
 };

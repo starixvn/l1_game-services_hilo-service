@@ -83,7 +83,7 @@ describe('http-router', () => {
             const gameData = { settlementResultFromAdmin: {} };
             const router = new HttpRouter(appConfigs, gameData, null, null, null, logService);
             const res = { send: jest.fn() };
-            const param = { roundId: 1, result: {} };
+            const param = { name: 'player', result: [1, 2, 3] };
 
             // act
             await router.handleSetResult(param, res);
@@ -98,7 +98,7 @@ describe('http-router', () => {
             const gameData = { settlementResultFromAdmin: null };
             const router = new HttpRouter(appConfigs, gameData, null, null, null, logService);
             const res = { send: jest.fn() };
-            const param = { roundId: 1, result: {} };
+            const param = { result: [] };
 
             // act
             await router.handleSetResult(param, res);
