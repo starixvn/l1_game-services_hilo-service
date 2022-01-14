@@ -150,14 +150,14 @@ describe('game-cron', () => {
                 { totalTurns: 1, uid: 'm2' },
             ];
             roundsRepository.find().lean().exec.mockReturnValue(rounds);
-            const collectConsumer = { consume: jest.fn() };
-            const cron = new GameCron({ gameData, roundsRepository, collectConsumer });
+            const settleGameRoundConsumer = { settleBets: jest.fn() };
+            const cron = new GameCron({ gameData, roundsRepository, settleGameRoundConsumer });
 
             // act
             await cron.proceedUnsettledBets();
 
             //assert
-            expect(collectConsumer.consume).toHaveBeenCalled();
+            expect(settleGameRoundConsumer.settleBets).toHaveBeenCalled();
         });
     });
 });

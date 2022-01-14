@@ -48,12 +48,12 @@ export default class GameCron extends Table.Crons.TableGameCron {
     }
 
     async proceedUnsettledBets() {
-        const unsettledBets = await this.roundsRepository.find({ endTime: null }).lean().exec();
+        const unsettledBets = await this.roundsRepository.find({ endTime: null, thanhtoan: false }).lean().exec();
         unsettledBets.forEach((bet) => {
             this.gameData.runningRounds[bet.uid] = bet;
         });
 
-        await Promise.all(Object.values(this.gameData.runningRounds).map((bet) => this.collectConsumer.consume({ UID: bet.uid })));
+        await Promise.all(Object.values(this.gameData.runningRounds).map((bet) => this.settleGameRoundConsumer.settleBets(bet.uid)));
     }
 
     resetForNewRound() {}
