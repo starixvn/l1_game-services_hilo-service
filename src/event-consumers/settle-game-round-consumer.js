@@ -2,7 +2,7 @@ import { Core } from 'sc-game-base';
 import deckHelper from '../helpers/deck-helper';
 import gameSettings from '../game-settings';
 import oddsGenerator from '../generators/odds-generator';
-import { rankValueMapper } from '../constants/cards';
+import { rankValueMapper, cardRanks } from '../cards';
 
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
     constructor(params) {
@@ -14,7 +14,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const resultFromAdmin = this.gameData.settlementResultFromAdmin ? this.gameData.settlementResultFromAdmin[runningRound.name] : null;
 
         return !!resultFromAdmin && runningRound.totalTurns < resultFromAdmin.length
-            ? resultFromAdmin[runningRound.totalTurns + 1]
+            ? resultFromAdmin[runningRound.totalTurns]
             : deckHelper.drawCard(runningRound.result);
     }
 
@@ -25,14 +25,15 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         return {
             ...settlementResult,
             totalBetAmount: amount,
-            netWin: settlementResult.isWin ? betWin.toFixed(2) : 0,
-            totalWin: settlementResult.betwin.toFixed(2),
+            netWin: settlementResult.isWin ? betWin : 0,
+            totalWin: settlementResult.betwin,
             totalLost: settlementResult.isWin ? 0 : amount,
         };
     }
 
-    async settleTurn(playerUID, payload) {
-        const runningRound = this.gameData.ingame.betTracks[playerUID];
+    async settleTurn(player, payload) {
+        const { uid, name } = player;
+        const runningRound = this.gameData.ingame[name].betTracks;
 
         const previousCard = runningRound.result[runningRound.result.length - 1];
         const nextCard = this.generateResult(runningRound);
@@ -44,6 +45,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         const betWin = isWin ? newStake - runningRound.betwin : 0;
         await this.addBetLog(runningRound, previousCard, nextCard, payload.betChoice, betWin);
+
+        const newOdds = oddsGenerator.generate(this.gameData.gameConfigs.odds, nextCard.rank, runningRound.totalTurns + 2);
         const settlementBetResult = {
             isWin,
             betwin: newStake,
@@ -51,8 +54,10 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             result: runningRound.result,
             settlementResult: runningRound.settlementResult,
             turnTime: new Date(),
-            odds,
-            newOdds: oddsGenerator.generate(this.gameData.gameConfigs.odds, nextCard.rank, runningRound.totalTurns + 2),
+            nextAmounts: {
+                [gameSettings.hiChoice]: (1 + newOdds[gameSettings.hiChoice]) * runningRound.betwin,
+                [gameSettings.loChoice]: (1 + newOdds[gameSettings.loChoice]) * runningRound.betwin,
+            },
         };
 
         settlementBetResult.result.push(nextCard);
@@ -60,14 +65,14 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         await this.betsRepository.updateOne({ id: runningRound.id }, { $set: settlementBetResult }).exec();
 
         const settleResult = { ...runningRound, ...settlementBetResult };
-        await this.userBetResultPublisher.publish(playerUID, settleResult);
+        await this.userBetResultPublisher.publish(uid, settleResult);
         runningRound.settlementBetResult = settlementBetResult;
 
         if (isWin) {
             Object.assign(runningRound, settlementBetResult);
         } else {
-            await this.settleBets(playerUID);
-            delete this.gameData.ingame.betTracks[playerUID];
+            await this.settleBets(name);
+            delete this.gameData.ingame[name].betTracks;
             delete this.gameData.settlementResultFromAdmin[runningRound.name];
         }
 
@@ -103,18 +108,16 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
     async settleRound() {}
 
-    async settleBets(playerUid) {
-        const result = this.gameData.ingame.betTracks[playerUid];
+    async settleBets(name) {
+        const result = this.gameData.ingame[name].betTracks;
         const { settlementBetResult: settlementResult, id: roundId } = result;
         const time = settlementResult.turnTime;
         const bets = await this.queryBets(roundId);
 
         if (bets && bets.length) {
-            const { odds } = this.gameData.gameConfigs;
-
             await Promise.all(
                 bets.map(async (bet) => {
-                    const betResult = this.calculateBetResult(settlementResult, bet, odds);
+                    const betResult = this.calculateBetResult(settlementResult, bet);
 
                     bet.betwin = betResult.totalWin;
                     bet.paid = true;
@@ -136,7 +139,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const value1 = rankValueMapper[previousCard.rank];
         const value2 = rankValueMapper[nextCard.rank];
 
-        if (previousCard.rank === 'A' || previousCard.rank === '2' || value1 === value2) {
+        if (previousCard.rank === cardRanks.ace || previousCard.rank === cardRanks.two || value1 === value2) {
             return true;
         }
 
@@ -155,6 +158,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     queryBets(roundId) {
-        return this.betsRepository.find({ id: roundId }).lean().exec();
+        return this.betsRepository.find({ id: roundId }).exec();
     }
 }

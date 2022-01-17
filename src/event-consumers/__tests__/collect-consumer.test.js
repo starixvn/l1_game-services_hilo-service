@@ -26,7 +26,7 @@ describe('collect-consumer', () => {
         it('when validate failed should publish error to user', async () => {
             // arrange
             const publisher = { publishToUser: jest.fn() };
-            const gameData = { ingame: { betTracks: { m1: {} } } };
+            const gameData = { ingame: { m1: { betTracks: {} } } };
             const consumer = new CollectConsumer(null, gameData, publisher);
             spyOn(consumer, 'validate').and.returnValue({ failed: true });
             const player = { UID: 'm1', profile: { name: 'm1' } };
@@ -38,10 +38,11 @@ describe('collect-consumer', () => {
             expect(publisher.publishToUser).toBeCalledWith('m1', expect.objectContaining({ isCollect: -1, failed: true }));
         });
 
-        it('when validate passed should push collect info to queue', async () => {
+        const testCases = [{ betQueue: null }, { betQueue: [] }];
+        it.each(testCases)('when validate passed should push collect info to queue', async (testCase) => {
             // arrange
             const publisher = { publishToUser: jest.fn() };
-            const gameData = { ingame: { m1: { betQueue: [] }, betTracks: { m1: { id: 2 } } } };
+            const gameData = { ingame: { m1: { betQueue: testCase.betQueue }, betTracks: { id: 2 } } };
             const settleGameRoundConsumer = { settleBets: jest.fn() };
             const definition = { durations: {} };
             const consumer = new CollectConsumer(definition, gameData, publisher, settleGameRoundConsumer);

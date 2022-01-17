@@ -2,6 +2,7 @@ import { Core } from 'sc-game-base';
 import { helpers } from 'sc-common';
 import gameSettings from '../game-settings';
 import errorCodes from '../constants/error-codes';
+import { cardRanks } from '../cards';
 
 export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsumer {
     constructor(definition, gameData, publisher, betsRepository, settleGameRoundConsumer) {
@@ -28,7 +29,7 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
             },
             {
                 failure: !roundId,
-                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: errorCodes.roundNotExist }),
+                notice: this.getNoticeObj(errorCodes.roundNotExist),
             },
         ];
     }
@@ -45,7 +46,7 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
     }
 
     composeBetChoiceValidationCriteria(player, betChoice) {
-        const runningRound = this.gameData.ingame.betTracks[player.UID];
+        const runningRound = this.gameData.ingame[player.profile.name].betTracks;
         const currentCard = !!runningRound ? runningRound.result[runningRound.result.length - 1] : {};
 
         return [
@@ -54,12 +55,12 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
                 notice: this.getNoticeObj(helpers.noticeHelper.invalidBet),
             },
             {
-                failure: betChoice === gameSettings.loChoice && currentCard.rank === '2',
-                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: errorCodes.lowerThan2 }),
+                failure: betChoice === gameSettings.loChoice && currentCard.rank === cardRanks.two,
+                notice: this.getNoticeObj(errorCodes.cannotLowerThan),
             },
             {
-                failure: betChoice === gameSettings.hiChoice && currentCard.rank === 'A',
-                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: errorCodes.greaterThan1 }),
+                failure: betChoice === gameSettings.hiChoice && currentCard.rank === cardRanks.ace,
+                notice: this.getNoticeObj(errorCodes.cannotGreaterThan),
             },
         ];
     }
@@ -80,8 +81,13 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
         return true;
     }
 
-    async consume(player, payload) {
-        const runningRound = this.gameData.ingame.betTracks[player.UID] ?? { id: 0, order: 0 };
+    consume(player, payload) {
+        if (!this.gameData.ingame[player.profile.name]?.betTracks) {
+            this.publisher.publishToUser(player.UID, { endBet: -1, notice: this.getNoticeObj(helpers.noticeHelper.invalidBet) });
+            return;
+        }
+
+        const runningRound = this.gameData.ingame[player.profile.name].betTracks;
 
         Object.assign(payload, {
             freeBet: payload.freeBet ?? false,
@@ -96,6 +102,7 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
             return;
         }
 
+        this.gameData.ingame[player.profile.name].betQueue = this.gameData.ingame[player.profile.name].betQueue ?? [];
         this.gameData.ingame[player.profile.name].betQueue.push({ player, payload: { action: gameSettings.actions.deal, bet: payload } });
     }
 }

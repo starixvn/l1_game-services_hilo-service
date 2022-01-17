@@ -1,4 +1,4 @@
-import { baseCards } from '../../constants/cards';
+import { baseCards } from '../../cards';
 import deckHelper from '../deck-helper';
 
 describe('deck-helper', () => {

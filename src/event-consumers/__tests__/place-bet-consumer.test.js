@@ -18,10 +18,10 @@ describe('place-bet-consumer', () => {
     describe('validateBetRequest', () => {
         it('when player has already bet return invalidBet', () => {
             // arrange
-            const gameData = { gameConfigs: { enabled: false }, ingame: { betTracks: { m1: {} } } };
+            const gameData = { gameConfigs: { enabled: false }, ingame: { m1: { betTracks: {} }, m2: {} } };
             const consumer = new PlaceBetConsumer(null, gameData);
             const expectedValue = { errorCode: helpers.noticeHelper.invalidBet };
-            const player = { UID: 'm1' };
+            const player = { UID: 'm1', profile: { name: 'm2' } };
             const amount = 10;
 
             // act
@@ -33,10 +33,10 @@ describe('place-bet-consumer', () => {
 
         it('when game not enabled should return invalidBet', () => {
             // arrange
-            const gameData = { gameConfigs: { enabled: false }, ingame: { betTracks: {} } };
+            const gameData = { gameConfigs: { enabled: false }, ingame: { m1: { betTracks: {} } } };
             const consumer = new PlaceBetConsumer(null, gameData);
             const expectedValue = { errorCode: helpers.noticeHelper.invalidBet };
-            const player = { UID: 'm1' };
+            const player = { UID: 'm1', profile: { name: 'm1' } };
             const amount = 10;
 
             // act
@@ -51,11 +51,11 @@ describe('place-bet-consumer', () => {
             const gameData = {
                 gameConfigs: { enabled: true },
                 currencyGroupGames: [{ groupId: 1, maxBetPerChoices: { newGameChoice: 100 }, minBet: 30 }],
-                ingame: { betTracks: {} },
+                ingame: { m1: { betTracks: null } },
             };
             const consumer = new PlaceBetConsumer(null, gameData);
             const expectedValue = { errorCode: helpers.noticeHelper.minBet, minBet: 30 };
-            const player = { session: { currencyGroupId: '1' }, profile: { minBet: 20, maxBet: 100 } };
+            const player = { session: { currencyGroupId: '1' }, profile: { minBet: 20, maxBet: 100, name: 'm1' } };
             const amount = 10;
 
             // act
@@ -70,11 +70,11 @@ describe('place-bet-consumer', () => {
             const gameData = {
                 gameConfigs: { enabled: true },
                 currencyGroupGames: [{ groupId: 1, maxBetPerChoices: { newGameChoice: 100 }, minBet: 1, maxBet: 4 }],
-                ingame: { betTracks: {} },
+                ingame: { m1: { betTracks: null } },
             };
             const consumer = new PlaceBetConsumer(null, gameData);
             const expectedValue = { errorCode: helpers.noticeHelper.maxBet, maxBet: 4 };
-            const player = { session: { currencyGroupId: '1' }, profile: { minBet: 1, maxBet: 100 } };
+            const player = { session: { currencyGroupId: '1' }, profile: { minBet: 1, maxBet: 100, name: 'm1' } };
             const amount = 10;
 
             // act
@@ -89,10 +89,10 @@ describe('place-bet-consumer', () => {
             const gameData = {
                 gameConfigs: { enabled: true },
                 currencyGroupGames: [{ groupId: 1, maxBetPerChoices: { newGameChoice: 100 }, minBet: 1, maxBet: 100 }],
-                ingame: { betTracks: {} },
+                ingame: { m1: { betTracks: null } },
             };
             const consumer = new PlaceBetConsumer(null, gameData);
-            const player = { session: { currencyGroupId: '1' }, profile: { minBet: 1, maxBet: 100 } };
+            const player = { session: { currencyGroupId: '1' }, profile: { minBet: 1, maxBet: 100, name: 'm1' } };
             const amount = 10;
 
             // act
@@ -112,8 +112,7 @@ describe('place-bet-consumer', () => {
                 m3: { UID: 'm3', profile: { name: 'm3' } },
                 m4: { UID: 'm4', profile: { name: 'm4' }, session: {} },
             },
-            ingame: { betTracks: { m1: { uid: 'm1' } } },
-            ingame: { m1: { betQueue: [] }, m3: { betQueue: [] } },
+            ingame: { m1: { betQueue: [], betTracks: { uid: 'm1' } }, m3: { betQueue: [] } },
         };
 
         it('when not has payload should not validateBetRequest', async () => {

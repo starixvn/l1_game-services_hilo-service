@@ -30,7 +30,7 @@ describe('game-cron', () => {
 
     describe('start', () => {
         // arrange
-        const gameData = { ingame: { betTracks: {} } };
+        const gameData = { ingame: { m1: { betTracks: {} } } };
         roundsRepository.find().lean().exec.mockReturnValue([]);
         const cron = new GameCron({
             definition,
@@ -86,13 +86,15 @@ describe('game-cron', () => {
             // arrange
             const dt = new Date();
             const expiredTime = new Date(dt.getTime() - 120000);
-            const runningRounds = {
-                m1: { turnEndTime: expiredTime, uid: 'm1', totalTurns: 0 },
-                m2: { turnEndTime: expiredTime, uid: 'm2', totalTurns: 1 },
-                m3: { turnEndTime: new Date(dt.getTime() + 20000), uid: 'm3' },
-            };
             const realPlayers = { m1: { UID: 'm1' }, m2: { UID: 'm2' } };
-            const gameData = { ingame: { betTracks: runningRounds }, realPlayers };
+            const gameData = {
+                ingame: {
+                    m1: { betTracks: { turnEndTime: expiredTime, uid: 'm1', totalTurns: 0, name: 'm1' } },
+                    m2: { betTracks: { turnEndTime: expiredTime, uid: 'm2', totalTurns: 1, name: 'm2' } },
+                    m3: { betTracks: { turnEndTime: new Date(dt.getTime() + 20000), uid: 'm3', name: 'm3' } },
+                },
+                realPlayers,
+            };
             const settleGameRoundConsumer = { settleTurn: jest.fn() };
             const collectConsumer = { consume: jest.fn() };
             const cron = new GameCron({ definition, gameData, settleGameRoundConsumer, collectConsumer });
@@ -101,9 +103,15 @@ describe('game-cron', () => {
             await cron.processRunningRounds();
 
             //assert
-            expect(cron.settleGameRoundConsumer.settleTurn).toHaveBeenCalledWith('m1', expect.any(Object));
+            expect(cron.settleGameRoundConsumer.settleTurn).toHaveBeenCalledWith(
+                expect.objectContaining({ name: 'm1' }),
+                expect.any(Object)
+            );
             expect(collectConsumer.consume).toHaveBeenCalled();
-            expect(cron.settleGameRoundConsumer.settleTurn).not.toHaveBeenCalledWith('m3', expect.any(Object));
+            expect(cron.settleGameRoundConsumer.settleTurn).not.toHaveBeenCalledWith(
+                expect.objectContaining({ name: 'm3' }),
+                expect.any(Object)
+            );
         });
     });
 
@@ -144,7 +152,7 @@ describe('game-cron', () => {
     describe('proceedUnsettledBets', () => {
         it('should call collectConsumer.consume', async () => {
             // arrange
-            const gameData = { ingame: { betTracks: {} } };
+            const gameData = { ingame: { m1: { betTracks: {} } } };
             const rounds = [
                 { totalTurns: 0, uid: 'm1' },
                 { totalTurns: 1, uid: 'm2' },

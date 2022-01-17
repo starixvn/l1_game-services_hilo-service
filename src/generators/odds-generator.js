@@ -1,9 +1,9 @@
 import gameSettings from '../game-settings';
-import { rankValueMapper } from '../constants/cards';
+import { rankValueMapper, cardRanks } from '../cards';
 
 export default {
     generate: function (odds, rank, totalTurns) {
-        if (rank === 'A' || rank === '2') {
+        if (rank === cardRanks.ace || rank === cardRanks.two) {
             return { [gameSettings.hiChoice]: 0, [gameSettings.loChoice]: 0 };
         }
 

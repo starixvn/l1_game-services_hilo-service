@@ -21,7 +21,7 @@ export default class CollectConsumer {
     }
 
     async consume(player) {
-        const runningRound = this.gameData.ingame.betTracks[player.UID];
+        const runningRound = this.gameData.ingame[player.profile.name]?.betTracks;
         const failedCriterion = this.validate(runningRound);
 
         if (!!failedCriterion) {
@@ -29,6 +29,7 @@ export default class CollectConsumer {
             return;
         }
 
+        this.gameData.ingame[player.profile.name].betQueue = this.gameData.ingame[player.profile.name].betQueue ?? [];
         this.gameData.ingame[player.profile.name].betQueue.push({ player, payload: { action: gameSettings.actions.collect } });
     }
 }

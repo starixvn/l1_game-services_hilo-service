@@ -1,4 +1,4 @@
-import { baseCards } from '../constants/cards';
+import { baseCards } from '../cards';
 import Chance from 'chance';
 import _ from 'lodash';
 

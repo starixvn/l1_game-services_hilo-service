@@ -47,4 +47,4 @@ Object.keys(cardRanks).forEach((rank) => {
     );
 });
 
-export { baseCards, rankValueMapper };
+export { baseCards, rankValueMapper, cardRanks };

@@ -4,7 +4,7 @@ import gameSettings from '../game-settings';
 
 export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetConsumer {
     validateBetRequest(player, amount) {
-        const runningRound = this.gameData.ingame.betTracks[player.UID];
+        const runningRound = this.gameData.ingame[player.profile.name]?.betTracks;
         if (!!runningRound) {
             return { errorCode: helpers.noticeHelper.invalidBet };
         }

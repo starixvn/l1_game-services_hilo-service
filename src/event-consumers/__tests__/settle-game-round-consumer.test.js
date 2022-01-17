@@ -1,5 +1,5 @@
 import { Core } from 'sc-game-base';
-import { baseCards } from '../../constants/cards';
+import { baseCards } from '../../cards';
 import { SettleGameRoundConsumer } from '../index';
 import mongoose from 'mongoose';
 import { stubMongooseModelStupidly } from 'jest-micro-auto-stub';
@@ -58,7 +58,7 @@ describe('settle-game-round-consumer', () => {
                 betwin: 0,
                 totalBetAmount: 10,
                 netWin: 0,
-                totalWin: '0.00',
+                totalWin: 0,
                 totalLost: 10,
             };
 
@@ -78,8 +78,8 @@ describe('settle-game-round-consumer', () => {
             const expectedValue = {
                 isWin: true,
                 totalBetAmount: 10,
-                netWin: '10.00',
-                totalWin: '20.00',
+                netWin: 10,
+                totalWin: 20,
                 totalLost: 0,
                 betwin: 20,
             };
@@ -107,11 +107,17 @@ describe('settle-game-round-consumer', () => {
             // arrange
             const gameData = {
                 ingame: {
-                    betTracks: {
-                        m1: { id: 10, result: testCase.previousCards, settlementResult: [], name: '10', totalTurns: 0 },
+                    m1: {
+                        betTracks: {
+                            id: 10,
+                            result: testCase.previousCards,
+                            settlementResult: [],
+                            name: 'm1',
+                            totalTurns: 0,
+                        },
                     },
                 },
-                settlementResultFromAdmin: { 10: [{ rank: '3' }] },
+                settlementResultFromAdmin: { m1: [{ rank: '3' }] },
                 gameConfigs: { odds: {} },
             };
 
@@ -123,13 +129,13 @@ describe('settle-game-round-consumer', () => {
 
             const userBetResultPublisher = { publish: jest.fn() };
             const consumer = new SettleGameRoundConsumer({ gameData, betsRepository, userBetResultPublisher });
-            const playerUid = 'm1';
+            const player = { uid: 'm1', name: 'm1' };
             const payload = { betChoice: testCase.betChoice };
             spyOn(consumer, 'addBetLog');
             spyOn(consumer, 'settleBets');
 
             // act
-            await consumer.settleTurn(playerUid, payload);
+            await consumer.settleTurn(player, payload);
 
             //assert
             expect(consumer.addBetLog).toHaveBeenCalled();
@@ -176,7 +182,7 @@ describe('settle-game-round-consumer', () => {
             // arrange
             const gameData = {
                 gameConfigs: {},
-                ingame: { betTracks: { m1: { result: {}, settlementBetResult: { betwin: 10 }, id: 1, endTime: new Date() } } },
+                ingame: { m1: { betTracks: { result: {}, settlementBetResult: { betwin: 10 }, id: 1, endTime: new Date() } } },
             };
             const definition = {};
             const userBetResultPublisher = { publish: jest.fn() };
@@ -201,7 +207,7 @@ describe('settle-game-round-consumer', () => {
             // arrange
             const gameData = {
                 gameConfigs: {},
-                ingame: { betTracks: { m1: { result: {}, settlementBetResult: { betwin: 10 }, id: 1, endTime: new Date() } } },
+                ingame: { m1: { betTracks: { result: {}, settlementBetResult: { betwin: 10 }, id: 1, endTime: new Date() } } },
             };
             const definition = {};
             const userBetResultPublisher = { publish: jest.fn() };
@@ -281,10 +287,13 @@ describe('settle-game-round-consumer', () => {
     describe('queryBets', () => {
         it('should return from db', async () => {
             // arrange
-            const betsRepository = stubMongooseModelStupidly(mongoose.Model);
             const bets = [];
+            const betsRepository = {
+                find: () => {
+                    return { exec: () => bets };
+                },
+            };
 
-            betsRepository.find().lean().exec.mockReturnValue(bets);
             const consumer = new SettleGameRoundConsumer({ betsRepository });
 
             // act

@@ -22,7 +22,7 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
     }
 
     async collect(player) {
-        const runningRound = this.gameData.ingame.betTracks[player.UID];
+        const runningRound = this.gameData.ingame[player.profile.name]?.betTracks;
         if (!runningRound) {
             return;
         }
@@ -39,15 +39,15 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
             settlementResult: runningRound.settlementResult,
         };
 
-        await this.settleGameRoundConsumer.settleBets(runningRound.uid);
+        await this.settleGameRoundConsumer.settleBets(runningRound.name);
         delete this.gameData.settlementResultFromAdmin[runningRound.name];
-        delete this.gameData.ingame.betTracks[player.UID];
+        delete this.gameData.ingame[player.profile.name].betTracks;
     }
 
     async deal(player, bet) {
-        const runningRound = this.gameData.ingame.betTracks[player.UID];
+        const runningRound = this.gameData.ingame[player.profile.name]?.betTracks;
         if (!!runningRound && runningRound.totalTurns === bet.order) {
-            const result = await this.settleGameRoundConsumer.settleTurn(player.UID, bet);
+            const result = await this.settleGameRoundConsumer.settleTurn({ uid: runningRound.UID, name: player.profile.name }, bet);
             this.placeBetPublisher.publishToUser(player.UID, { endBet: 1, bet, result });
         }
     }
@@ -108,8 +108,13 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
 
         await this.betsRepository.updateOne(existingBetFilter, { $setOnInsert: newBet }, { upsert: true, setDefaultsOnInsert: true });
 
-        newBet.odds = oddsGenerator.generate(this.gameData.gameConfigs.odds, firstCard.rank, 1);
-        this.gameData.ingame.betTracks[player.UID] = newBet;
+        const odds = oddsGenerator.generate(this.gameData.gameConfigs.odds, firstCard.rank, 1);
+        newBet.nextAmounts = {
+            [gameSettings.hiChoice]: (1 + odds[gameSettings.hiChoice]) * newBet.betwin,
+            [gameSettings.loChoice]: (1 + odds[gameSettings.loChoice]) * newBet.betwin,
+        };
+
+        this.gameData.ingame[player.profile.name].betTracks = newBet;
         this.gameData.roundId++;
     }
 
@@ -117,7 +122,7 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
 
     generatePlacingBetResult(player, balance, bet, rate) {
         const ownBet = super.generatePlacingBetResult(player, balance, bet, rate);
-        ownBet.runningRound = this.gameData.ingame.betTracks[player.UID];
+        ownBet.runningRound = this.gameData.ingame[player.profile.name].betTracks;
 
         return ownBet;
     }
@@ -125,8 +130,6 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
     generateFirstCard(name) {
         const resultFromAdmin = this.gameData.settlementResultFromAdmin ? this.gameData.settlementResultFromAdmin[name] : null;
 
-        return !!resultFromAdmin && resultFromAdmin.length > 0
-            ? resultFromAdmin[0]
-            : deckHelper.drawCard([]);
+        return !!resultFromAdmin && resultFromAdmin.length > 0 ? resultFromAdmin[0] : deckHelper.drawCard([]);
     }
 }

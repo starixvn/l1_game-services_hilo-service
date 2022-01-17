@@ -26,14 +26,16 @@ export default class GameCron extends Table.Crons.TableGameCron {
     }
 
     async processRunningRounds() {
-        const runningRounds = Object.values(this.gameData.ingame.betTracks);
+        const players = Object.values(this.gameData.ingame);
         const currentTime = new Date();
 
-        for (let i = 0; i < runningRounds.length; i++) {
-            const round = runningRounds[i];
+        for (let i = 0; i < players.length; i++) {
+            const round = players[i].betTracks;
+
             if (round.turnEndTime <= currentTime && round.totalTurns === 0) {
                 const payload = { betChoice: this.autoChooseChoice() };
-                await this.settleGameRoundConsumer.settleTurn(round.uid, payload);
+                await this.settleGameRoundConsumer.settleTurn(round, payload);
+                continue;
             }
 
             if (round.turnEndTime <= currentTime && round.totalTurns > 0) {
@@ -50,10 +52,20 @@ export default class GameCron extends Table.Crons.TableGameCron {
     async proceedUnsettledBets() {
         const unsettledBets = await this.roundsRepository.find({ endTime: null, paid: false }).lean().exec();
         unsettledBets.forEach((bet) => {
-            this.gameData.ingame.betTracks[bet.uid] = bet;
+            this.gameData.ingame[bet.name] = {
+                betTracks: {
+                    ...bet,
+                    settlementBetResult: {
+                        isWin: true,
+                        betwin: bet.betwin,
+                    },
+                },
+            };
         });
 
-        await Promise.all(Object.values(this.gameData.ingame.betTracks).map((bet) => this.settleGameRoundConsumer.settleBets(bet.uid)));
+        await Promise.all(
+            Object.values(this.gameData.ingame).map((player) => this.settleGameRoundConsumer.settleBets(player.betTracks.name))
+        );
     }
 
     resetForNewRound() {}
