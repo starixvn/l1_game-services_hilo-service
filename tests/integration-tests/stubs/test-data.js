@@ -41,10 +41,10 @@ const rounds = [
     {
         uid: '61dd4c8a4cd022afdc871b0f',
         name: 'NormalUser',
-        phien: 2,
+        id: 2,
         amount: 10,
 
-        thanhtoan: true,
+        paid: true,
         time: '2022-01-07T04:03:43.252+00:00',
         endTime: '2022-01-07T04:03:43.252+00:00',
         odds: {
@@ -83,8 +83,8 @@ const rounds = [
         betwin: 10,
         totalTurns: 1,
         result: [
-            { rank: 4, suit: 2 },
-            { rank: 5, suit: 0 },
+            { rank: '4', suit: 2 },
+            { rank: '5', suit: 0 },
         ],
         settlementResult: ['h'],
         exchangeRateId: 1282,

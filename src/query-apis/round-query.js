@@ -2,7 +2,7 @@ import { Core } from 'sc-game-base';
 
 export default class RoundQuery extends Core.QueryApis.RoundQuery {
     async getOne(id, projections = { _id: false }) {
-        return this.roundsRepository.findOne({ phien: id }, projections).lean().exec();
+        return this.roundsRepository.findOne({ id: id }, projections).lean().exec();
     }
 
     async getList(limit, projections) {
@@ -13,7 +13,7 @@ export default class RoundQuery extends Core.QueryApis.RoundQuery {
 
         return rounds.map((round) => {
             return {
-                roundId: round.phien,
+                roundId: round.id,
                 result: round.result,
                 settlementResult: round.settlementResult,
             };

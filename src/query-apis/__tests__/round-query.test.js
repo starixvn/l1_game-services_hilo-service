@@ -34,7 +34,7 @@ describe('round-query', () => {
         it('should return result from roundsRepository', async () => {
             // arrange
             const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
-            const rounds = [{ phien: 1 }];
+            const rounds = [{ id: 1 }];
             roundsRepository.find().lean().exec.mockReturnValueOnce(rounds);
             const query = new RoundQuery(roundsRepository);
             const expectedValue = [{ roundId: 1, result: undefined, settlementResult: undefined }];

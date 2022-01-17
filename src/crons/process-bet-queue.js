@@ -1,5 +1,5 @@
 import { Table } from 'sc-game-base';
-import gameHelper from '../helpers/deck-helper';
+import deckHelper from '../helpers/deck-helper';
 import oddsGenerator from '../generators/odds-generator';
 import gameSettings from '../game-settings';
 
@@ -22,7 +22,7 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
     }
 
     async collect(player) {
-        const runningRound = this.gameData.runningRounds[player.UID];
+        const runningRound = this.gameData.ingame.betTracks[player.UID];
         if (!runningRound) {
             return;
         }
@@ -40,11 +40,12 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
         };
 
         await this.settleGameRoundConsumer.settleBets(runningRound.uid);
-        delete this.gameData.runningRounds[player.UID];
+        delete this.gameData.settlementResultFromAdmin[runningRound.name];
+        delete this.gameData.ingame.betTracks[player.UID];
     }
 
     async deal(player, bet) {
-        const runningRound = this.gameData.runningRounds[player.UID];
+        const runningRound = this.gameData.ingame.betTracks[player.UID];
         if (!!runningRound && runningRound.totalTurns === bet.order) {
             const result = await this.settleGameRoundConsumer.settleTurn(player.UID, bet);
             this.placeBetPublisher.publishToUser(player.UID, { endBet: 1, bet, result });
@@ -73,14 +74,14 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
     adjustTotalBets() {}
 
     async upsertBet(player, roundId, bet, rate) {
-        const firstCard = gameHelper.drawCard([]);
+        const firstCard = this.generateFirstCard(player.profile.name);
         const { exchangeRates } = this.gameData;
 
         const turnTime = new Date();
         const newBet = {
             uid: player.UID,
             name: player.profile.name,
-            phien: roundId,
+            id: roundId,
             amount: bet.amount,
 
             time: turnTime,
@@ -96,7 +97,7 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
             turnEndTime: new Date(turnTime.getTime() + gameSettings.turnTime * 1000),
         };
 
-        const existingBetFilter = { uid: player.UID, phien: roundId, freeBet: bet.freeBet };
+        const existingBetFilter = { uid: player.UID, id: roundId, freeBet: bet.freeBet };
 
         if (player.session) {
             newBet.memberId = player.session.memberId;
@@ -108,7 +109,7 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
         await this.betsRepository.updateOne(existingBetFilter, { $setOnInsert: newBet }, { upsert: true, setDefaultsOnInsert: true });
 
         newBet.odds = oddsGenerator.generate(this.gameData.gameConfigs.odds, firstCard.rank, 1);
-        this.gameData.runningRounds[player.UID] = newBet;
+        this.gameData.ingame.betTracks[player.UID] = newBet;
         this.gameData.roundId++;
     }
 
@@ -116,8 +117,16 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
 
     generatePlacingBetResult(player, balance, bet, rate) {
         const ownBet = super.generatePlacingBetResult(player, balance, bet, rate);
-        ownBet.runningRound = this.gameData.runningRounds[player.UID];
+        ownBet.runningRound = this.gameData.ingame.betTracks[player.UID];
 
         return ownBet;
+    }
+
+    generateFirstCard(name) {
+        const resultFromAdmin = this.gameData.settlementResultFromAdmin ? this.gameData.settlementResultFromAdmin[name] : null;
+
+        return !!resultFromAdmin && resultFromAdmin.length > 0
+            ? deckHelper.getCardFromAdmin(resultFromAdmin[0].rank, [])
+            : deckHelper.drawCard([]);
     }
 }

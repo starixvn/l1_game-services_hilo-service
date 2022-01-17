@@ -12,11 +12,11 @@ export default class GameCron extends Table.Crons.TableGameCron {
         await super.start();
 
         const lastRound = await this.roundsRepository
-            .findOne({}, 'phien', { sort: { id: -1 } })
+            .findOne({}, 'id', { sort: { id: -1 } })
             .lean()
             .exec();
 
-        this.gameData.roundId = lastRound ? lastRound.phien + 1 : await this.getLastArchiveRound();
+        this.gameData.roundId = lastRound ? lastRound.id + 1 : await this.getLastArchiveRound();
         await this.proceedUnsettledBets();
     }
 
@@ -26,18 +26,18 @@ export default class GameCron extends Table.Crons.TableGameCron {
     }
 
     async processRunningRounds() {
-        const runningRounds = Object.values(this.gameData.runningRounds);
+        const runningRounds = Object.values(this.gameData.ingame.betTracks);
         const currentTime = new Date();
 
         for (let i = 0; i < runningRounds.length; i++) {
-            const r = runningRounds[i];
-            if (r.turnEndTime <= currentTime && r.totalTurns === 0) {
+            const round = runningRounds[i];
+            if (round.turnEndTime <= currentTime && round.totalTurns === 0) {
                 const payload = { betChoice: this.autoChooseChoice() };
-                await this.settleGameRoundConsumer.settleTurn(r.uid, payload);
+                await this.settleGameRoundConsumer.settleTurn(round.uid, payload);
             }
 
-            if (r.turnEndTime <= currentTime && r.totalTurns > 0) {
-                await this.collectConsumer.consume({ UID: r.uid });
+            if (round.turnEndTime <= currentTime && round.totalTurns > 0) {
+                await this.collectConsumer.consume({ UID: round.uid });
             }
         }
     }
@@ -48,12 +48,12 @@ export default class GameCron extends Table.Crons.TableGameCron {
     }
 
     async proceedUnsettledBets() {
-        const unsettledBets = await this.roundsRepository.find({ endTime: null, thanhtoan: false }).lean().exec();
+        const unsettledBets = await this.roundsRepository.find({ endTime: null, paid: false }).lean().exec();
         unsettledBets.forEach((bet) => {
-            this.gameData.runningRounds[bet.uid] = bet;
+            this.gameData.ingame.betTracks[bet.uid] = bet;
         });
 
-        await Promise.all(Object.values(this.gameData.runningRounds).map((bet) => this.settleGameRoundConsumer.settleBets(bet.uid)));
+        await Promise.all(Object.values(this.gameData.ingame.betTracks).map((bet) => this.settleGameRoundConsumer.settleBets(bet.uid)));
     }
 
     resetForNewRound() {}

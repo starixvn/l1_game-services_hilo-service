@@ -1,5 +1,5 @@
-import baseCards from '../../constants/cards';
-import gameHelper from '../deck-helper';
+import { baseCards } from '../../constants/cards';
+import deckHelper from '../deck-helper';
 
 describe('deck-helper', () => {
     describe('drawCard', () => {
@@ -8,7 +8,7 @@ describe('deck-helper', () => {
             const drawnCards = baseCards;
 
             // act
-            const actualValue = gameHelper.drawCard(drawnCards);
+            const actualValue = deckHelper.drawCard(drawnCards);
 
             //assert
             expect(actualValue).not.toBeNull();
@@ -19,10 +19,24 @@ describe('deck-helper', () => {
             const drawnCards = [];
 
             // act
-            const actualValue = gameHelper.drawCard(drawnCards);
+            const actualValue = deckHelper.drawCard(drawnCards);
 
             //assert
             expect(actualValue).not.toBeNull();
+        });
+    });
+
+    describe('getCardFromAdmin', () => {
+        const testCases = [{ drawnCards: [] }, { drawnCards: [{ rank: '2', suit: 0 }] }];
+        it.each(testCases)('should pick correct card', (testCase) => {
+            // arrange
+            const cardRank = '2';
+
+            // act
+            const actualValue = deckHelper.getCardFromAdmin(cardRank, testCase.drawnCards);
+
+            //assert
+            expect(actualValue.rank).toBe('2');
         });
     });
 });

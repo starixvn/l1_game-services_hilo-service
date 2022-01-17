@@ -98,7 +98,7 @@ describe('http-router', () => {
             const gameData = { settlementResultFromAdmin: null };
             const router = new HttpRouter(appConfigs, gameData, null, null, null, logService);
             const res = { send: jest.fn() };
-            const param = { result: [] };
+            const param = { name: 'player', result: [] };
 
             // act
             await router.handleSetResult(param, res);

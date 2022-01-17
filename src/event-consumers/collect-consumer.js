@@ -21,7 +21,7 @@ export default class CollectConsumer {
     }
 
     async consume(player) {
-        const runningRound = this.gameData.runningRounds[player.UID];
+        const runningRound = this.gameData.ingame.betTracks[player.UID];
         const failedCriterion = this.validate(runningRound);
 
         if (!!failedCriterion) {

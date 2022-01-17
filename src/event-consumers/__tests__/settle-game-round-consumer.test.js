@@ -1,5 +1,5 @@
 import { Core } from 'sc-game-base';
-import baseCards from '../../constants/cards';
+import { baseCards } from '../../constants/cards';
 import { SettleGameRoundConsumer } from '../index';
 import mongoose from 'mongoose';
 import { stubMongooseModelStupidly } from 'jest-micro-auto-stub';
@@ -18,10 +18,10 @@ describe('settle-game-round-consumer', () => {
     describe('generateResult', () => {
         it('when resultFromAdmin is set for user should return resultFromAdmin', () => {
             // arrange
-            const gameData = { settlementResultFromAdmin: { player: [2] } };
+            const gameData = { settlementResultFromAdmin: { player: [{ rank: '3' }] } };
             const consumer = new SettleGameRoundConsumer({ gameData });
-            const expectedValue = { rank: 3 };
-            const runningRound = { name: 'player', phien: 10, result: [], totalTurns: 0 };
+            const expectedValue = { rank: '3' };
+            const runningRound = { name: 'player', id: 10, result: [], totalTurns: 0 };
 
             // act
             const actualValue = consumer.generateResult(runningRound);
@@ -30,13 +30,13 @@ describe('settle-game-round-consumer', () => {
             expect(actualValue.rank).toStrictEqual(expectedValue.rank);
         });
 
-        const testCases = [{ settlementResultFromAdmin: null }, { settlementResultFromAdmin: { player: [2] } }];
+        const testCases = [{ settlementResultFromAdmin: null }, { settlementResultFromAdmin: { player: [{ rank: '2' }] } }];
         it.each(testCases)('when resultFromAdmin is not set for user should generate new result', (testCase) => {
             // arrange
             const gameData = { settlementResultFromAdmin: testCase.settlementResultFromAdmin };
             const consumer = new SettleGameRoundConsumer({ gameData });
             const expectedValue = null;
-            const runningRound = { name: 'player01', phien: 11, result: [...baseCards], totalTurns: 3 };
+            const runningRound = { name: 'player01', id: 11, result: [...baseCards], totalTurns: 3 };
 
             // act
             const actualValue = consumer.generateResult(runningRound);
@@ -95,21 +95,23 @@ describe('settle-game-round-consumer', () => {
     describe('settleTurn', () => {
         const testCases = [
             {
-                previousCards: [{ rank: 4, suit: 3 }],
+                previousCards: [{ rank: '4', suit: 3 }],
                 betChoice: 'h',
             },
             {
-                previousCards: [{ rank: 4, suit: 3 }],
+                previousCards: [{ rank: '4', suit: 3 }],
                 betChoice: 'l',
             },
         ];
         it.each(testCases)('should add new bet log', async (testCase) => {
             // arrange
             const gameData = {
-                runningRounds: {
-                    m1: { phien: 10, result: testCase.previousCards, settlementResult: [] },
+                ingame: {
+                    betTracks: {
+                        m1: { id: 10, result: testCase.previousCards, settlementResult: [], name: '10', totalTurns: 0 },
+                    },
                 },
-                settlementResultFromAdmin: { 10: { result: [{ rank: 3 }] } },
+                settlementResultFromAdmin: { 10: [{ rank: '3' }] },
                 gameConfigs: { odds: {} },
             };
 
@@ -144,8 +146,8 @@ describe('settle-game-round-consumer', () => {
             const betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
             const consumer = new SettleGameRoundConsumer({ gameData, betLogsRepository });
             const runningRound = { totalTurns: 3 };
-            const card1 = { rank: 4, suit: 0 };
-            const card2 = { rank: 5, suit: 0 };
+            const card1 = { rank: '4', suit: 0 };
+            const card2 = { rank: '5', suit: 0 };
 
             // act
             await consumer.addBetLog(runningRound, card1, card2, 'h', 10);
@@ -174,7 +176,7 @@ describe('settle-game-round-consumer', () => {
             // arrange
             const gameData = {
                 gameConfigs: {},
-                runningRounds: { m1: { result: {}, settlementBetResult: { betwin: 10 }, phien: 1, endTime: new Date() } },
+                ingame: { betTracks: { m1: { result: {}, settlementBetResult: { betwin: 10 }, id: 1, endTime: new Date() } } },
             };
             const definition = {};
             const userBetResultPublisher = { publish: jest.fn() };
@@ -199,7 +201,7 @@ describe('settle-game-round-consumer', () => {
             // arrange
             const gameData = {
                 gameConfigs: {},
-                runningRounds: { m1: { result: {}, settlementBetResult: { betwin: 10 }, phien: 1, endTime: new Date() } },
+                ingame: { betTracks: { m1: { result: {}, settlementBetResult: { betwin: 10 }, id: 1, endTime: new Date() } } },
             };
             const definition = {};
             const userBetResultPublisher = { publish: jest.fn() };
@@ -224,16 +226,16 @@ describe('settle-game-round-consumer', () => {
     describe('isWin', () => {
         // arrange
         const testCases = [
-            { previousCard: { rank: 1 }, expectedValue: true },
-            { previousCard: { rank: 2 }, expectedValue: true },
-            { nextCard: { rank: 1 }, previousCard: { rank: 4 }, choice: 'h', expectedValue: true },
-            { nextCard: { rank: 4 }, previousCard: { rank: 4 }, choice: 'h', expectedValue: true },
-            { nextCard: { rank: 4 }, previousCard: { rank: 3 }, choice: 'h', expectedValue: true },
-            { nextCard: { rank: 4 }, previousCard: { rank: 5 }, choice: 'h', expectedValue: false },
-            { nextCard: { rank: 2 }, previousCard: { rank: 4 }, choice: 'l', expectedValue: true },
-            { nextCard: { rank: 4 }, previousCard: { rank: 4 }, choice: 'l', expectedValue: true },
-            { nextCard: { rank: 4 }, previousCard: { rank: 3 }, choice: 'l', expectedValue: false },
-            { nextCard: { rank: 4 }, previousCard: { rank: 5 }, choice: 'l', expectedValue: true },
+            { nextCard: { rank: '3' }, previousCard: { rank: 'A' }, expectedValue: true },
+            { nextCard: { rank: '3' }, previousCard: { rank: '2' }, expectedValue: true },
+            { nextCard: { rank: 'A' }, previousCard: { rank: '4' }, choice: 'h', expectedValue: true },
+            { nextCard: { rank: '4' }, previousCard: { rank: '4' }, choice: 'h', expectedValue: true },
+            { nextCard: { rank: '4' }, previousCard: { rank: '3' }, choice: 'h', expectedValue: true },
+            { nextCard: { rank: '4' }, previousCard: { rank: '5' }, choice: 'h', expectedValue: false },
+            { nextCard: { rank: '2' }, previousCard: { rank: '4' }, choice: 'l', expectedValue: true },
+            { nextCard: { rank: '4' }, previousCard: { rank: '4' }, choice: 'l', expectedValue: true },
+            { nextCard: { rank: '4' }, previousCard: { rank: '3' }, choice: 'l', expectedValue: false },
+            { nextCard: { rank: '4' }, previousCard: { rank: '5' }, choice: 'l', expectedValue: true },
         ];
 
         it.each(testCases)('should return correct value', (testCase) => {
@@ -251,17 +253,17 @@ describe('settle-game-round-consumer', () => {
     describe('getSettlementResult', () => {
         // arrange
         const testCases = [
-            { nextCard: { rank: 4 }, previousCard: { rank: 4 }, expectedValue: 't' },
-            { nextCard: { rank: 4 }, previousCard: { rank: 1 }, expectedValue: 'l' },
-            { nextCard: { rank: 2 }, previousCard: { rank: 1 }, expectedValue: 'l' },
-            { nextCard: { rank: 2 }, previousCard: { rank: 3 }, expectedValue: 'l' },
+            { nextCard: { rank: '4' }, previousCard: { rank: '4' }, expectedValue: 't' },
+            { nextCard: { rank: '4' }, previousCard: { rank: 'A' }, expectedValue: 'l' },
+            { nextCard: { rank: '2' }, previousCard: { rank: 'A' }, expectedValue: 'l' },
+            { nextCard: { rank: '2' }, previousCard: { rank: '3' }, expectedValue: 'l' },
 
-            { nextCard: { rank: 1 }, previousCard: { rank: 2 }, expectedValue: 'h' },
-            { nextCard: { rank: 1 }, previousCard: { rank: 3 }, expectedValue: 'h' },
-            { nextCard: { rank: 3 }, previousCard: { rank: 2 }, expectedValue: 'h' },
+            { nextCard: { rank: 'A' }, previousCard: { rank: '2' }, expectedValue: 'h' },
+            { nextCard: { rank: 'A' }, previousCard: { rank: '3' }, expectedValue: 'h' },
+            { nextCard: { rank: '3' }, previousCard: { rank: '2' }, expectedValue: 'h' },
 
-            { nextCard: { rank: 4 }, previousCard: { rank: 3 }, expectedValue: 'h' },
-            { nextCard: { rank: 4 }, previousCard: { rank: 5 }, expectedValue: 'l' },
+            { nextCard: { rank: '4' }, previousCard: { rank: '3' }, expectedValue: 'h' },
+            { nextCard: { rank: '4' }, previousCard: { rank: '5' }, expectedValue: 'l' },
         ];
 
         it.each(testCases)('should return correct value', (testCase) => {
@@ -273,6 +275,23 @@ describe('settle-game-round-consumer', () => {
 
             //assert
             expect(actualValue).toStrictEqual(testCase.expectedValue);
+        });
+    });
+
+    describe('queryBets', () => {
+        it('should return from db', async () => {
+            // arrange
+            const betsRepository = stubMongooseModelStupidly(mongoose.Model);
+            const bets = [];
+
+            betsRepository.find().lean().exec.mockReturnValue(bets);
+            const consumer = new SettleGameRoundConsumer({ betsRepository });
+
+            // act
+            const actualValue = await consumer.queryBets();
+
+            //assert
+            expect(actualValue).toStrictEqual(bets);
         });
     });
 });

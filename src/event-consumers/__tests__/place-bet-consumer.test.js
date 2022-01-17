@@ -18,7 +18,7 @@ describe('place-bet-consumer', () => {
     describe('validateBetRequest', () => {
         it('when player has already bet return invalidBet', () => {
             // arrange
-            const gameData = { gameConfigs: { enabled: false }, runningRounds: { m1: {} } };
+            const gameData = { gameConfigs: { enabled: false }, ingame: { betTracks: { m1: {} } } };
             const consumer = new PlaceBetConsumer(null, gameData);
             const expectedValue = { errorCode: helpers.noticeHelper.invalidBet };
             const player = { UID: 'm1' };
@@ -33,7 +33,7 @@ describe('place-bet-consumer', () => {
 
         it('when game not enabled should return invalidBet', () => {
             // arrange
-            const gameData = { gameConfigs: { enabled: false }, runningRounds: {} };
+            const gameData = { gameConfigs: { enabled: false }, ingame: { betTracks: {} } };
             const consumer = new PlaceBetConsumer(null, gameData);
             const expectedValue = { errorCode: helpers.noticeHelper.invalidBet };
             const player = { UID: 'm1' };
@@ -51,7 +51,7 @@ describe('place-bet-consumer', () => {
             const gameData = {
                 gameConfigs: { enabled: true },
                 currencyGroupGames: [{ groupId: 1, maxBetPerChoices: { newGameChoice: 100 }, minBet: 30 }],
-                runningRounds: {},
+                ingame: { betTracks: {} },
             };
             const consumer = new PlaceBetConsumer(null, gameData);
             const expectedValue = { errorCode: helpers.noticeHelper.minBet, minBet: 30 };
@@ -70,7 +70,7 @@ describe('place-bet-consumer', () => {
             const gameData = {
                 gameConfigs: { enabled: true },
                 currencyGroupGames: [{ groupId: 1, maxBetPerChoices: { newGameChoice: 100 }, minBet: 1, maxBet: 4 }],
-                runningRounds: {},
+                ingame: { betTracks: {} },
             };
             const consumer = new PlaceBetConsumer(null, gameData);
             const expectedValue = { errorCode: helpers.noticeHelper.maxBet, maxBet: 4 };
@@ -89,7 +89,7 @@ describe('place-bet-consumer', () => {
             const gameData = {
                 gameConfigs: { enabled: true },
                 currencyGroupGames: [{ groupId: 1, maxBetPerChoices: { newGameChoice: 100 }, minBet: 1, maxBet: 100 }],
-                runningRounds: {},
+                ingame: { betTracks: {} },
             };
             const consumer = new PlaceBetConsumer(null, gameData);
             const player = { session: { currencyGroupId: '1' }, profile: { minBet: 1, maxBet: 100 } };
@@ -112,7 +112,7 @@ describe('place-bet-consumer', () => {
                 m3: { UID: 'm3', profile: { name: 'm3' } },
                 m4: { UID: 'm4', profile: { name: 'm4' }, session: {} },
             },
-            runningRounds: { m1: { uid: 'm1' } },
+            ingame: { betTracks: { m1: { uid: 'm1' } } },
             ingame: { m1: { betQueue: [] }, m3: { betQueue: [] } },
         };
 

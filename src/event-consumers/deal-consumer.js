@@ -10,7 +10,7 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
         this.settleGameRoundConsumer = settleGameRoundConsumer;
     }
 
-    async composeValidationCriteria(player, betChoice, freeBet, roundId) {
+    composeValidationCriteria(player, betChoice, freeBet, roundId) {
         const bettingTimeValidationCriteria = this.composeBettingTimeValidationCriteria(roundId) ?? [];
         const betAmountValidationCriteria = this.composeBetAmountValidationCriteria(freeBet) || [];
         const betChoiceValidationCriteria = this.composeBetChoiceValidationCriteria(player, betChoice) || [];
@@ -45,7 +45,7 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
     }
 
     composeBetChoiceValidationCriteria(player, betChoice) {
-        const runningRound = this.gameData.runningRounds[player.UID];
+        const runningRound = this.gameData.ingame.betTracks[player.UID];
         const currentCard = !!runningRound ? runningRound.result[runningRound.result.length - 1] : {};
 
         return [
@@ -54,22 +54,22 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
                 notice: this.getNoticeObj(helpers.noticeHelper.invalidBet),
             },
             {
-                failure: betChoice === gameSettings.loChoice && currentCard.rank === 2,
+                failure: betChoice === gameSettings.loChoice && currentCard.rank === '2',
                 notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: errorCodes.lowerThan2 }),
             },
             {
-                failure: betChoice === gameSettings.hiChoice && currentCard.rank === 1,
+                failure: betChoice === gameSettings.hiChoice && currentCard.rank === 'A',
                 notice: this.getNoticeObj(helpers.noticeHelper.invalidBet, { message: errorCodes.greaterThan1 }),
             },
         ];
     }
 
-    async validateBetRequest(player, betChoice, freeBet, roundId) {
+    validateBetRequest(player, betChoice, freeBet, roundId) {
         if (!betChoice) {
             return false;
         }
 
-        const criteria = await this.composeValidationCriteria(player, betChoice, freeBet, roundId);
+        const criteria = this.composeValidationCriteria(player, betChoice, freeBet, roundId);
         const failedCriterion = criteria.find((criterion) => criterion.failure);
         if (failedCriterion) {
             this.publisher.publishToUser(player.UID, { endBet: -1, betChoice, notice: failedCriterion.notice });
@@ -81,18 +81,18 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
     }
 
     async consume(player, payload) {
-        const runningRound = this.gameData.runningRounds[player.UID] ?? { phien: 0, order: 0 };
+        const runningRound = this.gameData.ingame.betTracks[player.UID] ?? { id: 0, order: 0 };
 
         Object.assign(payload, {
             freeBet: payload.freeBet ?? false,
-            roundId: payload.roundId ?? runningRound.phien,
+            roundId: payload.roundId ?? runningRound.id,
             order: runningRound.totalTurns,
             receivedTime: new Date(),
         });
 
         const { betChoice, freeBet, roundId } = payload;
 
-        if (!(await this.validateBetRequest(player, betChoice, freeBet, roundId))) {
+        if (!this.validateBetRequest(player, betChoice, freeBet, roundId)) {
             return;
         }
 

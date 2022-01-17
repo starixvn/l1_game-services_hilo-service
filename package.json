@@ -23,14 +23,11 @@
         "reportFile": "test-reporter.xml",
         "indent": 4
     },
-    "jest": {
-        "testResultsProcessor": "jest-junit"
-    },
     "dependencies": {
-        "chance": "1.1.7",
-        "lodash": "4.17.19",
+        "chance": "^1.1.7",
+        "lodash": "^4.17.19",
         "nodemon": "^2.0.4",
-        "sc-game-base": "2.2.2-beta.0"
+        "sc-game-base": "2.3.0"
     },
     "devDependencies": {
         "@babel/core": "7.14.3",

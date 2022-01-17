@@ -30,7 +30,7 @@ describe('game-cron', () => {
 
     describe('start', () => {
         // arrange
-        const gameData = { runningRounds: {} };
+        const gameData = { ingame: { betTracks: {} } };
         roundsRepository.find().lean().exec.mockReturnValue([]);
         const cron = new GameCron({
             definition,
@@ -49,7 +49,7 @@ describe('game-cron', () => {
 
         const testCases = [
             { lastRound: null, expectedValue: 10 },
-            { lastRound: { phien: 10 }, expectedValue: 11 },
+            { lastRound: { id: 10 }, expectedValue: 11 },
         ];
         it.each(testCases)('should assign round id', async (testCase) => {
             // arrange
@@ -92,7 +92,7 @@ describe('game-cron', () => {
                 m3: { turnEndTime: new Date(dt.getTime() + 20000), uid: 'm3' },
             };
             const realPlayers = { m1: { UID: 'm1' }, m2: { UID: 'm2' } };
-            const gameData = { runningRounds, realPlayers };
+            const gameData = { ingame: { betTracks: runningRounds }, realPlayers };
             const settleGameRoundConsumer = { settleTurn: jest.fn() };
             const collectConsumer = { consume: jest.fn() };
             const cron = new GameCron({ definition, gameData, settleGameRoundConsumer, collectConsumer });
@@ -144,7 +144,7 @@ describe('game-cron', () => {
     describe('proceedUnsettledBets', () => {
         it('should call collectConsumer.consume', async () => {
             // arrange
-            const gameData = { runningRounds: {} };
+            const gameData = { ingame: { betTracks: {} } };
             const rounds = [
                 { totalTurns: 0, uid: 'm1' },
                 { totalTurns: 1, uid: 'm2' },

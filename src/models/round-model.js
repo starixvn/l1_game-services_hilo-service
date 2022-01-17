@@ -4,10 +4,10 @@ import gameSettings from '../game-settings';
 const schema = new mongoose.Schema({
     uid: { type: String, required: true },
     name: { type: String, required: true },
-    phien: { type: Number, required: true },
+    id: { type: Number, required: true },
     amount: { type: Number, required: true },
 
-    thanhtoan: { type: Boolean, default: false },
+    paid: { type: Boolean, default: false },
     betwin: { type: Number, default: 0 },
     time: { type: Date },
     endTime: { type: Date },

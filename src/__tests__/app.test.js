@@ -43,6 +43,10 @@ jest.mock('../service-container-registry', () => {
 });
 
 describe('app', () => {
+    afterAll(() => {
+        jest.clearAllMocks();
+    });
+
     describe('run', () => {
         it('should call app.run', async () => {
             // arrange

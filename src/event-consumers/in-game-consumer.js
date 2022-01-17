@@ -6,7 +6,7 @@ export default class InGameConsumer extends Table.EventConsumers.TableInGameCons
 
         return {
             ...payload,
-            runningRound: this.gameData.runningRounds[player.UID],
+            runningRound: this.gameData.ingame.betTracks[player.UID],
         };
     }
 }
