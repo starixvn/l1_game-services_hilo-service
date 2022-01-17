@@ -14,7 +14,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const resultFromAdmin = this.gameData.settlementResultFromAdmin ? this.gameData.settlementResultFromAdmin[runningRound.name] : null;
 
         return !!resultFromAdmin && runningRound.totalTurns < resultFromAdmin.length
-            ? deckHelper.getCardFromAdmin(resultFromAdmin[runningRound.totalTurns].rank, runningRound.result)
+            ? resultFromAdmin[runningRound.totalTurns + 1]
             : deckHelper.drawCard(runningRound.result);
     }
 

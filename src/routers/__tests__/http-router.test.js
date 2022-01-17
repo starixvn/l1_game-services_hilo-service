@@ -75,7 +75,7 @@ describe('http-router', () => {
 
             // assert
             expect(logService.logError).toHaveBeenCalled();
-            expect(res.send).toHaveBeenCalledWith({ error: true });
+            expect(res.send).toHaveBeenCalledWith([]);
         });
 
         it('when params are valid should logWarning', async () => {
@@ -83,14 +83,13 @@ describe('http-router', () => {
             const gameData = { settlementResultFromAdmin: {} };
             const router = new HttpRouter(appConfigs, gameData, null, null, null, logService);
             const res = { send: jest.fn() };
-            const param = { name: 'player', result: [1, 2, 3] };
+            const param = { name: 'player', result: ["1", "2", "3"] };
 
             // act
             await router.handleSetResult(param, res);
 
             // assert
             expect(logService.logWarning).toHaveBeenCalled();
-            expect(res.send).toHaveBeenCalledWith({ error: false });
         });
 
         it('when have error should logError', async () => {
@@ -106,7 +105,6 @@ describe('http-router', () => {
             // assert
             expect(logService.logWarning).toHaveBeenCalled();
             expect(logService.logError).toHaveBeenCalled();
-            expect(res.send).toHaveBeenCalledWith({ error: true });
         });
     });
 });

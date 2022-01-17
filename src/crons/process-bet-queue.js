@@ -126,7 +126,7 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
         const resultFromAdmin = this.gameData.settlementResultFromAdmin ? this.gameData.settlementResultFromAdmin[name] : null;
 
         return !!resultFromAdmin && resultFromAdmin.length > 0
-            ? deckHelper.getCardFromAdmin(resultFromAdmin[0].rank, [])
+            ? resultFromAdmin[0]
             : deckHelper.drawCard([]);
     }
 }
