@@ -48,7 +48,15 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
         const runningRound = this.gameData.ingame[player.profile.name]?.betTracks;
         if (!!runningRound && runningRound.totalTurns === bet.order) {
             const result = await this.settleGameRoundConsumer.settleTurn({ uid: runningRound.UID, name: player.profile.name }, bet);
-            this.placeBetPublisher.publishToUser(player.UID, { endBet: 1, bet, result });
+            const payload = {
+                roundId: result.id,
+                betwin: result.betwin,
+                settlementResult: result.settlementResult,
+                turnTime: result.turnTime,
+                nextAmounts: result.nextAmounts,
+            };
+
+            this.placeBetPublisher.publishToUser(player.UID, { endBet: 1, bet, payload });
         }
     }
 
@@ -120,16 +128,24 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
 
     async insertBetLog() {}
 
-    generatePlacingBetResult(player, balance, bet, rate) {
-        const ownBet = super.generatePlacingBetResult(player, balance, bet, rate);
-        ownBet.runningRound = this.gameData.ingame[player.profile.name].betTracks;
-
-        return ownBet;
-    }
-
     generateFirstCard(name) {
         const resultFromAdmin = this.gameData.settlementResultFromAdmin ? this.gameData.settlementResultFromAdmin[name] : null;
 
         return !!resultFromAdmin && resultFromAdmin.length > 0 ? resultFromAdmin[0] : deckHelper.drawCard([]);
+    }
+
+    generatePlacingBetResult(player, balance, bet, rate) {
+        const { amount } = bet;
+        const { betTracks } = this.gameData.ingame[player.profile.name] || { betTracks: {} };
+
+        return {
+            endBet: amount,
+            ownBets: {
+                roundId: betTracks.id,
+                result: betTracks.result,
+                nextAmounts: betTracks.nextAmounts,
+            },
+            user: { ...balance },
+        };
     }
 }

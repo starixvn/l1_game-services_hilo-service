@@ -55,12 +55,12 @@ describe('event ingame - already play game', () => {
         });
     });
 
-    it('should include running round in in game info', (done) => {
+    it('should include own bet in in game info', (done) => {
         // Arrange
         gameClientDriver.sendBetEvent(null, 10);
         const completeInGame = (inGameData) => {
             if (inGameData?.gameConfigs) {
-                expect(inGameData.runningRound).not.toBeNull();
+                expect(inGameData.ownBets).not.toBeNull();
                 done();
             }
         };

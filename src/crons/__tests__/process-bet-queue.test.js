@@ -108,6 +108,7 @@ describe('process-bet-queue', () => {
         it('when all info correct should call settleGameRoundConsumer.settleTurn', async () => {
             // arrange
             const settleGameRoundConsumer = { settleTurn: jest.fn() };
+            settleGameRoundConsumer.settleTurn.mockReturnValueOnce({});
             const gameData = { ingame: { m1: { betTracks: { totalTurns: 3 } } } };
             const placeBetPublisher = { publishToUser: jest.fn() };
             const cron = new ProcessBetQueue({ settleGameRoundConsumer, gameData, placeBetPublisher });
@@ -260,33 +261,6 @@ describe('process-bet-queue', () => {
 
             //assert
             expect(betLogsRepository.create).not.toBeCalled();
-        });
-    });
-
-    describe('generatePlacingBetResult', () => {
-        it('should have runningRound', async () => {
-            // arrange
-            const definition = { choicesMapper: {} };
-            const gameData = {
-                ingame: { m1: { betTracks: { result: [{ rank: 'A' }], odds: { h: 0, l: 0 } } } },
-                players: {},
-                chips: [],
-                gameConfigs: {},
-            };
-
-            const cron = new ProcessBetQueue({ definition, gameData });
-            const expectedValue = { result: [{ rank: 'A' }], odds: { h: 0, l: 0 } };
-
-            const player = { UID: 'm1', session: {}, profile: { name: 'm1' } };
-            const balance = 1;
-            const roundId = 2;
-            const rate = 3;
-
-            // act
-            const actualValue = await cron.generatePlacingBetResult(player, balance, roundId, rate);
-
-            //assert
-            expect(actualValue.runningRound).toStrictEqual(expectedValue);
         });
     });
 
