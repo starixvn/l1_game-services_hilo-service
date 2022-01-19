@@ -1,11 +1,11 @@
-import mongoose from 'mongoose';
-import { stubMongooseModelStupidly } from 'jest-micro-auto-stub';
-import { Core } from 'sc-game-base';
-import { RoundQuery } from '../index';
+import mongoose from "mongoose";
+import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
+import { Core } from "sc-game-base";
+import { RoundQuery } from "../index";
 
-describe('round-query', () => {
-    describe('extends', () => {
-        it('inherit Core.QueryApis.RoundQuery', () => {
+describe("round-query", () => {
+    describe("extends", () => {
+        it("inherit Core.QueryApis.RoundQuery", () => {
             // act
             const query = new RoundQuery();
 
@@ -14,8 +14,8 @@ describe('round-query', () => {
         });
     });
 
-    describe('getOne', () => {
-        it('should return result from roundsRepository', async () => {
+    describe("getOne", () => {
+        it("should return result from roundsRepository", async () => {
             // arrange
             const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
             const round = {};
@@ -30,8 +30,8 @@ describe('round-query', () => {
         });
     });
 
-    describe('getList', () => {
-        it('should return result from roundsRepository', async () => {
+    describe("getList", () => {
+        it("should return result from roundsRepository", async () => {
             // arrange
             const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
             const rounds = [{ id: 1 }];

@@ -1,5 +1,5 @@
-import { Table } from 'sc-game-base';
-import { GameBot } from '../index';
+import { Table } from "sc-game-base";
+import { GameBot } from "../index";
 
 const userInfosRepository = {
     noOfDocuments: 10,
@@ -8,9 +8,9 @@ const userInfosRepository = {
     },
 };
 
-describe('game-bot', () => {
-    describe('extends', () => {
-        it('inherit Table.Crons.TableGameBot', () => {
+describe("game-bot", () => {
+    describe("extends", () => {
+        it("inherit Table.Crons.TableGameBot", () => {
             // act
             const cron = new GameBot({});
 
@@ -19,8 +19,8 @@ describe('game-bot', () => {
         });
     });
 
-    describe('placeBet', () => {
-        it('when not have config should not increase round id', async () => {
+    describe("placeBet", () => {
+        it("when not have config should not increase round id", async () => {
             // arrange
             const gameData = { gameConfigs: null, roundId: 10 };
             const cron = new GameBot({}, gameData);
@@ -33,7 +33,7 @@ describe('game-bot', () => {
             expect(gameData.roundId).toBe(expectedValue);
         });
 
-        it('when bot not enabled should not increase round id', async () => {
+        it("when bot not enabled should not increase round id", async () => {
             // arrange
             const gameData = { gameConfigs: { botenabled: false }, roundId: 10 };
             const cron = new GameBot({}, gameData);
@@ -46,7 +46,7 @@ describe('game-bot', () => {
             expect(gameData.roundId).toBe(expectedValue);
         });
 
-        it('when maxNumberOfBots=0 should not increase round id', async () => {
+        it("when maxNumberOfBots=0 should not increase round id", async () => {
             // arrange
             const gameData = {
                 gameConfigs: {
@@ -67,7 +67,7 @@ describe('game-bot', () => {
             expect(gameData.roundId).toBe(expectedValue);
         });
 
-        it('when maxNumberOfBots>0 should increase round id in range 1 -> maxNumberOfBots', async () => {
+        it("when maxNumberOfBots>0 should increase round id in range 1 -> maxNumberOfBots", async () => {
             // arrange
             const gameData = {
                 gameConfigs: {
@@ -79,7 +79,7 @@ describe('game-bot', () => {
 
             userInfosRepository.noOfDocuments = 10;
             const cron = new GameBot({}, gameData, null, userInfosRepository);
-            spyOn(cron, 'processDisabledBots');
+            spyOn(cron, "processDisabledBots");
             await cron.reset();
 
             // act

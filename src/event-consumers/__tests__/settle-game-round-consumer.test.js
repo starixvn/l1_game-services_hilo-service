@@ -1,12 +1,12 @@
-import { Core } from 'sc-game-base';
-import { baseCards } from '../../cards';
-import { SettleGameRoundConsumer } from '../index';
-import mongoose from 'mongoose';
-import { stubMongooseModelStupidly } from 'jest-micro-auto-stub';
+import { Core } from "sc-game-base";
+import { baseCards } from "../../cards";
+import { SettleGameRoundConsumer } from "../index";
+import mongoose from "mongoose";
+import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
 
-describe('settle-game-round-consumer', () => {
-    describe('extends', () => {
-        it('inherit Core.BaseEventConsumers.SettleGameRoundConsumer', () => {
+describe("settle-game-round-consumer", () => {
+    describe("extends", () => {
+        it("inherit Core.BaseEventConsumers.SettleGameRoundConsumer", () => {
             // act
             const consumer = new SettleGameRoundConsumer({});
 
@@ -15,13 +15,13 @@ describe('settle-game-round-consumer', () => {
         });
     });
 
-    describe('generateResult', () => {
-        it('when resultFromAdmin is set for user should return resultFromAdmin', () => {
+    describe("generateResult", () => {
+        it("when resultFromAdmin is set for user should return resultFromAdmin", () => {
             // arrange
-            const gameData = { settlementResultFromAdmin: { player: [{ rank: '3' }] } };
+            const gameData = { settlementResultFromAdmin: { player: [{ rank: "3" }] } };
             const consumer = new SettleGameRoundConsumer({ gameData });
-            const expectedValue = { rank: '3' };
-            const runningRound = { name: 'player', id: 10, result: [], totalTurns: 0 };
+            const expectedValue = { rank: "3" };
+            const runningRound = { name: "player", id: 10, result: [], totalTurns: 0 };
 
             // act
             const actualValue = consumer.generateResult(runningRound);
@@ -30,13 +30,13 @@ describe('settle-game-round-consumer', () => {
             expect(actualValue.rank).toStrictEqual(expectedValue.rank);
         });
 
-        const testCases = [{ settlementResultFromAdmin: null }, { settlementResultFromAdmin: { player: [{ rank: '2' }] } }];
-        it.each(testCases)('when resultFromAdmin is not set for user should generate new result', (testCase) => {
+        const testCases = [{ settlementResultFromAdmin: null }, { settlementResultFromAdmin: { player: [{ rank: "2" }] } }];
+        it.each(testCases)("when resultFromAdmin is not set for user should generate new result", (testCase) => {
             // arrange
             const gameData = { settlementResultFromAdmin: testCase.settlementResultFromAdmin };
             const consumer = new SettleGameRoundConsumer({ gameData });
             const expectedValue = null;
-            const runningRound = { name: 'player01', id: 11, result: [...baseCards], totalTurns: 3 };
+            const runningRound = { name: "player01", id: 11, result: [...baseCards], totalTurns: 3 };
 
             // act
             const actualValue = consumer.generateResult(runningRound);
@@ -46,8 +46,8 @@ describe('settle-game-round-consumer', () => {
         });
     });
 
-    describe('calculateBetResult', () => {
-        it('when not win should return correct value', () => {
+    describe("calculateBetResult", () => {
+        it("when not win should return correct value", () => {
             // arrange
             const gameData = {};
             const consumer = new SettleGameRoundConsumer({ gameData });
@@ -69,7 +69,7 @@ describe('settle-game-round-consumer', () => {
             expect(actualValue).toStrictEqual(expectedValue);
         });
 
-        it('when win should return correct value', () => {
+        it("when win should return correct value", () => {
             // arrange
             const gameData = {};
             const consumer = new SettleGameRoundConsumer({ gameData });
@@ -92,18 +92,18 @@ describe('settle-game-round-consumer', () => {
         });
     });
 
-    describe('settleTurn', () => {
+    describe("settleTurn", () => {
         const testCases = [
             {
-                previousCards: [{ rank: '4', suit: 3 }],
-                betChoice: 'h',
+                previousCards: [{ rank: "4", suit: 3 }],
+                betChoice: "h",
             },
             {
-                previousCards: [{ rank: '4', suit: 3 }],
-                betChoice: 'l',
+                previousCards: [{ rank: "4", suit: 3 }],
+                betChoice: "l",
             },
         ];
-        it.each(testCases)('should add new bet log', async (testCase) => {
+        it.each(testCases)("should add new bet log", async (testCase) => {
             // arrange
             const gameData = {
                 ingame: {
@@ -112,12 +112,12 @@ describe('settle-game-round-consumer', () => {
                             id: 10,
                             result: testCase.previousCards,
                             settlementResult: [],
-                            name: 'm1',
+                            name: "m1",
                             totalTurns: 0,
                         },
                     },
                 },
-                settlementResultFromAdmin: { m1: [{ rank: '3' }] },
+                settlementResultFromAdmin: { m1: [{ rank: "3" }] },
                 gameConfigs: { odds: {} },
             };
 
@@ -129,10 +129,10 @@ describe('settle-game-round-consumer', () => {
 
             const userBetResultPublisher = { publish: jest.fn() };
             const consumer = new SettleGameRoundConsumer({ gameData, betsRepository, userBetResultPublisher });
-            const player = { uid: 'm1', name: 'm1' };
+            const player = { uid: "m1", name: "m1" };
             const payload = { betChoice: testCase.betChoice };
-            spyOn(consumer, 'addBetLog');
-            spyOn(consumer, 'settleBets');
+            spyOn(consumer, "addBetLog");
+            spyOn(consumer, "settleBets");
 
             // act
             await consumer.settleTurn(player, payload);
@@ -142,32 +142,32 @@ describe('settle-game-round-consumer', () => {
         });
     });
 
-    describe('addBetLog', () => {
-        it('should call betLogsRepository.create', async () => {
+    describe("addBetLog", () => {
+        it("should call betLogsRepository.create", async () => {
             // arrange
             const gameData = {
-                realPlayers: { m1: { uid: 'm1', session: {} } },
+                realPlayers: { m1: { uid: "m1", session: {} } },
                 exchangeRates: { code: [] },
             };
             const betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
             const consumer = new SettleGameRoundConsumer({ gameData, betLogsRepository });
             const runningRound = { totalTurns: 3 };
-            const card1 = { rank: '4', suit: 0 };
-            const card2 = { rank: '5', suit: 0 };
+            const card1 = { rank: "4", suit: 0 };
+            const card2 = { rank: "5", suit: 0 };
 
             // act
-            await consumer.addBetLog(runningRound, card1, card2, 'h', 10);
+            await consumer.addBetLog(runningRound, card1, card2, "h", 10);
 
             //assert
             expect(betLogsRepository.create).toBeCalled();
         });
     });
 
-    describe('settleRound', () => {
-        it('should do nothing', async () => {
+    describe("settleRound", () => {
+        it("should do nothing", async () => {
             // arrange
             const consumer = new SettleGameRoundConsumer({});
-            spyOn(consumer, 'generateResult');
+            spyOn(consumer, "generateResult");
 
             // act
             await consumer.settleRound();
@@ -177,8 +177,8 @@ describe('settle-game-round-consumer', () => {
         });
     });
 
-    describe('settleBets', () => {
-        it('when not have bet should not call bet with end time', async () => {
+    describe("settleBets", () => {
+        it("when not have bet should not call bet with end time", async () => {
             // arrange
             const gameData = {
                 gameConfigs: {},
@@ -189,7 +189,7 @@ describe('settle-game-round-consumer', () => {
             const roundResultPublisher = { publishRoundResult: jest.fn() };
             const consumer = new SettleGameRoundConsumer({ gameData, definition, userBetResultPublisher, roundResultPublisher });
             const bet = { save: jest.fn() };
-            spyOn(consumer, 'queryBets').and.returnValue([]);
+            spyOn(consumer, "queryBets").and.returnValue([]);
             consumer.endGame = async () => {
                 return {
                     isOk: true,
@@ -197,13 +197,13 @@ describe('settle-game-round-consumer', () => {
             };
 
             // act
-            await consumer.settleBets('m1');
+            await consumer.settleBets("m1");
 
             //assert
             expect(bet.save).not.toHaveBeenCalled();
         });
 
-        it('should save bet with end time', async () => {
+        it("should save bet with end time", async () => {
             // arrange
             const gameData = {
                 gameConfigs: {},
@@ -214,7 +214,7 @@ describe('settle-game-round-consumer', () => {
             const roundResultPublisher = { publishRoundResult: jest.fn() };
             const consumer = new SettleGameRoundConsumer({ gameData, definition, userBetResultPublisher, roundResultPublisher });
             const bet = { save: jest.fn() };
-            spyOn(consumer, 'queryBets').and.returnValue([bet]);
+            spyOn(consumer, "queryBets").and.returnValue([bet]);
             consumer.endGame = async () => {
                 return {
                     isOk: true,
@@ -222,29 +222,29 @@ describe('settle-game-round-consumer', () => {
             };
 
             // act
-            await consumer.settleBets('m1');
+            await consumer.settleBets("m1");
 
             //assert
             expect(bet.save).toHaveBeenCalled();
         });
     });
 
-    describe('isWin', () => {
+    describe("isWin", () => {
         // arrange
         const testCases = [
-            { nextCard: { rank: '3' }, previousCard: { rank: 'A' }, expectedValue: true },
-            { nextCard: { rank: '3' }, previousCard: { rank: '2' }, expectedValue: true },
-            { nextCard: { rank: 'A' }, previousCard: { rank: '4' }, choice: 'h', expectedValue: true },
-            { nextCard: { rank: '4' }, previousCard: { rank: '4' }, choice: 'h', expectedValue: true },
-            { nextCard: { rank: '4' }, previousCard: { rank: '3' }, choice: 'h', expectedValue: true },
-            { nextCard: { rank: '4' }, previousCard: { rank: '5' }, choice: 'h', expectedValue: false },
-            { nextCard: { rank: '2' }, previousCard: { rank: '4' }, choice: 'l', expectedValue: true },
-            { nextCard: { rank: '4' }, previousCard: { rank: '4' }, choice: 'l', expectedValue: true },
-            { nextCard: { rank: '4' }, previousCard: { rank: '3' }, choice: 'l', expectedValue: false },
-            { nextCard: { rank: '4' }, previousCard: { rank: '5' }, choice: 'l', expectedValue: true },
+            { nextCard: { rank: "3" }, previousCard: { rank: "A" }, expectedValue: true },
+            { nextCard: { rank: "3" }, previousCard: { rank: "2" }, expectedValue: true },
+            { nextCard: { rank: "A" }, previousCard: { rank: "4" }, choice: "h", expectedValue: true },
+            { nextCard: { rank: "4" }, previousCard: { rank: "4" }, choice: "h", expectedValue: true },
+            { nextCard: { rank: "4" }, previousCard: { rank: "3" }, choice: "h", expectedValue: true },
+            { nextCard: { rank: "4" }, previousCard: { rank: "5" }, choice: "h", expectedValue: false },
+            { nextCard: { rank: "2" }, previousCard: { rank: "4" }, choice: "l", expectedValue: true },
+            { nextCard: { rank: "4" }, previousCard: { rank: "4" }, choice: "l", expectedValue: true },
+            { nextCard: { rank: "4" }, previousCard: { rank: "3" }, choice: "l", expectedValue: false },
+            { nextCard: { rank: "4" }, previousCard: { rank: "5" }, choice: "l", expectedValue: true },
         ];
 
-        it.each(testCases)('should return correct value', (testCase) => {
+        it.each(testCases)("should return correct value", (testCase) => {
             // arrange
             const consumer = new SettleGameRoundConsumer({});
 
@@ -256,23 +256,23 @@ describe('settle-game-round-consumer', () => {
         });
     });
 
-    describe('getSettlementResult', () => {
+    describe("getSettlementResult", () => {
         // arrange
         const testCases = [
-            { nextCard: { rank: '4' }, previousCard: { rank: '4' }, expectedValue: 't' },
-            { nextCard: { rank: '4' }, previousCard: { rank: 'A' }, expectedValue: 'l' },
-            { nextCard: { rank: '2' }, previousCard: { rank: 'A' }, expectedValue: 'l' },
-            { nextCard: { rank: '2' }, previousCard: { rank: '3' }, expectedValue: 'l' },
+            { nextCard: { rank: "4" }, previousCard: { rank: "4" }, expectedValue: "t" },
+            { nextCard: { rank: "4" }, previousCard: { rank: "A" }, expectedValue: "l" },
+            { nextCard: { rank: "2" }, previousCard: { rank: "A" }, expectedValue: "l" },
+            { nextCard: { rank: "2" }, previousCard: { rank: "3" }, expectedValue: "l" },
 
-            { nextCard: { rank: 'A' }, previousCard: { rank: '2' }, expectedValue: 'h' },
-            { nextCard: { rank: 'A' }, previousCard: { rank: '3' }, expectedValue: 'h' },
-            { nextCard: { rank: '3' }, previousCard: { rank: '2' }, expectedValue: 'h' },
+            { nextCard: { rank: "A" }, previousCard: { rank: "2" }, expectedValue: "h" },
+            { nextCard: { rank: "A" }, previousCard: { rank: "3" }, expectedValue: "h" },
+            { nextCard: { rank: "3" }, previousCard: { rank: "2" }, expectedValue: "h" },
 
-            { nextCard: { rank: '4' }, previousCard: { rank: '3' }, expectedValue: 'h' },
-            { nextCard: { rank: '4' }, previousCard: { rank: '5' }, expectedValue: 'l' },
+            { nextCard: { rank: "4" }, previousCard: { rank: "3" }, expectedValue: "h" },
+            { nextCard: { rank: "4" }, previousCard: { rank: "5" }, expectedValue: "l" },
         ];
 
-        it.each(testCases)('should return correct value', (testCase) => {
+        it.each(testCases)("should return correct value", (testCase) => {
             // arrange
             const consumer = new SettleGameRoundConsumer({});
 
@@ -284,8 +284,8 @@ describe('settle-game-round-consumer', () => {
         });
     });
 
-    describe('queryBets', () => {
-        it('should return from db', async () => {
+    describe("queryBets", () => {
+        it("should return from db", async () => {
             // arrange
             const bets = [];
             const betsRepository = {

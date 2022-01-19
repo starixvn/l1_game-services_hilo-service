@@ -1,5 +1,5 @@
-import errorCodes from '../constants/error-codes';
-import gameSettings from '../game-settings';
+import errorCodes from "../constants/error-codes";
+import gameSettings from "../game-settings";
 
 export default class CollectConsumer {
     constructor(definition, gameData, publisher) {

@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
-import gameSettings from '../game-settings';
+import mongoose from "mongoose";
+import gameSettings from "../game-settings";
 
 const schema = new mongoose.Schema({
     uid: { type: String, required: true },

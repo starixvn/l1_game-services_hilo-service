@@ -1,8 +1,8 @@
-import { Core } from 'sc-game-base';
-import { helpers } from 'sc-common';
-import gameSettings from '../game-settings';
-import errorCodes from '../constants/error-codes';
-import { cardRanks } from '../cards';
+import { Core } from "sc-game-base";
+import { helpers } from "sc-common";
+import gameSettings from "../game-settings";
+import errorCodes from "../constants/error-codes";
+import { cardRanks } from "../cards";
 
 export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsumer {
     constructor(definition, gameData, publisher, betsRepository, settleGameRoundConsumer) {

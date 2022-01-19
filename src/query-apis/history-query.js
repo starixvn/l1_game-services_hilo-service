@@ -1,4 +1,4 @@
-import { Core } from 'sc-game-base';
+import { Core } from "sc-game-base";
 
 export default class HistoryQuery extends Core.QueryApis.HistoryQuery {
     getBetLogDetails(player, roundId) {

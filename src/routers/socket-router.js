@@ -1,4 +1,4 @@
-import { Core } from 'sc-game-base';
+import { Core } from "sc-game-base";
 
 export default class SocketRouter extends Core.Routers.BaseSocketRouter {
     constructor(params) {
@@ -11,8 +11,8 @@ export default class SocketRouter extends Core.Routers.BaseSocketRouter {
         super.init(socketClient);
 
         this.socketClient = socketClient;
-        this.socketClient.on('deal', this.handleDeal.bind(this));
-        this.socketClient.on('collect', this.handleCollect.bind(this));
+        this.socketClient.on("deal", this.handleDeal.bind(this));
+        this.socketClient.on("collect", this.handleCollect.bind(this));
     }
 
     async handleDeal(payload) {

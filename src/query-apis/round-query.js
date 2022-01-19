@@ -1,4 +1,4 @@
-import { Core } from 'sc-game-base';
+import { Core } from "sc-game-base";
 
 export default class RoundQuery extends Core.QueryApis.RoundQuery {
     async getOne(id, projections = { _id: false }) {

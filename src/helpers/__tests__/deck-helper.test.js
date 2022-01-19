@@ -1,9 +1,9 @@
-import { baseCards } from '../../cards';
-import deckHelper from '../deck-helper';
+import { baseCards } from "../../cards";
+import deckHelper from "../deck-helper";
 
-describe('deck-helper', () => {
-    describe('drawCard', () => {
-        it('when already drawn all cards should also return card, card can be duplicate', () => {
+describe("deck-helper", () => {
+    describe("drawCard", () => {
+        it("when already drawn all cards should also return card, card can be duplicate", () => {
             // arrange
             const drawnCards = baseCards;
 
@@ -14,7 +14,7 @@ describe('deck-helper', () => {
             expect(actualValue).not.toBeNull();
         });
 
-        it('when 1st draw should return card', () => {
+        it("when 1st draw should return card", () => {
             // arrange
             const drawnCards = [];
 
@@ -26,17 +26,17 @@ describe('deck-helper', () => {
         });
     });
 
-    describe('getCardFromAdmin', () => {
-        const testCases = [{ drawnCards: [] }, { drawnCards: [{ rank: '2', suit: 0 }] }];
-        it.each(testCases)('should pick correct card', (testCase) => {
+    describe("getCardFromAdmin", () => {
+        const testCases = [{ drawnCards: [] }, { drawnCards: [{ rank: "2", suit: 0 }] }];
+        it.each(testCases)("should pick correct card", (testCase) => {
             // arrange
-            const cardRank = '2';
+            const cardRank = "2";
 
             // act
             const actualValue = deckHelper.getCardFromAdmin(cardRank, testCase.drawnCards);
 
             //assert
-            expect(actualValue.rank).toBe('2');
+            expect(actualValue.rank).toBe("2");
         });
     });
 });

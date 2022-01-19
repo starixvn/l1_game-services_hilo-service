@@ -1,5 +1,5 @@
-import Chance from 'chance';
-import { Table } from 'sc-game-base';
+import Chance from "chance";
+import { Table } from "sc-game-base";
 
 export default class GameBot extends Table.Crons.TableGameBot {
     constructor(definition, gameData, publisher, userInfosRepository, tempBetsRepository) {

@@ -1,7 +1,7 @@
-import { stub } from 'jest-micro-auto-stub';
-import { Table } from 'sc-game-base';
-import { logger } from 'sc-common/logger';
-import { HttpRouter } from '../index';
+import { stub } from "jest-micro-auto-stub";
+import { Table } from "sc-game-base";
+import { logger } from "sc-common/logger";
+import { HttpRouter } from "../index";
 
 const app = {
     get: jest.fn(),
@@ -12,7 +12,7 @@ const app = {
 };
 const appConfigs = {
     apiSettings: {
-        authUrl: 'http://localhost',
+        authUrl: "http://localhost",
     },
     authenticateSettings: {
         audiences: [],
@@ -20,9 +20,9 @@ const appConfigs = {
 };
 const logService = stub(logger);
 
-describe('http-router', () => {
-    describe('extends', () => {
-        it('inherit Core.Routers.HttpRouter', () => {
+describe("http-router", () => {
+    describe("extends", () => {
+        it("inherit Core.Routers.HttpRouter", () => {
             // act
             const cron = new HttpRouter();
 
@@ -31,11 +31,11 @@ describe('http-router', () => {
         });
     });
 
-    describe('init', () => {
-        it('should call supper init', () => {
+    describe("init", () => {
+        it("should call supper init", () => {
             // arrange
             const router = new HttpRouter();
-            spyOn(HttpRouter.prototype, 'init');
+            spyOn(HttpRouter.prototype, "init");
 
             // act
             router.init(app);
@@ -44,12 +44,12 @@ describe('http-router', () => {
             expect(HttpRouter.prototype.init).toHaveBeenCalled();
         });
 
-        it('should call app.post', () => {
+        it("should call app.post", () => {
             // arrange
             app.calledPost = false;
             const router = new HttpRouter(appConfigs);
-            spyOn(app, 'calledPost').and.callThrough();
-            spyOn(router, 'handleSetResult');
+            spyOn(app, "calledPost").and.callThrough();
+            spyOn(router, "handleSetResult");
 
             // act
             router.init(app);
@@ -59,13 +59,13 @@ describe('http-router', () => {
         });
     });
 
-    describe('handleSetResult', () => {
+    describe("handleSetResult", () => {
         beforeEach(() => {
             jest.clearAllMocks();
         });
 
         const testCases = [{ param: null }, { param: {} }, { param: { roundId: 1 } }];
-        it.each(testCases)('when params are invalid should logError ', async (testCase) => {
+        it.each(testCases)("when params are invalid should logError ", async (testCase) => {
             // arrange
             const router = new HttpRouter(appConfigs, null, null, null, null, logService);
             const res = { send: jest.fn() };
@@ -78,12 +78,12 @@ describe('http-router', () => {
             expect(res.send).toHaveBeenCalledWith([]);
         });
 
-        it('when params are valid should logWarning', async () => {
+        it("when params are valid should logWarning", async () => {
             // arrange
             const gameData = { settlementResultFromAdmin: {} };
             const router = new HttpRouter(appConfigs, gameData, null, null, null, logService);
             const res = { send: jest.fn() };
-            const param = { name: 'player', result: ['A', '2', '3'] };
+            const param = { name: "player", result: ["A", "2", "3"] };
 
             // act
             await router.handleSetResult(param, res);
@@ -92,12 +92,12 @@ describe('http-router', () => {
             expect(logService.logWarning).toHaveBeenCalled();
         });
 
-        it('when have error should logError', async () => {
+        it("when have error should logError", async () => {
             // arrange
             const gameData = { settlementResultFromAdmin: null };
             const router = new HttpRouter(appConfigs, gameData, null, null, null, logService);
             const res = { send: jest.fn() };
-            const param = { name: 'player', result: [] };
+            const param = { name: "player", result: [] };
 
             // act
             await router.handleSetResult(param, res);

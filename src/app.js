@@ -1,7 +1,7 @@
-import { Core, Table } from 'sc-game-base';
-import appConfigs from './app-configs';
-import ServiceContainerRegistry from './service-container-registry';
-import gameSettings from './game-settings';
+import { Core, Table } from "sc-game-base";
+import appConfigs from "./app-configs";
+import ServiceContainerRegistry from "./service-container-registry";
+import gameSettings from "./game-settings";
 
 export const run = async () => {
     const gameData = new Table.TableGameData(gameSettings.durations.wholeRound);

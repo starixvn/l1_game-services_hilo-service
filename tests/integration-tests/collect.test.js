@@ -1,11 +1,11 @@
-import { GameClientDriver, normalUser } from 'sc-game-service-integration-utils';
-import { socketOptions } from './stubs/test-data';
-import { initUserSession } from './helpers';
-import gameSettings from '../../src/game-settings';
+import { GameClientDriver, normalUser } from "sc-game-service-integration-utils";
+import { socketOptions } from "./stubs/test-data";
+import { initUserSession } from "./helpers";
+import gameSettings from "../../src/game-settings";
 
 const JEST_ASSERT_WAITING_RESPONSE_TIMEOUT = 60000;
 
-describe('event collect - already have running round', () => {
+describe("event collect - already have running round", () => {
     let gameClientDriver;
     beforeAll(() => {
         // set timeout for jest, waiting for socket response
@@ -17,14 +17,14 @@ describe('event collect - already have running round', () => {
         gameClientDriver.close();
     });
 
-    it('should start and allow game client connect to.', (done) => {
+    it("should start and allow game client connect to.", (done) => {
         // Assert
         gameClientDriver.handleSignedInEvent(() => {
             done();
         });
     });
 
-    it('should return isCollect=-1 or have settlementResult', (done) => {
+    it("should return isCollect=-1 or have settlementResult", (done) => {
         // arrange
         gameClientDriver.sendBetEvent(null, 100);
         let startCollect = false;
@@ -37,14 +37,14 @@ describe('event collect - already have running round', () => {
         gameClientDriver.handleEndBetEvent((endBetData) => {
             if (endBetData?.endBet) {
                 startCollect = true;
-                gameClientDriver.emit('collect', null);
+                gameClientDriver.emit("collect", null);
                 gameClientDriver.on(gameSettings.name, endCollectFunc);
             }
         });
     });
 });
 
-describe('event collect - not yet have running round', () => {
+describe("event collect - not yet have running round", () => {
     let gameClientDriver;
     beforeAll(() => {
         // set timeout for jest, waiting for socket response
@@ -56,16 +56,16 @@ describe('event collect - not yet have running round', () => {
         gameClientDriver.close();
     });
 
-    it('should start and allow game client connect to.', (done) => {
+    it("should start and allow game client connect to.", (done) => {
         // Assert
         gameClientDriver.handleSignedInEvent(() => {
             done();
         });
     });
 
-    it('should return isCollect=-1', (done) => {
+    it("should return isCollect=-1", (done) => {
         //Act
-        gameClientDriver.emit('collect', null);
+        gameClientDriver.emit("collect", null);
 
         // Assert
         gameClientDriver.on(gameSettings.name, (resp) => {

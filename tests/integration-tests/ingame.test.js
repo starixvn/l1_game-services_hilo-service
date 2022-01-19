@@ -1,10 +1,10 @@
-import { GameClientDriver, normalUser } from 'sc-game-service-integration-utils';
-import { socketOptions } from './stubs/test-data';
-import { initUserSession } from './helpers';
+import { GameClientDriver, normalUser } from "sc-game-service-integration-utils";
+import { socketOptions } from "./stubs/test-data";
+import { initUserSession } from "./helpers";
 
 const JEST_ASSERT_WAITING_RESPONSE_TIMEOUT = 60000;
 
-describe('event ingame - not yet play game', () => {
+describe("event ingame - not yet play game", () => {
     let gameClientDriver;
     beforeAll(() => {
         // set timeout for jest, waiting for socket response
@@ -16,14 +16,14 @@ describe('event ingame - not yet play game', () => {
         gameClientDriver.close();
     });
 
-    it('should start and allow game client connect to.', (done) => {
+    it("should start and allow game client connect to.", (done) => {
         // Assert
         gameClientDriver.handleSignedInEvent(() => {
             done();
         });
     });
 
-    it('should return game configs, odds', (done) => {
+    it("should return game configs, odds", (done) => {
         // Act
         gameClientDriver.sendInGameEvent();
 
@@ -36,7 +36,7 @@ describe('event ingame - not yet play game', () => {
     });
 });
 
-describe('event ingame - already play game', () => {
+describe("event ingame - already play game", () => {
     let gameClientDriver;
     beforeAll(() => {
         // set timeout for jest, waiting for socket response
@@ -48,14 +48,14 @@ describe('event ingame - already play game', () => {
         gameClientDriver.close();
     });
 
-    it('should start and allow game client connect to.', (done) => {
+    it("should start and allow game client connect to.", (done) => {
         // Assert
         gameClientDriver.handleSignedInEvent(() => {
             done();
         });
     });
 
-    it('should include own bet in in game info', (done) => {
+    it("should include own bet in in game info", (done) => {
         // Arrange
         gameClientDriver.sendBetEvent(null, 10);
         const completeInGame = (inGameData) => {

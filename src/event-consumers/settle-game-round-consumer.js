@@ -1,8 +1,8 @@
-import { Core } from 'sc-game-base';
-import deckHelper from '../helpers/deck-helper';
-import gameSettings from '../game-settings';
-import oddsGenerator from '../generators/odds-generator';
-import { rankValueMapper, cardRanks } from '../cards';
+import { Core } from "sc-game-base";
+import deckHelper from "../helpers/deck-helper";
+import gameSettings from "../game-settings";
+import oddsGenerator from "../generators/odds-generator";
+import { rankValueMapper, cardRanks } from "../cards";
 
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
     constructor(params) {

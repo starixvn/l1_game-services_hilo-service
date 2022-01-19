@@ -1,9 +1,9 @@
-import { Table } from 'sc-game-base';
-import { InjectionMode } from 'awilix';
-import ServiceContainerRegistry from '../service-container-registry';
+import { Table } from "sc-game-base";
+import { InjectionMode } from "awilix";
+import ServiceContainerRegistry from "../service-container-registry";
 
 jest.mock(
-    'awilix',
+    "awilix",
     () => {
         return {
             asClass: (t) => {
@@ -22,12 +22,12 @@ jest.mock(
     { virtual: true }
 );
 
-describe('service-container-registry', () => {
+describe("service-container-registry", () => {
     // arrange
     const defaultInjectionMode = InjectionMode.CLASSIC;
 
-    describe('extends', () => {
-        it('inherit Table.TableContainerRegistry', () => {
+    describe("extends", () => {
+        it("inherit Table.TableContainerRegistry", () => {
             // arrange
             const containerRegistry = new ServiceContainerRegistry();
 
@@ -36,8 +36,8 @@ describe('service-container-registry', () => {
         });
     });
 
-    describe('registerModels', () => {
-        it('should register correct Models', () => {
+    describe("registerModels", () => {
+        it("should register correct Models", () => {
             // arrange
             const containerRegistry = new ServiceContainerRegistry(defaultInjectionMode);
             containerRegistry.container = { register: jest.fn() };
@@ -54,8 +54,8 @@ describe('service-container-registry', () => {
         });
     });
 
-    describe('registerConsumers', () => {
-        it('should register correct consumers', () => {
+    describe("registerConsumers", () => {
+        it("should register correct consumers", () => {
             // arrange
             const containerRegistry = new ServiceContainerRegistry(defaultInjectionMode);
             containerRegistry.container = { register: jest.fn() };
@@ -74,8 +74,8 @@ describe('service-container-registry', () => {
         });
     });
 
-    describe('registerRouters', () => {
-        it('should register correct routers', () => {
+    describe("registerRouters", () => {
+        it("should register correct routers", () => {
             // arrange
             const containerRegistry = new ServiceContainerRegistry(defaultInjectionMode);
             containerRegistry.container = { register: jest.fn() };
@@ -91,8 +91,8 @@ describe('service-container-registry', () => {
         });
     });
 
-    describe('registerCrons', () => {
-        it('should register correct Crons', () => {
+    describe("registerCrons", () => {
+        it("should register correct Crons", () => {
             // arrange
             const containerRegistry = new ServiceContainerRegistry(defaultInjectionMode);
             containerRegistry.container = { register: jest.fn() };
@@ -109,8 +109,8 @@ describe('service-container-registry', () => {
         });
     });
 
-    describe('registerApis', () => {
-        it('should register correct query apis', () => {
+    describe("registerApis", () => {
+        it("should register correct query apis", () => {
             // arrange
             const containerRegistry = new ServiceContainerRegistry(defaultInjectionMode);
             containerRegistry.container = { register: jest.fn() };

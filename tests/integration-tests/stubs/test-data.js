@@ -1,11 +1,11 @@
 const game = {
     id: 45,
-    name: 'Hilo',
+    name: "Hilo",
 };
 
 const gameConfig = {
     type: 0,
-    name: 'hilo',
+    name: "hilo",
     minBet: 10,
     maxBet: 3000,
     maxBetPerChoices: { even: 3000, odd: 3000, red3: 3000, white3: 3000, red4: 1000, white4: 1000, red2: 3000 },
@@ -35,18 +35,18 @@ const gameConfig = {
     },
 };
 
-const currencyData = { code: 'USD', name: '$US' };
+const currencyData = { code: "USD", name: "$US" };
 
 const rounds = [
     {
-        uid: '61dd4c8a4cd022afdc871b0f',
-        name: 'NormalUser',
+        uid: "61dd4c8a4cd022afdc871b0f",
+        name: "NormalUser",
         id: 2,
         amount: 10,
 
         paid: true,
-        time: '2022-01-07T04:03:43.252+00:00',
-        endTime: '2022-01-07T04:03:43.252+00:00',
+        time: "2022-01-07T04:03:43.252+00:00",
+        endTime: "2022-01-07T04:03:43.252+00:00",
         odds: {
             h_3: 5,
             h_4: 10,
@@ -73,28 +73,28 @@ const rounds = [
         },
 
         memberId: 1001051,
-        siteId: '4100300',
+        siteId: "4100300",
         freeBet: false,
 
-        currency: '$US',
+        currency: "$US",
         rate: 1,
-        partnerId: 'ONEworks1',
+        partnerId: "ONEworks1",
 
         betwin: 10,
         totalTurns: 1,
         result: [
-            { rank: '4', suit: 2 },
-            { rank: '5', suit: 0 },
+            { rank: "4", suit: 2 },
+            { rank: "5", suit: 0 },
         ],
-        settlementResult: ['h'],
+        settlementResult: ["h"],
         exchangeRateId: 1282,
     },
 ];
 
 const socketOptions = {
-    socketUri: 'http://localhost:5001/user/hilo',
+    socketUri: "http://localhost:5001/user/hilo",
     gameName: game.name,
-    proxyRoute: '/socket.io',
+    proxyRoute: "/socket.io",
 };
 
 export { game, gameConfig, currencyData, rounds, socketOptions };

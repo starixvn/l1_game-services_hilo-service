@@ -1,4 +1,4 @@
-import { currencyData } from '../stubs/test-data';
+import { currencyData } from "../stubs/test-data";
 
 export const initUserSession = (user) => {
     return {
@@ -6,6 +6,6 @@ export const initUserSession = (user) => {
         ss: `${user.memberId}-session-id`,
         currency: currencyData.name,
         username: `${user.memberId}_${user.memberName}`,
-        browserUserAgent: 'browser-user-agent',
+        browserUserAgent: "browser-user-agent",
     };
 };

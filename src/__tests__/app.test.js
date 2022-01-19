@@ -1,10 +1,10 @@
-import { run } from '../app';
+import { run } from "../app";
 
 const mAppStatus = {
     started: false,
 };
 
-jest.mock('sc-game-base', () => {
+jest.mock("sc-game-base", () => {
     const mApp = {
         run: () => {
             mAppStatus.started = true;
@@ -28,7 +28,7 @@ jest.mock('sc-game-base', () => {
     };
 });
 
-jest.mock('../service-container-registry', () => {
+jest.mock("../service-container-registry", () => {
     return function () {
         return {
             register: () => {
@@ -42,13 +42,13 @@ jest.mock('../service-container-registry', () => {
     };
 });
 
-describe('app', () => {
+describe("app", () => {
     afterAll(() => {
         jest.clearAllMocks();
     });
 
-    describe('run', () => {
-        it('should call app.run', async () => {
+    describe("run", () => {
+        it("should call app.run", async () => {
             // arrange
             mAppStatus.started = false;
 

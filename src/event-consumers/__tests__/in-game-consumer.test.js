@@ -1,11 +1,11 @@
-import { Table } from 'sc-game-base';
-import mongoose from 'mongoose';
-import { stubMongooseModelStupidly } from 'jest-micro-auto-stub';
-import { InGameConsumer } from '../index';
+import { Table } from "sc-game-base";
+import mongoose from "mongoose";
+import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
+import { InGameConsumer } from "../index";
 
-describe('in-game-consumer', () => {
-    describe('extends', () => {
-        it('inherit Table.EventConsumers.TableInGameConsumer', () => {
+describe("in-game-consumer", () => {
+    describe("extends", () => {
+        it("inherit Table.EventConsumers.TableInGameConsumer", () => {
             // act
             const consumer = new InGameConsumer({});
 
@@ -14,9 +14,9 @@ describe('in-game-consumer', () => {
         });
     });
 
-    describe('buildPayload', () => {
+    describe("buildPayload", () => {
         const testCases = [{ betTracks: { id: 1, turnEndTime: new Date() } }, { betTracks: { id: 1 } }];
-        it.each(testCases)('should return ownBets', async (testCase) => {
+        it.each(testCases)("should return ownBets", async (testCase) => {
             // arrange
             const gameData = {
                 gameConfigs: {},
@@ -29,7 +29,7 @@ describe('in-game-consumer', () => {
             const getBalance = jest.fn();
             const userInfosRepository = stubMongooseModelStupidly(mongoose.Model);
             const consumer = new InGameConsumer({}, gameData, roundQuery, {}, getBalance, userInfosRepository);
-            const player = { UID: 'm1', session: {}, profile: { name: 'm1' } };
+            const player = { UID: "m1", session: {}, profile: { name: "m1" } };
             // act
             const actualValue = await consumer.buildPayload(player);
 

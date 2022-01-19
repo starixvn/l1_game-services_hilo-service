@@ -1,5 +1,5 @@
-import Chance from 'chance';
-import { Table } from 'sc-game-base';
+import Chance from "chance";
+import { Table } from "sc-game-base";
 
 export default class GameCron extends Table.Crons.TableGameCron {
     constructor(params) {
@@ -12,7 +12,7 @@ export default class GameCron extends Table.Crons.TableGameCron {
         await super.start();
 
         const lastRound = await this.roundsRepository
-            .findOne({}, 'id', { sort: { id: -1 } })
+            .findOne({}, "id", { sort: { id: -1 } })
             .lean()
             .exec();
 
@@ -26,22 +26,23 @@ export default class GameCron extends Table.Crons.TableGameCron {
     }
 
     async processRunningRounds() {
-        const players = Object.values(this.gameData.ingame);
         const currentTime = new Date();
 
-        for (let i = 0; i < players.length; i++) {
-            const round = players[i].betTracks;
+        await Promise.all(
+            Object.values(this.gameData.ingame).map(async (player) => {
+                const round = player.betTracks;
 
-            if (round.turnEndTime <= currentTime && round.totalTurns === 0) {
-                const payload = { betChoice: this.autoChooseChoice() };
-                await this.settleGameRoundConsumer.settleTurn(round, payload);
-                continue;
-            }
+                if (round.turnEndTime <= currentTime && round.totalTurns === 0) {
+                    const payload = { betChoice: this.autoChooseChoice() };
+                    await this.settleGameRoundConsumer.settleTurn(round, payload);
+                    return;
+                }
 
-            if (round.turnEndTime <= currentTime && round.totalTurns > 0) {
-                await this.collectConsumer.consume({ UID: round.uid });
-            }
-        }
+                if (round.turnEndTime <= currentTime && round.totalTurns > 0) {
+                    await this.collectConsumer.consume({ UID: round.uid });
+                }
+            })
+        );
     }
 
     autoChooseChoice() {

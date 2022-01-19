@@ -1,6 +1,6 @@
-import { Core } from 'sc-game-base';
-import { helpers } from 'sc-common';
-import gameSettings from '../game-settings';
+import { Core } from "sc-game-base";
+import { helpers } from "sc-common";
+import gameSettings from "../game-settings";
 
 export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetConsumer {
     validateBetRequest(player, amount) {

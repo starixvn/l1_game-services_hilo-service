@@ -1,6 +1,6 @@
-import { baseCards } from '../cards';
-import Chance from 'chance';
-import _ from 'lodash';
+import { baseCards } from "../cards";
+import Chance from "chance";
+import _ from "lodash";
 
 export default {
     drawCard: function (drawnCards) {

@@ -1,9 +1,9 @@
-import { Core, Table } from 'sc-game-base';
-import { initAPIStub } from 'sc-game-service-integration-utils';
+import { Core, Table } from "sc-game-base";
+import { initAPIStub } from "sc-game-service-integration-utils";
 
-import appConfigs from '../../../src/app-configs';
-import gameSettings from '../../../src/game-settings';
-import ServiceContainerRegistry from '../../../src/service-container-registry';
+import appConfigs from "../../../src/app-configs";
+import gameSettings from "../../../src/game-settings";
+import ServiceContainerRegistry from "../../../src/service-container-registry";
 
 export const run = async () => {
     initAPIStub(appConfigs.apiSettings.apiUrl);

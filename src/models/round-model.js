@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
-import gameSettings from '../game-settings';
+import mongoose from "mongoose";
+import gameSettings from "../game-settings";
 
 const schema = new mongoose.Schema({
     uid: { type: String, required: true },
@@ -14,12 +14,12 @@ const schema = new mongoose.Schema({
     odds: { type: Object },
 
     memberId: { type: Number },
-    siteId: { type: String, default: '' },
+    siteId: { type: String, default: "" },
     freeBet: { type: Boolean, default: false },
 
-    currency: { type: String, default: '' },
+    currency: { type: String, default: "" },
     rate: { type: Number, require: true },
-    partnerId: { type: String, default: '' },
+    partnerId: { type: String, default: "" },
 
     totalTurns: { type: Number, default: 0 },
     result: { type: Array },

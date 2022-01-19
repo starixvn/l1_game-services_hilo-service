@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
-import { middlewares } from 'sc-common';
+import mongoose from "mongoose";
+import { middlewares } from "sc-common";
 import {
     createCurrencyGroupGames,
     createDummyCurrency,
@@ -7,11 +7,11 @@ import {
     createExchangeRate,
     createGameConfig,
     createPartnerConfig,
-} from 'sc-game-service-integration-utils';
+} from "sc-game-service-integration-utils";
 
-import configs from '../../../src/app-configs';
-import { RoundModel } from '../../../src/models';
-import { game, gameConfig, currencyData, rounds } from './test-data';
+import configs from "../../../src/app-configs";
+import { RoundModel } from "../../../src/models";
+import { game, gameConfig, currencyData, rounds } from "./test-data";
 
 const connectDatabase = async () => {
     await middlewares.database.configureDatabase(mongoose, configs.database);
@@ -36,7 +36,7 @@ const createTestData = async () => {
     await createDummyUsers(currency);
     await createRounds();
 
-    console.log('Create game config & dummy user for testing successfully!');
+    console.log("Create game config & dummy user for testing successfully!");
 
     process.exit(0);
 };

@@ -1,12 +1,12 @@
-import { Table } from 'sc-game-base';
-import mongoose from 'mongoose';
-import { stubMongooseModelStupidly } from 'jest-micro-auto-stub';
-import { ProcessBetQueue } from '../index';
-import gameSettings from '../../game-settings';
+import { Table } from "sc-game-base";
+import mongoose from "mongoose";
+import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
+import { ProcessBetQueue } from "../index";
+import gameSettings from "../../game-settings";
 
-describe('process-bet-queue', () => {
-    describe('extends', () => {
-        it('inherit Table.Crons.TableGameCron', () => {
+describe("process-bet-queue", () => {
+    describe("extends", () => {
+        it("inherit Table.Crons.TableGameCron", () => {
             // act
             const cron = new ProcessBetQueue({});
 
@@ -15,14 +15,14 @@ describe('process-bet-queue', () => {
         });
     });
 
-    describe('bet', () => {
+    describe("bet", () => {
         // arrange
         const testCases = [
             { amount: null, freeBet: null, lastRound: null, expectedValue: 10 },
             { amount: 10, freeBet: true, lastRound: { id: 10 }, expectedValue: 10 },
         ];
 
-        it.each(testCases)('should assign round id', async (testCase) => {
+        it.each(testCases)("should assign round id", async (testCase) => {
             // arrange
             const definition = { choicesMapper: {} };
             const betsRepository = stubMongooseModelStupidly(mongoose.Model);
@@ -32,8 +32,8 @@ describe('process-bet-queue', () => {
             const cron = new ProcessBetQueue({ definition, gameData, betsRepository, placeBetPublisher, baseMetrics });
             const player = { session: {}, profile: {} };
             const payload = { ...testCase };
-            spyOn(cron, 'composeValidationCriteria').and.returnValue([]);
-            spyOn(cron, 'handleSuccessBet');
+            spyOn(cron, "composeValidationCriteria").and.returnValue([]);
+            spyOn(cron, "handleSuccessBet");
             cron.placeBet = jest.fn();
             cron.placeBet.mockReturnValueOnce({ response: { notice: {} } });
 
@@ -45,13 +45,13 @@ describe('process-bet-queue', () => {
         });
     });
 
-    describe('collect', () => {
-        it('when not have running round should not call settleGameRoundConsumer.settleBets', async () => {
+    describe("collect", () => {
+        it("when not have running round should not call settleGameRoundConsumer.settleBets", async () => {
             // arrange
             const settleGameRoundConsumer = { settleBets: jest.fn() };
             const gameData = { ingame: { m1: { betTracks: null } } };
             const cron = new ProcessBetQueue({ settleGameRoundConsumer, gameData });
-            const player = { session: {}, profile: { name: 'm1' } };
+            const player = { session: {}, profile: { name: "m1" } };
 
             // act
             await cron.collect(player);
@@ -60,12 +60,12 @@ describe('process-bet-queue', () => {
             expect(settleGameRoundConsumer.settleBets).not.toBeCalled();
         });
 
-        it('when have running round should call settleGameRoundConsumer.settleBets', async () => {
+        it("when have running round should call settleGameRoundConsumer.settleBets", async () => {
             // arrange
             const settleGameRoundConsumer = { settleBets: jest.fn() };
             const gameData = { ingame: { m1: { betTracks: {} } }, settlementResultFromAdmin: {} };
             const cron = new ProcessBetQueue({ settleGameRoundConsumer, gameData });
-            const player = { UID: 'm1', session: {}, profile: { name: 'm1' } };
+            const player = { UID: "m1", session: {}, profile: { name: "m1" } };
 
             // act
             await cron.collect(player);
@@ -75,13 +75,13 @@ describe('process-bet-queue', () => {
         });
     });
 
-    describe('deal', () => {
-        it('when not have running round should not call settleGameRoundConsumer.settleTurn', async () => {
+    describe("deal", () => {
+        it("when not have running round should not call settleGameRoundConsumer.settleTurn", async () => {
             // arrange
             const settleGameRoundConsumer = { settleTurn: jest.fn() };
             const gameData = { ingame: { m1: { betTracks: null } } };
             const cron = new ProcessBetQueue({ settleGameRoundConsumer, gameData });
-            const player = { session: {}, profile: { name: 'm1' } };
+            const player = { session: {}, profile: { name: "m1" } };
 
             // act
             await cron.deal(player);
@@ -90,12 +90,12 @@ describe('process-bet-queue', () => {
             expect(settleGameRoundConsumer.settleTurn).not.toBeCalled();
         });
 
-        it('when bet order is mismatch should not call settleGameRoundConsumer.settleTurn', async () => {
+        it("when bet order is mismatch should not call settleGameRoundConsumer.settleTurn", async () => {
             // arrange
             const settleGameRoundConsumer = { settleTurn: jest.fn() };
             const gameData = { ingame: { m1: { betTracks: { m1: { totalTurns: 3 } } } } };
             const cron = new ProcessBetQueue({ settleGameRoundConsumer, gameData });
-            const player = { UID: 'm1', session: {}, profile: { name: 'm1' } };
+            const player = { UID: "m1", session: {}, profile: { name: "m1" } };
             const bet = { order: 2 };
 
             // act
@@ -105,14 +105,14 @@ describe('process-bet-queue', () => {
             expect(settleGameRoundConsumer.settleTurn).not.toBeCalled();
         });
 
-        it('when all info correct should call settleGameRoundConsumer.settleTurn', async () => {
+        it("when all info correct should call settleGameRoundConsumer.settleTurn", async () => {
             // arrange
             const settleGameRoundConsumer = { settleTurn: jest.fn() };
             settleGameRoundConsumer.settleTurn.mockReturnValueOnce({});
             const gameData = { ingame: { m1: { betTracks: { totalTurns: 3 } } } };
             const placeBetPublisher = { publishToUser: jest.fn() };
             const cron = new ProcessBetQueue({ settleGameRoundConsumer, gameData, placeBetPublisher });
-            const player = { UID: 'm1', session: {}, profile: { name: 'm1' } };
+            const player = { UID: "m1", session: {}, profile: { name: "m1" } };
             const bet = { order: 3 };
 
             // act
@@ -123,8 +123,8 @@ describe('process-bet-queue', () => {
         });
     });
 
-    describe('proceedBet', () => {
-        it('when bet should call bet function', async () => {
+    describe("proceedBet", () => {
+        it("when bet should call bet function", async () => {
             // arrange
             const settleGameRoundConsumer = { settleBets: jest.fn() };
             const gameData = { ingame: { m1: { betTracks: {} } } };
@@ -140,7 +140,7 @@ describe('process-bet-queue', () => {
             expect(cron.bet).toBeCalled();
         });
 
-        it('when collect should call collect function', async () => {
+        it("when collect should call collect function", async () => {
             // arrange
             const settleGameRoundConsumer = { settleBets: jest.fn() };
             const gameData = { ingame: { m1: { betTracks: {} } } };
@@ -156,7 +156,7 @@ describe('process-bet-queue', () => {
             expect(cron.collect).toBeCalled();
         });
 
-        it('when deal should call deal function', async () => {
+        it("when deal should call deal function", async () => {
             // arrange
             const settleGameRoundConsumer = { settleBets: jest.fn() };
             const gameData = { ingame: { m1: { betTracks: {} } } };
@@ -173,8 +173,8 @@ describe('process-bet-queue', () => {
         });
     });
 
-    describe('composeValidationCriteria', () => {
-        it('when composeBalanceValidationCriteria return null should return correct validation result', async () => {
+    describe("composeValidationCriteria", () => {
+        it("when composeBalanceValidationCriteria return null should return correct validation result", async () => {
             // arrange
             const definition = { choicesMapper: {} };
             const cron = new ProcessBetQueue({ definition });
@@ -192,7 +192,7 @@ describe('process-bet-queue', () => {
             expect(actualValue).toStrictEqual([]);
         });
 
-        it('when composeBalanceValidationCriteria return not null should return correct validation result', async () => {
+        it("when composeBalanceValidationCriteria return not null should return correct validation result", async () => {
             // arrange
             const definition = { choicesMapper: {} };
             const cron = new ProcessBetQueue({ definition });
@@ -211,32 +211,32 @@ describe('process-bet-queue', () => {
         });
     });
 
-    describe('decreaseBetTracks', () => {
-        it('should do nothing', () => {
+    describe("decreaseBetTracks", () => {
+        it("should do nothing", () => {
             // arrange
             const gameData = { ingame: { m1: { betTracks: { newGameChoice: 10 } } } };
             const cron = new ProcessBetQueue({ gameData });
-            const playerName = 'm1';
+            const playerName = "m1";
 
             // act
             cron.decreaseBetTracks(playerName);
 
             //assert
-            expect(gameData.ingame['m1'].betTracks).toStrictEqual({ newGameChoice: 10 });
+            expect(gameData.ingame["m1"].betTracks).toStrictEqual({ newGameChoice: 10 });
         });
     });
 
-    describe('upsertBet', () => {
+    describe("upsertBet", () => {
         const testCases = [{ session: {} }, { session: null }];
-        it.each(testCases)('should call betsRepository.updateOne', async (testCase) => {
+        it.each(testCases)("should call betsRepository.updateOne", async (testCase) => {
             // arrange
             const definition = { choicesMapper: {}, durations: {} };
             const gameData = { exchangeRates: {}, ingame: { m1: { betTracks: {} } }, gameConfigs: { odds: {} }, roundId: 10 };
             const betsRepository = stubMongooseModelStupidly(mongoose.Model);
             const cron = new ProcessBetQueue({ definition, gameData, betsRepository });
-            spyOn(cron, 'generateFirstCard').and.returnValue({ rank: '3' });
+            spyOn(cron, "generateFirstCard").and.returnValue({ rank: "3" });
 
-            const player = { UID: 'm1', session: testCase.session, profile: { name: 'm1' } };
+            const player = { UID: "m1", session: testCase.session, profile: { name: "m1" } };
             const roundId = 1;
             const bet = {};
             const rate = 1;
@@ -250,8 +250,8 @@ describe('process-bet-queue', () => {
         });
     });
 
-    describe('insertBetLog', () => {
-        it('should do nothing', async () => {
+    describe("insertBetLog", () => {
+        it("should do nothing", async () => {
             // arrange
             const betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
             const cron = new ProcessBetQueue({ betLogsRepository });
@@ -264,8 +264,8 @@ describe('process-bet-queue', () => {
         });
     });
 
-    describe('adjustTotalBets', () => {
-        it('should do nothing', () => {
+    describe("adjustTotalBets", () => {
+        it("should do nothing", () => {
             // arrange
             const gameData = { totalBets: {} };
             const cron = new ProcessBetQueue({});
@@ -280,17 +280,17 @@ describe('process-bet-queue', () => {
         });
     });
 
-    describe('generateFirstCard', () => {
+    describe("generateFirstCard", () => {
         const testCases = [
             { settlementResultFromAdmin: null },
             { settlementResultFromAdmin: {} },
             { settlementResultFromAdmin: { player: [] } },
         ];
-        it.each(testCases)('not have result from admin should return random', (testCase) => {
+        it.each(testCases)("not have result from admin should return random", (testCase) => {
             // arrange
             const gameData = { settlementResultFromAdmin: testCase.settlementResultFromAdmin };
             const cron = new ProcessBetQueue({ gameData });
-            const name = 'player';
+            const name = "player";
 
             // act
             const actualValue = cron.generateFirstCard(name);
@@ -299,26 +299,26 @@ describe('process-bet-queue', () => {
             expect(actualValue).not.toBeNull();
         });
 
-        it('have result from admin should return from that', () => {
+        it("have result from admin should return from that", () => {
             // arrange
-            const gameData = { settlementResultFromAdmin: { player: [{ rank: '3' }] } };
+            const gameData = { settlementResultFromAdmin: { player: [{ rank: "3" }] } };
             const cron = new ProcessBetQueue({ gameData });
-            const name = 'player';
+            const name = "player";
 
             // act
             const actualValue = cron.generateFirstCard(name);
 
             //assert
-            expect(actualValue.rank).toBe('3');
+            expect(actualValue.rank).toBe("3");
         });
     });
 
-    describe('generatePlacingBetResult', () => {
-        it('when not have betTracks should return correct value', () => {
+    describe("generatePlacingBetResult", () => {
+        it("when not have betTracks should return correct value", () => {
             // arrange
             const gameData = { ingame: {} };
             const cron = new ProcessBetQueue({ gameData });
-            const player = { profile: { name: 'm1' } };
+            const player = { profile: { name: "m1" } };
             const balance = {};
             const bet = { amount: 10 };
             const expectedValue = {
@@ -338,11 +338,11 @@ describe('process-bet-queue', () => {
             expect(actualValue).toStrictEqual(expectedValue);
         });
 
-        it('when have betTracks should return correct value', () => {
+        it("when have betTracks should return correct value", () => {
             // arrange
             const gameData = { ingame: { m1: { betTracks: { id: 3, result: [], nextAmounts: { h: 100, l: 150 } } } } };
             const cron = new ProcessBetQueue({ gameData });
-            const player = { profile: { name: 'm1' } };
+            const player = { profile: { name: "m1" } };
             const balance = {};
             const bet = { amount: 10 };
             const expectedValue = {

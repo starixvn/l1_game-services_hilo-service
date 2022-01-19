@@ -1,5 +1,5 @@
-import gameSettings from '../game-settings';
-import { rankValueMapper, cardRanks } from '../cards';
+import gameSettings from "../game-settings";
+import { rankValueMapper, cardRanks } from "../cards";
 
 export default {
     generate: function (odds, rank, totalTurns) {

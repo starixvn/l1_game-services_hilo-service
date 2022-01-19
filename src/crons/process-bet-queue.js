@@ -1,7 +1,7 @@
-import { Table } from 'sc-game-base';
-import deckHelper from '../helpers/deck-helper';
-import oddsGenerator from '../generators/odds-generator';
-import gameSettings from '../game-settings';
+import { Table } from "sc-game-base";
+import deckHelper from "../helpers/deck-helper";
+import oddsGenerator from "../generators/odds-generator";
+import gameSettings from "../game-settings";
 
 export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
     constructor(params) {

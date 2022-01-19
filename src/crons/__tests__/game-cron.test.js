@@ -1,7 +1,7 @@
-import { Table } from 'sc-game-base';
-import { GameCron } from '../index';
-import mongoose from 'mongoose';
-import { stubMongooseModelStupidly } from 'jest-micro-auto-stub';
+import { Table } from "sc-game-base";
+import { GameCron } from "../index";
+import mongoose from "mongoose";
+import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
 
 const bot = { resetInRoomTrackings: jest.fn() };
 const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
@@ -14,12 +14,12 @@ const partnerConfigRepository = stubMongooseModelStupidly(mongoose.Model);
 const currencyGroupRepository = stubMongooseModelStupidly(mongoose.Model);
 const currencyRepository = stubMongooseModelStupidly(mongoose.Model);
 
-describe('game-cron', () => {
+describe("game-cron", () => {
     // arrange
-    const definition = { durations: { wholeRound: 120 }, choices: ['hi', 'lo'] };
+    const definition = { durations: { wholeRound: 120 }, choices: ["hi", "lo"] };
 
-    describe('extends', () => {
-        it('inherit Table.Crons.TableGameCron', () => {
+    describe("extends", () => {
+        it("inherit Table.Crons.TableGameCron", () => {
             // act
             const cron = new GameCron({ definition });
 
@@ -28,7 +28,7 @@ describe('game-cron', () => {
         });
     });
 
-    describe('start', () => {
+    describe("start", () => {
         // arrange
         const gameData = { ingame: { m1: { betTracks: {} } } };
         roundsRepository.find().lean().exec.mockReturnValue([]);
@@ -51,11 +51,11 @@ describe('game-cron', () => {
             { lastRound: null, expectedValue: 10 },
             { lastRound: { id: 10 }, expectedValue: 11 },
         ];
-        it.each(testCases)('should assign round id', async (testCase) => {
+        it.each(testCases)("should assign round id", async (testCase) => {
             // arrange
             roundsRepository.findOne().lean().exec.mockReturnValue(testCase.lastRound);
-            spyOn(cron, 'getLastArchiveRound').and.returnValue(10);
-            spyOn(cron, 'proceedUnsettledBets');
+            spyOn(cron, "getLastArchiveRound").and.returnValue(10);
+            spyOn(cron, "proceedUnsettledBets");
 
             // act
             await cron.start();
@@ -66,12 +66,12 @@ describe('game-cron', () => {
         });
     });
 
-    describe('proceed', () => {
-        it('always processRunningRounds', async () => {
+    describe("proceed", () => {
+        it("always processRunningRounds", async () => {
             // arrange
             const gameData = { ingame: {} };
             const cron = new GameCron({ definition, gameData });
-            spyOn(cron, 'processRunningRounds');
+            spyOn(cron, "processRunningRounds");
 
             // act
             await cron.proceed();
@@ -81,17 +81,17 @@ describe('game-cron', () => {
         });
     });
 
-    describe('processRunningRounds', () => {
-        it('should settle correct turns', async () => {
+    describe("processRunningRounds", () => {
+        it("should settle correct turns", async () => {
             // arrange
             const dt = new Date();
             const expiredTime = new Date(dt.getTime() - 120000);
-            const realPlayers = { m1: { UID: 'm1' }, m2: { UID: 'm2' } };
+            const realPlayers = { m1: { UID: "m1" }, m2: { UID: "m2" } };
             const gameData = {
                 ingame: {
-                    m1: { betTracks: { turnEndTime: expiredTime, uid: 'm1', totalTurns: 0, name: 'm1' } },
-                    m2: { betTracks: { turnEndTime: expiredTime, uid: 'm2', totalTurns: 1, name: 'm2' } },
-                    m3: { betTracks: { turnEndTime: new Date(dt.getTime() + 20000), uid: 'm3', name: 'm3' } },
+                    m1: { betTracks: { turnEndTime: expiredTime, uid: "m1", totalTurns: 0, name: "m1" } },
+                    m2: { betTracks: { turnEndTime: expiredTime, uid: "m2", totalTurns: 1, name: "m2" } },
+                    m3: { betTracks: { turnEndTime: new Date(dt.getTime() + 20000), uid: "m3", name: "m3" } },
                 },
                 realPlayers,
             };
@@ -104,19 +104,19 @@ describe('game-cron', () => {
 
             //assert
             expect(cron.settleGameRoundConsumer.settleTurn).toHaveBeenCalledWith(
-                expect.objectContaining({ name: 'm1' }),
+                expect.objectContaining({ name: "m1" }),
                 expect.any(Object)
             );
             expect(collectConsumer.consume).toHaveBeenCalled();
             expect(cron.settleGameRoundConsumer.settleTurn).not.toHaveBeenCalledWith(
-                expect.objectContaining({ name: 'm3' }),
+                expect.objectContaining({ name: "m3" }),
                 expect.any(Object)
             );
         });
     });
 
-    describe('autoChooseChoice', () => {
-        it('difference of frequency of choice not too high', () => {
+    describe("autoChooseChoice", () => {
+        it("difference of frequency of choice not too high", () => {
             // arrange
             const cron = new GameCron({ definition });
             const choiceCounts = { hi: 0, lo: 0 };
@@ -134,8 +134,8 @@ describe('game-cron', () => {
         });
     });
 
-    describe('resetForNewRound', () => {
-        it('should do nothing', () => {
+    describe("resetForNewRound", () => {
+        it("should do nothing", () => {
             // arrange
             const gameData = { ingame: { m1: { betTracks: { newGameChoice: 10 } } }, settlementResultFromAdmin: { 10: {} } };
             const cron = new GameCron({ gameData });
@@ -145,17 +145,17 @@ describe('game-cron', () => {
 
             //assert
             expect(gameData.ingame.m1).not.toBeNull();
-            expect(gameData.settlementResultFromAdmin['10']).not.toBeNull();
+            expect(gameData.settlementResultFromAdmin["10"]).not.toBeNull();
         });
     });
 
-    describe('proceedUnsettledBets', () => {
-        it('should call collectConsumer.consume', async () => {
+    describe("proceedUnsettledBets", () => {
+        it("should call collectConsumer.consume", async () => {
             // arrange
             const gameData = { ingame: { m1: { betTracks: {} } } };
             const rounds = [
-                { totalTurns: 0, uid: 'm1' },
-                { totalTurns: 1, uid: 'm2' },
+                { totalTurns: 0, uid: "m1" },
+                { totalTurns: 1, uid: "m2" },
             ];
             roundsRepository.find().lean().exec.mockReturnValue(rounds);
             const settleGameRoundConsumer = { settleBets: jest.fn() };
