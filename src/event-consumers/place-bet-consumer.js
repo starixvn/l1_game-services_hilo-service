@@ -3,41 +3,59 @@ import { helpers } from "sc-common";
 import gameSettings from "../game-settings";
 
 export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetConsumer {
-    validateBetRequest(player, amount) {
+    composeValidationCriteria(player, amount) {
+        const bettingTimeValidationCriteria = this.composeBettingTimeValidationCriteria(player);
+        const betAmountValidationCriteria = this.composeBetAmountValidationCriteria(player, amount);
+
+        return bettingTimeValidationCriteria.concat(betAmountValidationCriteria);
+    }
+
+    composeBettingTimeValidationCriteria(player) {
         const runningRound = this.gameData.ingame[player.profile.name]?.betTracks;
-        if (!!runningRound) {
-            return { errorCode: helpers.noticeHelper.invalidBet };
-        }
-
         const configs = this.gameData.gameConfigs;
-        if (!configs.enabled) {
-            return { errorCode: helpers.noticeHelper.invalidBet };
-        }
 
+        return [
+            {
+                failure: !!runningRound || !configs.enabled,
+                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet),
+            },
+        ];
+    }
+
+    composeBetAmountValidationCriteria(player, amount) {
         const settings = this.gameData.currencyGroupGames.find((x) => x.groupId.toString() === player.session.currencyGroupId);
-
         const minBet = Math.max(player.profile.minBet, settings.minBet);
-        if (amount < minBet) {
-            return { errorCode: helpers.noticeHelper.minBet, minBet };
-        }
-
         const maxBet = Math.min(player.profile.maxBet, settings.maxBet);
-        if (maxBet < amount) {
-            return { errorCode: helpers.noticeHelper.maxBet, maxBet };
+
+        return [
+            {
+                failure: amount < minBet,
+                notice: this.getNoticeObj(helpers.noticeHelper.minBet, { minBet }),
+            },
+            {
+                failure: maxBet < amount,
+                notice: this.getNoticeObj(helpers.noticeHelper.maxBet, { maxBet }),
+            },
+        ];
+    }
+
+    validateBetRequest(player, amount) {
+        const criteria = this.composeValidationCriteria(player, amount);
+        const failedCriterion = criteria.find((criterion) => criterion.failure);
+
+        if (failedCriterion) {
+            this.publisher.publishToUser(player.UID, { endBet: -1, notice: failedCriterion.notice });
+
+            return false;
         }
 
-        return null;
+        return true;
     }
 
     consume(player, payload) {
-        const isValid = payload && payload.amount;
-        if (!isValid) {
-            return;
-        }
+        Object.assign(payload, { amount: payload.amount >> 0, receivedTime: new Date() });
 
-        const failedCriterion = this.validateBetRequest(player, payload.amount);
-        if (!!failedCriterion) {
-            this.publisher.publishToUser(player.UID, { endBet: -1, ...failedCriterion });
+        if (!this.validateBetRequest(player, payload.amount)) {
             return;
         }
 
@@ -50,10 +68,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
             betQueue: [],
         };
 
-        if (inGameInfo.betQueue.length === 0) {
-            inGameInfo.betQueue = [{ player, payload: { action: gameSettings.actions.bet, bet: payload } }];
-        }
-
+        inGameInfo.betQueue.push({ player, payload: { action: gameSettings.actions.bet, bet: payload } });
         this.gameData.ingame[name] = inGameInfo;
     }
 }

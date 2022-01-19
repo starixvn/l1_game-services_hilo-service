@@ -30,4 +30,38 @@ describe("round-query", () => {
             expect(actualValue).toStrictEqual(expectedValue);
         });
     });
+
+    describe("countDocuments", () => {
+        it("should return result from roundsRepository", async () => {
+            // arrange
+            const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
+            roundsRepository.countDocuments.mockReturnValue({ exec: jest.fn() });
+            roundsRepository.countDocuments().exec.mockReturnValueOnce(1);
+            const query = new RoundQuery(roundsRepository);
+            const player = {};
+
+            // act
+            const actualValue = await query.countDocuments(player);
+
+            // assert
+            expect(actualValue).toStrictEqual(1);
+        });
+    });
+
+    describe("getPlayerRounds", () => {
+        it("should return result from roundsRepository", async () => {
+            // arrange
+            const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
+            const bets = [];
+            roundsRepository.find().lean().exec.mockReturnValueOnce(bets);
+            const query = new RoundQuery(roundsRepository);
+            const player = {};
+
+            // act
+            const actualValue = await query.getPlayerRounds(player);
+
+            // assert
+            expect(actualValue).toStrictEqual(bets);
+        });
+    });
 });

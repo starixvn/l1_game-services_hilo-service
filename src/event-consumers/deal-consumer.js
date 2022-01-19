@@ -66,10 +66,6 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
     }
 
     validateBetRequest(player, betChoice, freeBet, roundId) {
-        if (!betChoice) {
-            return false;
-        }
-
         const criteria = this.composeValidationCriteria(player, betChoice, freeBet, roundId);
         const failedCriterion = criteria.find((criterion) => criterion.failure);
         if (failedCriterion) {

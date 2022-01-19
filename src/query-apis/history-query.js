@@ -1,11 +1,6 @@
 import { Core } from "sc-game-base";
 
 export default class HistoryQuery extends Core.QueryApis.HistoryQuery {
-    constructor(roundQuery, roundsRepository, betLogsRepository, userInfosRepository, userSessionsRepository) {
-        super(roundQuery, null, betLogsRepository, userInfosRepository, userSessionsRepository);
-        this.roundsRepository = roundsRepository;
-    }
-
     getBetLogDetails(player, roundId) {
         return this.betLogsRepository
             .find({ roundId: roundId, uid: player.UID }, {}, { sort: { _id: -1 } })
@@ -18,22 +13,8 @@ export default class HistoryQuery extends Core.QueryApis.HistoryQuery {
             return {};
         }
 
-        const filter = { uid: player.UID, paid: true };
-        const numberOfSkippedBets = (page - 1) * pageSize;
-        const total = await this.roundsRepository.countDocuments(filter).exec();
-        const betProjection = {
-            _id: false,
-            uid: false,
-            paid: false,
-            siteId: false,
-            memberId: false,
-            __v: false,
-            __archive: false,
-        };
-        const bets = await this.roundsRepository
-            .find(filter, betProjection, { sort: { _id: -1 }, skip: numberOfSkippedBets, limit: pageSize })
-            .lean()
-            .exec();
+        const total = await this.roundQuery.countDocuments(player);
+        const bets = await this.roundQuery.getPlayerRounds(player, page, pageSize);
         let betLogs = [];
 
         if (bets && bets.length > 0) {
@@ -42,10 +23,10 @@ export default class HistoryQuery extends Core.QueryApis.HistoryQuery {
                     const betLogDetails = this.betLogsRepository ? await this.getBetLogDetails(player, bet.id) : [];
 
                     return {
-                        ...this.convertBet(bet),
+                        ...bet,
                         result: bet.result,
                         settlementResult: bet.settlementResult,
-                        betLogDetails: this.convertBetLogs(betLogDetails),
+                        betLogDetails,
                     };
                 })
             );

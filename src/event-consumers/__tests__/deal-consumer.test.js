@@ -302,22 +302,6 @@ describe("deal-consumer", () => {
     });
 
     describe("validateBetRequest", () => {
-        it("when not have betChoice should return failed", async () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "A" }] } } } };
-            const consumer = new DealConsumer(definition, gameData, {});
-            const player = { UID: "m1", profile: { name: "m1" } };
-            const amount = 10;
-            const betChoice = null;
-
-            // act
-            const actualValue = await consumer.validateBetRequest(player, betChoice, amount);
-
-            //assert
-            expect(actualValue).toBeFalse();
-        });
-
         it("when have failedCriterion should return failed", async () => {
             // arrange
             const definition = { choices: [] };
