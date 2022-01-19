@@ -1,5 +1,5 @@
 import { Table } from "sc-game-base";
-import deckHelper from "../helpers/deck-helper";
+import { drawCard } from "../helpers/deck-helper";
 import oddsGenerator from "../generators/odds-generator";
 import gameSettings from "../game-settings";
 
@@ -131,7 +131,7 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
     generateFirstCard(name) {
         const resultFromAdmin = this.gameData.settlementResultFromAdmin ? this.gameData.settlementResultFromAdmin[name] : null;
 
-        return !!resultFromAdmin && resultFromAdmin.length > 0 ? resultFromAdmin[0] : deckHelper.drawCard([]);
+        return !!resultFromAdmin && resultFromAdmin.length > 0 ? resultFromAdmin[0] : drawCard([]);
     }
 
     generatePlacingBetResult(player, balance, bet) {

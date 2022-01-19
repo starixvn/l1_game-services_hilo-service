@@ -1,6 +1,6 @@
 import { utils } from "sc-common";
 import { Table } from "sc-game-base";
-import deckHelper from "../helpers/deck-helper";
+import { getCardFromAdmin } from "../helpers/deck-helper";
 
 export default class HttpRouter extends Table.Routers.TableHttpRouter {
     init(app) {
@@ -38,7 +38,7 @@ export default class HttpRouter extends Table.Routers.TableHttpRouter {
     generateResult(ranks) {
         const result = [];
         for (const rank of ranks) {
-            result.push(deckHelper.getCardFromAdmin(rank, result));
+            result.push(getCardFromAdmin(rank, result));
         }
 
         return result;

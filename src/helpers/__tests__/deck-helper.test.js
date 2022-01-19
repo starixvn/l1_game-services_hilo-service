@@ -1,5 +1,5 @@
 import { baseCards } from "../../cards";
-import deckHelper from "../deck-helper";
+import { drawCard, getCardFromAdmin } from "../deck-helper";
 
 describe("deck-helper", () => {
     describe("drawCard", () => {
@@ -8,7 +8,7 @@ describe("deck-helper", () => {
             const drawnCards = baseCards;
 
             // act
-            const actualValue = deckHelper.drawCard(drawnCards);
+            const actualValue = drawCard(drawnCards);
 
             //assert
             expect(actualValue).not.toBeNull();
@@ -19,7 +19,7 @@ describe("deck-helper", () => {
             const drawnCards = [];
 
             // act
-            const actualValue = deckHelper.drawCard(drawnCards);
+            const actualValue = drawCard(drawnCards);
 
             //assert
             expect(actualValue).not.toBeNull();
@@ -33,7 +33,7 @@ describe("deck-helper", () => {
             const cardRank = "2";
 
             // act
-            const actualValue = deckHelper.getCardFromAdmin(cardRank, testCase.drawnCards);
+            const actualValue = getCardFromAdmin(cardRank, testCase.drawnCards);
 
             //assert
             expect(actualValue.rank).toBe("2");

@@ -1,5 +1,5 @@
 import { Core } from "sc-game-base";
-import deckHelper from "../helpers/deck-helper";
+import { drawCard } from "../helpers/deck-helper";
 import gameSettings from "../game-settings";
 import oddsGenerator from "../generators/odds-generator";
 import { rankValueMapper, cardRanks } from "../cards";
@@ -15,7 +15,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         return !!resultFromAdmin && runningRound.totalTurns < resultFromAdmin.length
             ? resultFromAdmin[runningRound.totalTurns]
-            : deckHelper.drawCard(runningRound.result);
+            : drawCard(runningRound.result);
     }
 
     calculateBetResult(settlementResult, bet) {
