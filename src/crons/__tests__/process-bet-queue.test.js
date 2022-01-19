@@ -312,4 +312,54 @@ describe('process-bet-queue', () => {
             expect(actualValue.rank).toBe('3');
         });
     });
+
+    describe('generatePlacingBetResult', () => {
+        it('when not have betTracks should return correct value', () => {
+            // arrange
+            const gameData = { ingame: {} };
+            const cron = new ProcessBetQueue({ gameData });
+            const player = { profile: { name: 'm1' } };
+            const balance = {};
+            const bet = { amount: 10 };
+            const expectedValue = {
+                endBet: 10,
+                ownBets: {
+                    roundId: undefined,
+                    result: undefined,
+                    nextAmounts: undefined,
+                },
+                user: {},
+            };
+
+            // act
+            const actualValue = cron.generatePlacingBetResult(player, balance, bet);
+
+            //assert
+            expect(actualValue).toStrictEqual(expectedValue);
+        });
+
+        it('when have betTracks should return correct value', () => {
+            // arrange
+            const gameData = { ingame: { m1: { betTracks: { id: 3, result: [], nextAmounts: { h: 100, l: 150 } } } } };
+            const cron = new ProcessBetQueue({ gameData });
+            const player = { profile: { name: 'm1' } };
+            const balance = {};
+            const bet = { amount: 10 };
+            const expectedValue = {
+                endBet: 10,
+                ownBets: {
+                    roundId: 3,
+                    result: [],
+                    nextAmounts: { h: 100, l: 150 },
+                },
+                user: {},
+            };
+
+            // act
+            const actualValue = cron.generatePlacingBetResult(player, balance, bet);
+
+            //assert
+            expect(actualValue).toStrictEqual(expectedValue);
+        });
+    });
 });

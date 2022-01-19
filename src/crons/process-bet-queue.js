@@ -134,7 +134,7 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
         return !!resultFromAdmin && resultFromAdmin.length > 0 ? resultFromAdmin[0] : deckHelper.drawCard([]);
     }
 
-    generatePlacingBetResult(player, balance, bet, rate) {
+    generatePlacingBetResult(player, balance, bet) {
         const { amount } = bet;
         const { betTracks } = this.gameData.ingame[player.profile.name] || { betTracks: {} };
 
