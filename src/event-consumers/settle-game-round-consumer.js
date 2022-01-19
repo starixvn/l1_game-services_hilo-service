@@ -62,7 +62,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         settlementBetResult.result.push(nextCard);
         settlementBetResult.settlementResult.push(this.getSettlementResult(previousCard, nextCard));
-        await this.betsRepository.updateOne({ id: runningRound.id }, { $set: settlementBetResult }).exec();
+        await this.roundsRepository.updateOne({ id: runningRound.id }, { $set: settlementBetResult }).exec();
 
         const settleResult = { ...runningRound, ...settlementBetResult };
         await this.userBetResultPublisher.publish(uid, settleResult);
@@ -158,6 +158,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     queryBets(roundId) {
-        return this.betsRepository.find({ id: roundId }).exec();
+        return this.roundsRepository.find({ id: roundId }).exec();
     }
 }

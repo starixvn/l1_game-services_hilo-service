@@ -1,4 +1,4 @@
-import { Table } from "sc-game-base";
+import { Core } from "sc-game-base";
 import mongoose from "mongoose";
 import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
 import { ProcessBetQueue } from "../index";
@@ -6,12 +6,12 @@ import gameSettings from "../../game-settings";
 
 describe("process-bet-queue", () => {
     describe("extends", () => {
-        it("inherit Table.Crons.TableGameCron", () => {
+        it("inherit Core.Crons.ProcessBetQueue", () => {
             // act
             const cron = new ProcessBetQueue({});
 
             //assert
-            expect(cron instanceof Table.Crons.TableProcessBetQueue);
+            expect(cron instanceof Core.Crons.ProcessBetQueue);
         });
     });
 
@@ -25,11 +25,11 @@ describe("process-bet-queue", () => {
         it.each(testCases)("should assign round id", async (testCase) => {
             // arrange
             const definition = { choicesMapper: {} };
-            const betsRepository = stubMongooseModelStupidly(mongoose.Model);
+            const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
             const placeBetPublisher = { publishGameFailedBet: jest.fn() };
             const baseMetrics = { collectBetProcessedTime: jest.fn() };
             const gameData = { roundId: 10 };
-            const cron = new ProcessBetQueue({ definition, gameData, betsRepository, placeBetPublisher, baseMetrics });
+            const cron = new ProcessBetQueue({ definition, gameData, roundsRepository, placeBetPublisher, baseMetrics });
             const player = { session: {}, profile: {} };
             const payload = { ...testCase };
             spyOn(cron, "composeValidationCriteria").and.returnValue([]);
@@ -228,12 +228,12 @@ describe("process-bet-queue", () => {
 
     describe("upsertBet", () => {
         const testCases = [{ session: {} }, { session: null }];
-        it.each(testCases)("should call betsRepository.updateOne", async (testCase) => {
+        it.each(testCases)("should call roundsRepository.updateOne", async (testCase) => {
             // arrange
             const definition = { choicesMapper: {}, durations: {} };
             const gameData = { exchangeRates: {}, ingame: { m1: { betTracks: {} } }, gameConfigs: { odds: {} }, roundId: 10 };
-            const betsRepository = stubMongooseModelStupidly(mongoose.Model);
-            const cron = new ProcessBetQueue({ definition, gameData, betsRepository });
+            const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
+            const cron = new ProcessBetQueue({ definition, gameData, roundsRepository });
             spyOn(cron, "generateFirstCard").and.returnValue({ rank: "3" });
 
             const player = { UID: "m1", session: testCase.session, profile: { name: "m1" } };
@@ -245,7 +245,7 @@ describe("process-bet-queue", () => {
             await cron.upsertBet(player, roundId, bet, rate);
 
             //assert
-            expect(betsRepository.updateOne).toHaveBeenCalled();
+            expect(roundsRepository.updateOne).toHaveBeenCalled();
             expect(gameData.roundId).toBe(11);
         });
     });

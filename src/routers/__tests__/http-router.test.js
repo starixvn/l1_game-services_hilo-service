@@ -1,5 +1,5 @@
 import { stub } from "jest-micro-auto-stub";
-import { Table } from "sc-game-base";
+import { Core } from "sc-game-base";
 import { logger } from "sc-common/logger";
 import { HttpRouter } from "../index";
 
@@ -27,7 +27,7 @@ describe("http-router", () => {
             const cron = new HttpRouter();
 
             //assert
-            expect(cron instanceof Table.Routers.TableHttpRouter);
+            expect(cron instanceof Core.Routers.HttpRouter);
         });
     });
 

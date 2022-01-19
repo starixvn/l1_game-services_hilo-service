@@ -1,6 +1,6 @@
-import { Table } from "sc-game-base";
+import { Core } from "sc-game-base";
 
-export default class InGameConsumer extends Table.EventConsumers.TableInGameConsumer {
+export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsumer {
     async buildPayload(player) {
         const payload = await super.buildPayload(player);
 

@@ -43,8 +43,8 @@ describe("deal-consumer", () => {
             // arrange
             const definition = {};
             const gameData = { gameConfigs: { enabled: testCase.enabled } };
-            const betsRepository = stubMongooseModelStupidly(mongoose.Model);
-            const consumer = new DealConsumer(definition, gameData, {}, betsRepository);
+            const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
+            const consumer = new DealConsumer(definition, gameData, {}, roundsRepository);
             const roundId = undefined;
 
             // act
@@ -74,8 +74,8 @@ describe("deal-consumer", () => {
             // arrange
             const definition = {};
             const gameData = { gameConfigs: { enabled: true } };
-            const betsRepository = stubMongooseModelStupidly(mongoose.Model);
-            const consumer = new DealConsumer(definition, gameData, {}, betsRepository);
+            const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
+            const consumer = new DealConsumer(definition, gameData, {}, roundsRepository);
             const roundId = testCase.roundId;
 
             // act

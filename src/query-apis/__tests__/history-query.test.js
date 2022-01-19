@@ -33,11 +33,11 @@ describe("history-query", () => {
 
     describe("queryHistory tests", () => {
         const roundQuery = { getOne: jest.fn() };
-        const betsRepository = stubMongooseModelStupidly(mongoose.Model);
+        const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
         const betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
 
         it("should return empty when page < 1", async () => {
-            const historyQuery = new HistoryQuery(roundQuery, betsRepository, betLogsRepository);
+            const historyQuery = new HistoryQuery(roundQuery, roundsRepository, betLogsRepository);
 
             var actualResult = await historyQuery.queryHistory({}, 0, 10);
 
@@ -52,15 +52,15 @@ describe("history-query", () => {
             { betLogsRepository: null, bets: [{ uid: 1, id: 1, odd: 100, even: 50 }] },
         ];
         it.each(testCases)("should return data when page >= 1", async (testCase) => {
-            const historyQuery = new HistoryQuery(roundQuery, betsRepository, testCase.betLogsRepository);
+            const historyQuery = new HistoryQuery(roundQuery, roundsRepository, testCase.betLogsRepository);
             roundQuery.getOne.mockReturnValueOnce({
                 id: 1,
                 result: { red1: true, red2: false },
                 settlementResult: { odd: true, even: false },
             });
-            betsRepository.countDocuments.mockReturnValue({ exec: jest.fn() });
-            betsRepository.countDocuments().exec.mockReturnValueOnce(1);
-            betsRepository.find().lean().exec.mockReturnValueOnce(testCase.bets);
+            roundsRepository.countDocuments.mockReturnValue({ exec: jest.fn() });
+            roundsRepository.countDocuments().exec.mockReturnValueOnce(1);
+            roundsRepository.find().lean().exec.mockReturnValueOnce(testCase.bets);
             betLogsRepository
                 .find()
                 .lean()

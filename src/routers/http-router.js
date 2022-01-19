@@ -1,8 +1,8 @@
 import { utils } from "sc-common";
-import { Table } from "sc-game-base";
+import { Core } from "sc-game-base";
 import { getCardFromAdmin } from "../helpers/deck-helper";
 
-export default class HttpRouter extends Table.Routers.TableHttpRouter {
+export default class HttpRouter extends Core.Routers.HttpRouter {
     init(app) {
         super.init(app);
 

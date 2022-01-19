@@ -5,9 +5,9 @@ import errorCodes from "../constants/error-codes";
 import { cardRanks } from "../cards";
 
 export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsumer {
-    constructor(definition, gameData, publisher, betsRepository, settleGameRoundConsumer) {
+    constructor(definition, gameData, publisher, roundsRepository, settleGameRoundConsumer) {
         super(definition, gameData, publisher);
-        this.betsRepository = betsRepository;
+        this.roundsRepository = roundsRepository;
         this.settleGameRoundConsumer = settleGameRoundConsumer;
     }
 

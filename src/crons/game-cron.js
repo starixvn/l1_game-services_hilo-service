@@ -1,7 +1,7 @@
 import Chance from "chance";
-import { Table } from "sc-game-base";
+import { Core } from "sc-game-base";
 
-export default class GameCron extends Table.Crons.TableGameCron {
+export default class GameCron extends Core.Crons.BaseGameCron {
     constructor(params) {
         super(params);
         this.collectConsumer = params.collectConsumer;

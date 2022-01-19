@@ -1,4 +1,4 @@
-import { Table } from "sc-game-base";
+import { Core } from "sc-game-base";
 import { GameCron } from "../index";
 import mongoose from "mongoose";
 import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
@@ -19,12 +19,12 @@ describe("game-cron", () => {
     const definition = { durations: { wholeRound: 120 }, choices: ["hi", "lo"] };
 
     describe("extends", () => {
-        it("inherit Table.Crons.TableGameCron", () => {
+        it("inherit Core.Crons.BaseGameCron", () => {
             // act
             const cron = new GameCron({ definition });
 
             //assert
-            expect(cron instanceof Table.Crons.TableGameCron);
+            expect(cron instanceof Core.Crons.BaseGameCron);
         });
     });
 

@@ -1,12 +1,13 @@
-import { Table } from "sc-game-base";
+import { Core } from "sc-game-base";
 import { drawCard } from "../helpers/deck-helper";
 import oddsGenerator from "../generators/odds-generator";
 import gameSettings from "../game-settings";
 
-export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
+export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     constructor(params) {
         super(params);
 
+        this.roundsRepository = params.roundsRepository;
         this.settleGameRoundConsumer = params.settleGameRoundConsumer;
     }
 
@@ -114,7 +115,7 @@ export default class ProcessBetQueue extends Table.Crons.TableProcessBetQueue {
             newBet.currency = player.session.currencyName;
         }
 
-        await this.betsRepository.updateOne(existingBetFilter, { $setOnInsert: newBet }, { upsert: true, setDefaultsOnInsert: true });
+        await this.roundsRepository.updateOne(existingBetFilter, { $setOnInsert: newBet }, { upsert: true, setDefaultsOnInsert: true });
 
         const odds = oddsGenerator.generate(this.gameData.gameConfigs.odds, firstCard.rank, 1);
         newBet.nextAmounts = {

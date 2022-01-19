@@ -121,14 +121,14 @@ describe("settle-game-round-consumer", () => {
                 gameConfigs: { odds: {} },
             };
 
-            const betsRepository = {
+            const roundsRepository = {
                 updateOne: () => {
                     return { exec: jest.fn() };
                 },
             };
 
             const userBetResultPublisher = { publish: jest.fn() };
-            const consumer = new SettleGameRoundConsumer({ gameData, betsRepository, userBetResultPublisher });
+            const consumer = new SettleGameRoundConsumer({ gameData, roundsRepository, userBetResultPublisher });
             const player = { uid: "m1", name: "m1" };
             const payload = { betChoice: testCase.betChoice };
             spyOn(consumer, "addBetLog");
@@ -288,13 +288,13 @@ describe("settle-game-round-consumer", () => {
         it("should return from db", async () => {
             // arrange
             const bets = [];
-            const betsRepository = {
+            const roundsRepository = {
                 find: () => {
                     return { exec: () => bets };
                 },
             };
 
-            const consumer = new SettleGameRoundConsumer({ betsRepository });
+            const consumer = new SettleGameRoundConsumer({ roundsRepository });
 
             // act
             const actualValue = await consumer.queryBets();

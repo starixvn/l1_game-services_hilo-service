@@ -1,16 +1,16 @@
-import { Table } from "sc-game-base";
+import { Core } from "sc-game-base";
 import mongoose from "mongoose";
 import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
 import { InGameConsumer } from "../index";
 
 describe("in-game-consumer", () => {
     describe("extends", () => {
-        it("inherit Table.EventConsumers.TableInGameConsumer", () => {
+        it("inherit Core.BaseEventConsumers.InGameConsumer", () => {
             // act
             const consumer = new InGameConsumer({});
 
             //assert
-            expect(consumer instanceof Table.EventConsumers.TableInGameConsumer);
+            expect(consumer instanceof Core.BaseEventConsumers.InGameConsumer);
         });
     });
 

@@ -14,22 +14,6 @@ describe("round-query", () => {
         });
     });
 
-    describe("getOne", () => {
-        it("should return result from roundsRepository", async () => {
-            // arrange
-            const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
-            const round = {};
-            roundsRepository.findOne().lean().exec.mockReturnValueOnce(round);
-            const query = new RoundQuery(roundsRepository);
-
-            // act
-            const actualValue = await query.getOne();
-
-            // assert
-            expect(actualValue).toStrictEqual(round);
-        });
-    });
-
     describe("getList", () => {
         it("should return result from roundsRepository", async () => {
             // arrange

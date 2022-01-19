@@ -1,4 +1,4 @@
-import { Table } from "sc-game-base";
+import { Core } from "sc-game-base";
 import { GameBot } from "../index";
 
 const userInfosRepository = {
@@ -10,12 +10,12 @@ const userInfosRepository = {
 
 describe("game-bot", () => {
     describe("extends", () => {
-        it("inherit Table.Crons.TableGameBot", () => {
+        it("inherit Core.Crons.BaseBot", () => {
             // act
             const cron = new GameBot({});
 
             //assert
-            expect(cron instanceof Table.Crons.TableGameBot);
+            expect(cron instanceof Core.Crons.BaseBot);
         });
     });
 
@@ -78,7 +78,7 @@ describe("game-bot", () => {
             };
 
             userInfosRepository.noOfDocuments = 10;
-            const cron = new GameBot({}, gameData, null, userInfosRepository);
+            const cron = new GameBot({}, gameData, userInfosRepository);
             spyOn(cron, "processDisabledBots");
             await cron.reset();
 

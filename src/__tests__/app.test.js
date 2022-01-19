@@ -17,13 +17,11 @@ jest.mock("sc-game-base", () => {
             BaseGameApp: function () {
                 return mApp;
             },
-        },
-        Table: {
             EventConsumers: {
-                TableInGameConsumer: function () {},
+                InGameConsumer: function () {},
             },
-            TableGameData: function () {},
-            TableGameDefinition: function () {},
+            GameData: function () {},
+            GameDefinition: function () {},
         },
     };
 });

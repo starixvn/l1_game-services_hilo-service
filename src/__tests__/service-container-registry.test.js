@@ -1,4 +1,4 @@
-import { Table } from "sc-game-base";
+import { Core } from "sc-game-base";
 import { InjectionMode } from "awilix";
 import ServiceContainerRegistry from "../service-container-registry";
 
@@ -27,12 +27,12 @@ describe("service-container-registry", () => {
     const defaultInjectionMode = InjectionMode.CLASSIC;
 
     describe("extends", () => {
-        it("inherit Table.TableContainerRegistry", () => {
+        it("inherit Core.ContainerRegistry", () => {
             // arrange
             const containerRegistry = new ServiceContainerRegistry();
 
             //assert
-            expect(containerRegistry instanceof Table.TableContainerRegistry);
+            expect(containerRegistry instanceof Core.ContainerRegistry);
         });
     });
 
@@ -48,7 +48,6 @@ describe("service-container-registry", () => {
             //assert
             expect(containerRegistry.container.register).toBeCalledWith({
                 roundsRepository: expect.any(Function),
-                betsRepository: expect.any(Function),
                 betLogsRepository: expect.any(Function),
             });
         });

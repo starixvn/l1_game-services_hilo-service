@@ -1,9 +1,9 @@
 import Chance from "chance";
-import { Table } from "sc-game-base";
+import { Core } from "sc-game-base";
 
-export default class GameBot extends Table.Crons.TableGameBot {
-    constructor(definition, gameData, publisher, userInfosRepository, tempBetsRepository) {
-        super(definition, gameData, publisher, userInfosRepository, tempBetsRepository);
+export default class GameBot extends Core.Crons.BaseBot {
+    constructor(definition, gameData, userInfosRepository) {
+        super(definition, gameData, userInfosRepository);
         this.chance = new Chance();
     }
 
