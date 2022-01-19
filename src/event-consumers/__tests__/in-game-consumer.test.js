@@ -15,7 +15,11 @@ describe("in-game-consumer", () => {
     });
 
     describe("buildPayload", () => {
-        const testCases = [{ betTracks: { id: 1, turnEndTime: new Date() } }, { betTracks: { id: 1 } }];
+        const testCases = [
+            { betTracks: { id: 1, turnEndTime: new Date() }, expectedId: 1 },
+            { betTracks: { id: 1 }, expectedId: 1 },
+            { betTracks: undefined, expectedId: undefined },
+        ];
         it.each(testCases)("should return ownBets", async (testCase) => {
             // arrange
             const gameData = {
@@ -34,7 +38,7 @@ describe("in-game-consumer", () => {
             const actualValue = await consumer.buildPayload(player);
 
             //assert
-            expect(actualValue.ownBets.id).toStrictEqual(1);
+            expect(actualValue.ownBets.id).toStrictEqual(testCase.expectedId);
         });
     });
 });

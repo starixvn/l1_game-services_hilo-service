@@ -4,7 +4,7 @@ export default class InGameConsumer extends Table.EventConsumers.TableInGameCons
     async buildPayload(player) {
         const payload = await super.buildPayload(player);
 
-        const { ownBets } = payload;
+        const ownBets = payload.ownBets ?? {};
         const resultPayload = {
             ...payload,
             ownBets: {
