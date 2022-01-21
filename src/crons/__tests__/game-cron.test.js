@@ -92,6 +92,7 @@ describe("game-cron", () => {
                     m1: { betTracks: { turnEndTime: expiredTime, uid: "m1", totalTurns: 0, name: "m1" } },
                     m2: { betTracks: { turnEndTime: expiredTime, uid: "m2", totalTurns: 1, name: "m2" } },
                     m3: { betTracks: { turnEndTime: new Date(dt.getTime() + 20000), uid: "m3", name: "m3" } },
+                    m4: {},
                 },
                 realPlayers,
             };

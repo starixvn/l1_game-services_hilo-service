@@ -55,8 +55,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             settlementResult: runningRound.settlementResult,
             turnTime: new Date(),
             nextAmounts: {
-                [gameSettings.hiChoice]: (1 + newOdds[gameSettings.hiChoice]) * runningRound.betwin,
-                [gameSettings.loChoice]: (1 + newOdds[gameSettings.loChoice]) * runningRound.betwin,
+                [gameSettings.hiChoice]: parseFloat(((1 + newOdds[gameSettings.hiChoice]) * runningRound.betwin).toFixed(2)),
+                [gameSettings.loChoice]: parseFloat(((1 + newOdds[gameSettings.loChoice]) * runningRound.betwin).toFixed(2)),
             },
         };
 

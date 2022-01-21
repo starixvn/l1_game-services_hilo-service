@@ -119,8 +119,8 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
         const odds = oddsGenerator.generate(this.gameData.gameConfigs.odds, firstCard.rank, 1);
         newBet.nextAmounts = {
-            [gameSettings.hiChoice]: (1 + odds[gameSettings.hiChoice]) * newBet.betwin,
-            [gameSettings.loChoice]: (1 + odds[gameSettings.loChoice]) * newBet.betwin,
+            [gameSettings.hiChoice]: parseFloat(((1 + odds[gameSettings.hiChoice]) * newBet.betwin).toFixed(2)),
+            [gameSettings.loChoice]: parseFloat(((1 + odds[gameSettings.loChoice]) * newBet.betwin).toFixed(2)),
         };
 
         this.gameData.ingame[player.profile.name].betTracks = newBet;

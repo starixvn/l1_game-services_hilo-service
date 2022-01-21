@@ -6,7 +6,7 @@ describe("odds-generator", () => {
         const testCases = [
             { rank: "A", expectedValue: { h: 0, l: 0 } },
             { rank: "2", expectedValue: { h: 0, l: 0 } },
-            { rank: "J", expectedValue: { h: 2.76, l: 0.28 } },
+            { rank: "J", expectedValue: { h: 276, l: 28 } },
         ];
 
         it.each(testCases)("should return correct odds", (testCase) => {

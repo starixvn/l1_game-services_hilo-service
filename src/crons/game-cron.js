@@ -32,6 +32,10 @@ export default class GameCron extends Core.Crons.BaseGameCron {
             Object.values(this.gameData.ingame).map(async (player) => {
                 const round = player.betTracks;
 
+                if (!round) {
+                    return;
+                }
+
                 if (round.turnEndTime <= currentTime && round.totalTurns === 0) {
                     const payload = { betChoice: this.autoChooseChoice() };
                     await this.settleGameRoundConsumer.settleTurn(round, payload);
