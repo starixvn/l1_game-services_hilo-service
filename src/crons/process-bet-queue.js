@@ -53,7 +53,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
                 roundId: result.id,
                 betwin: result.betwin,
                 settlementResult: result.settlementResult,
-                turnTime: result.turnTime,
+                remainingTime: gameSettings.turnTime,
                 nextAmounts: result.nextAmounts,
             };
 
@@ -145,6 +145,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
                 roundId: betTracks.id,
                 result: betTracks.result,
                 nextAmounts: betTracks.nextAmounts,
+                remainingTime: gameSettings.turnTime,
             },
             user: { ...balance },
         };
