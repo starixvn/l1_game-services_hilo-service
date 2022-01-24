@@ -3,6 +3,7 @@ import { drawCard } from "../helpers/deck-helper";
 import gameSettings, { choiceNames } from "../game-settings";
 import oddsGenerator from "../generators/odds-generator";
 import { rankValueMapper, cardRanks } from "../cards";
+import { createBetLog } from "../generators/bet-log-generator";
 
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
     constructor(params) {
@@ -80,29 +81,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     async addBetLog(runningRound, card1, card2, choice, betWin) {
-        const player = Object.values(this.gameData.realPlayers).find((p) => p.UID === runningRound.uid);
-        const rate = player.session.multiplier * this.gameData.exchangeRates.code[player.session.currencyCode];
-
-        const log = {
-            uid: runningRound.uid,
-            name: runningRound.name,
-            roundId: runningRound.id,
-
-            time: new Date(),
-            amount: runningRound.betWin,
-            betwin: betWin,
-            choice,
-
-            memberId: player.session.memberId,
-            siteId: player.session.siteId,
-            partnerId: player.session.partnerId,
-            currency: player.session.currencyName,
-            rate: rate,
-
-            order: runningRound.totalTurns + 1,
-            cards: [card1, card2],
-        };
-
+        const log = createBetLog(this.gameData, runningRound, card1, card2, choice, betWin);
         await this.betLogsRepository.create(log);
     }
 
