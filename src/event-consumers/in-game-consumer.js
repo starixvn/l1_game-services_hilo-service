@@ -2,23 +2,28 @@ import { Core } from "sc-game-base";
 
 export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsumer {
     async buildPayload(player) {
-        const payload = await super.buildPayload(player);
+        const { odds, enableFreeBet } = this.gameData.gameConfigs;
+        const { exchangeRates } = this.gameData;
+        const { session } = player;
+        const rate = exchangeRates.code[session.currencyCode] * session.multiplier;
+        const settings = this.gameData.currencyGroupGames.find((x) => x.groupId.toString() === session.currencyGroupId);
+        const gameConfigs = { ...settings, odds, enableFreeBet };
+        const { betTracks: ownBets } = this.gameData.ingame[player.profile.name] || { betTracks: {} };
 
-        const ownBets = payload.ownBets ?? {};
-        const resultPayload = {
-            ...payload,
-            ownBets: {
-                roundId: ownBets.id,
-                amount: ownBets.betwin,
-                result: ownBets.result,
-                remainingTime: ownBets.turnEndTime ? (ownBets.turnEndTime - new Date()) / 1000 : 0,
-                nextAmounts: ownBets.nextAmounts,
-            },
-        };
+        await this.getBalance(player, true);
+
+        const user = await this.getUserInfo(player.UID);
 
         return {
-            ...resultPayload,
-            ownBets,
+            gameConfigs,
+            ownBets: {
+                roundId: ownBets?.id,
+                amount: ownBets?.betwin,
+                result: ownBets?.result,
+                remainingTime: ownBets?.turnEndTime ? (ownBets.turnEndTime - new Date()) / 1000 : 0,
+                nextAmounts: ownBets?.nextAmounts,
+            },
+            user: { ...user, rate },
         };
     }
 }

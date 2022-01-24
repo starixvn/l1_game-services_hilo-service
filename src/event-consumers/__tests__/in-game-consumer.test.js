@@ -16,17 +16,18 @@ describe("in-game-consumer", () => {
 
     describe("buildPayload", () => {
         const testCases = [
-            { betTracks: { id: 1, turnEndTime: new Date() }, expectedId: 1 },
-            { betTracks: { id: 1 }, expectedId: 1 },
-            { betTracks: undefined, expectedId: undefined },
+            { ingame: { m1: { betTracks: { id: 1, turnEndTime: new Date() } } }, expectedId: 1 },
+            { ingame: { m1: { betTracks: { id: 1 } } }, expectedId: 1 },
+            { ingame: { m1: { betTracks: undefined, expectedId: undefined } }, expectedId: undefined },
+            { ingame: { m2: { betTracks: undefined, expectedId: undefined } }, expectedId: undefined },
         ];
         it.each(testCases)("should return ownBets", async (testCase) => {
             // arrange
             const gameData = {
                 gameConfigs: {},
                 exchangeRates: { code: {} },
-                currencyGroupGames: [],
-                ingame: { m1: { betTracks: testCase.betTracks } },
+                currencyGroupGames: [{ groupId: "1" }],
+                ingame: testCase.ingame,
                 players: {},
             };
             const roundQuery = { getList: jest.fn() };
@@ -38,7 +39,7 @@ describe("in-game-consumer", () => {
             const actualValue = await consumer.buildPayload(player);
 
             // assert
-            expect(actualValue.ownBets.id).toStrictEqual(testCase.expectedId);
+            expect(actualValue.ownBets.roundId).toStrictEqual(testCase.expectedId);
         });
     });
 });
