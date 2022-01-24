@@ -13,7 +13,7 @@ export default class CollectConsumer {
             return { notice: errorCodes.roundEnded };
         }
 
-        if (runningRound.totalTurns === 0) {
+        if (runningRound.totalTurns === 0 || !this.gameData.gameConfigs.enabled) {
             return { notice: errorCodes.cannotCollect };
         }
 

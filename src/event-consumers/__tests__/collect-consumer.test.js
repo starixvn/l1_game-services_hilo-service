@@ -3,22 +3,40 @@ import { CollectConsumer } from "../index";
 
 describe("collect-consumer", () => {
     describe("validate", () => {
-        // arrange
-        const testCases = [
-            { runningRound: null, expectedValue: { notice: errorCodes.roundEnded } },
-            { runningRound: { totalTurns: 0 }, expectedValue: { notice: errorCodes.cannotCollect } },
-            { runningRound: { totalTurns: 10 }, expectedValue: null },
-        ];
+        describe("when config disabled", () => {
+            it("should return failure", () => {
+                // arrange
+                const gameData = { gameConfigs: { enabled: false } };
+                const consumer = new CollectConsumer(null, gameData);
+                const expectedValue = { notice: errorCodes.cannotCollect };
 
-        it.each(testCases)("should return correct value", (testCase) => {
+                // act
+                const actualValue = consumer.validate({});
+
+                // assert
+                expect(actualValue).toStrictEqual(expectedValue);
+            });
+        });
+
+        describe("when config enabled", () => {
             // arrange
-            const consumer = new CollectConsumer();
+            const testCases = [
+                { runningRound: null, expectedValue: { notice: errorCodes.roundEnded } },
+                { runningRound: { totalTurns: 0 }, expectedValue: { notice: errorCodes.cannotCollect } },
+                { runningRound: { totalTurns: 10 }, expectedValue: null },
+            ];
 
-            // act
-            const actualValue = consumer.validate(testCase.runningRound);
+            it.each(testCases)("should return correct value", (testCase) => {
+                // arrange
+                const gameData = { gameConfigs: { enabled: true } };
+                const consumer = new CollectConsumer(null, gameData);
 
-            // assert
-            expect(actualValue).toStrictEqual(testCase.expectedValue);
+                // act
+                const actualValue = consumer.validate(testCase.runningRound);
+
+                // assert
+                expect(actualValue).toStrictEqual(testCase.expectedValue);
+            });
         });
     });
 

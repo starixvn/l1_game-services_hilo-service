@@ -13,10 +13,9 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
 
     composeValidationCriteria(player, betChoice, freeBet, roundId) {
         const bettingTimeValidationCriteria = this.composeBettingTimeValidationCriteria(roundId) ?? [];
-        const betAmountValidationCriteria = this.composeBetAmountValidationCriteria(freeBet) || [];
         const betChoiceValidationCriteria = this.composeBetChoiceValidationCriteria(player, betChoice) || [];
 
-        return bettingTimeValidationCriteria.concat(betChoiceValidationCriteria, betAmountValidationCriteria);
+        return bettingTimeValidationCriteria.concat(betChoiceValidationCriteria);
     }
 
     composeBettingTimeValidationCriteria(roundId) {
@@ -30,17 +29,6 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
             {
                 failure: !roundId,
                 notice: this.getNoticeObj(errorCodes.roundNotExist),
-            },
-        ];
-    }
-
-    composeBetAmountValidationCriteria(freeBet) {
-        const configs = this.gameData.gameConfigs;
-
-        return [
-            {
-                failure: freeBet && !configs.enableFreeBet,
-                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet),
             },
         ];
     }

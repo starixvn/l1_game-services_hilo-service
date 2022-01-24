@@ -86,35 +86,6 @@ describe("deal-consumer", () => {
         });
     });
 
-    describe("composeBetAmountValidationCriteria", () => {
-        let testCases = [
-            { freeBet: false, enableFreeBet: false, expectedFailure: false },
-            { freeBet: false, enableFreeBet: true, expectedFailure: false },
-            { freeBet: true, enableFreeBet: false, expectedFailure: true },
-            { freeBet: true, enableFreeBet: true, expectedFailure: false },
-        ];
-        it.each(testCases)("should validate base on enableFreeBet", async (testCase) => {
-            // arrange
-            const definition = {};
-            const gameData = {
-                currencyGroupGames: [{ groupId: "g1", maxBetPerChoices: {} }],
-                gameConfigs: { enabled: true, enableFreeBet: testCase.enableFreeBet },
-            };
-            const consumer = new DealConsumer(definition, gameData, {});
-            const expectedValue = {
-                failure: testCase.expectedFailure,
-                notice: { errorCode: helpers.noticeHelper.invalidBet },
-            };
-            const freeBet = testCase.freeBet;
-
-            // act
-            const actualValue = await consumer.composeBetAmountValidationCriteria(freeBet);
-
-            // assert
-            expect(actualValue[0]).toStrictEqual(expectedValue);
-        });
-    });
-
     describe("composeBetChoiceValidationCriteria", () => {
         describe("when bet choice not in definition.choices", () => {
             it("should failed choices criterion", () => {
