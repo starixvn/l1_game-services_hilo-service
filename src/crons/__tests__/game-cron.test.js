@@ -138,7 +138,7 @@ describe("game-cron", () => {
     describe("resetForNewRound", () => {
         it("should do nothing", () => {
             // arrange
-            const gameData = { ingame: { m1: { betTracks: { newGameChoice: 10 } } }, settlementResultFromAdmin: { 10: {} } };
+            const gameData = { ingame: { m1: { betTracks: { amount: 10 } } }, settlementResultFromAdmin: { 10: {} } };
             const cron = new GameCron({ gameData });
 
             // act

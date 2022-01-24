@@ -214,7 +214,7 @@ describe("process-bet-queue", () => {
     describe("decreaseBetTracks", () => {
         it("should do nothing", () => {
             // arrange
-            const gameData = { ingame: { m1: { betTracks: { newGameChoice: 10 } } } };
+            const gameData = { ingame: { m1: { betTracks: { amount: 10 } } } };
             const cron = new ProcessBetQueue({ gameData });
             const playerName = "m1";
 
@@ -222,7 +222,7 @@ describe("process-bet-queue", () => {
             cron.decreaseBetTracks(playerName);
 
             //assert
-            expect(gameData.ingame["m1"].betTracks).toStrictEqual({ newGameChoice: 10 });
+            expect(gameData.ingame["m1"].betTracks).toStrictEqual({ amount: 10 });
         });
     });
 

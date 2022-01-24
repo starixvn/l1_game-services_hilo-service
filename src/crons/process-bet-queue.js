@@ -33,7 +33,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
         runningRound.settlementBetResult = {
             isWin: true,
             turnTime: turnTime,
-            turnEndTime: new Date(turnTime.getTime() + gameSettings.turnTime * 1000),
+            turnEndTime: new Date(turnTime.getTime() + gameSettings.durations.turnTime * 1000),
             betwin: runningRound.betwin,
             totalTurns: runningRound.totalTurns,
             result: runningRound.result,
@@ -53,7 +53,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
                 roundId: result.id,
                 betwin: result.betwin,
                 settlementResult: result.settlementResult,
-                remainingTime: gameSettings.turnTime,
+                remainingTime: gameSettings.durations.turnTime,
                 nextAmounts: result.nextAmounts,
             };
 
@@ -103,7 +103,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
             totalTurns: 0,
             turnTime: turnTime,
-            turnEndTime: new Date(turnTime.getTime() + gameSettings.turnTime * 1000),
+            turnEndTime: new Date(turnTime.getTime() + gameSettings.durations.turnTime * 1000),
         };
 
         const existingBetFilter = { uid: player.UID, id: roundId, freeBet: bet.freeBet };
@@ -145,7 +145,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
                 roundId: betTracks.id,
                 result: betTracks.result,
                 nextAmounts: betTracks.nextAmounts,
-                remainingTime: gameSettings.turnTime,
+                remainingTime: gameSettings.durations.turnTime,
             },
             user: { ...balance },
         };
