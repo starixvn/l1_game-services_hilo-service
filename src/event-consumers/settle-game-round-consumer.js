@@ -21,14 +21,14 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
     calculateBetResult(settlementResult, bet) {
         const amount = bet.amount;
-        const betWin = settlementResult.isWin ? settlementResult.betwin - bet.amount : 0;
+        const betWin = settlementResult.canPlayNextTurn ? settlementResult.betwin - bet.amount : 0;
 
         return {
             ...settlementResult,
             totalBetAmount: amount,
-            netWin: settlementResult.isWin ? betWin : 0,
+            netWin: settlementResult.canPlayNextTurn ? betWin : 0,
             totalWin: settlementResult.betwin,
-            totalLost: settlementResult.isWin ? 0 : amount,
+            totalLost: settlementResult.canPlayNextTurn ? 0 : amount,
         };
     }
 
@@ -38,18 +38,18 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         const previousCard = runningRound.result[runningRound.result.length - 1];
         const nextCard = this.generateResult(runningRound);
-        const isWin = this.isWin(payload.betChoice, previousCard, nextCard);
+        const canPlayNextTurn = this.canPlayNextTurn(payload.betChoice, previousCard, nextCard);
 
         const odds = oddsGenerator.generate(this.gameData.gameConfigs.odds, previousCard.rank, runningRound.totalTurns + 1);
 
-        const newStake = isWin ? runningRound.betwin * (1 + odds[payload.betChoice]) : runningRound.betwin;
+        const newStake = canPlayNextTurn ? runningRound.betwin * (1 + odds[payload.betChoice]) : runningRound.betwin;
 
-        const betWin = isWin ? newStake - runningRound.betwin : 0;
+        const betWin = canPlayNextTurn ? newStake - runningRound.betwin : 0;
         await this.addBetLog(runningRound, previousCard, nextCard, payload.betChoice, betWin);
 
         const newOdds = oddsGenerator.generate(this.gameData.gameConfigs.odds, nextCard.rank, runningRound.totalTurns + 2);
         const settlementBetResult = {
-            isWin,
+            canPlayNextTurn,
             betwin: newStake,
             totalTurns: runningRound.totalTurns + 1,
             result: runningRound.result,
@@ -69,7 +69,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         await this.userBetResultPublisher.publish(uid, settleResult);
         runningRound.settlementBetResult = settlementBetResult;
 
-        if (isWin) {
+        if (canPlayNextTurn) {
             Object.assign(runningRound, settlementBetResult);
         } else {
             await this.settleBets(name);
@@ -80,8 +80,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         return settleResult;
     }
 
-    async addBetLog(runningRound, card1, card2, choice, betWin) {
-        const log = createBetLog(this.gameData, runningRound, card1, card2, choice, betWin);
+    async addBetLog(runningRound, currentCard, resultCard, choice, betWin) {
+        const log = createBetLog(this.gameData, runningRound, currentCard, resultCard, choice, betWin);
         await this.betLogsRepository.create(log);
     }
 
@@ -110,30 +110,31 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 })
             );
         }
-
-        this.roundResultPublisher.publishRoundResult(this.collectRoundResult(result, settlementResult, roundId));
     }
 
-    isWin(choice, previousCard, nextCard) {
-        const value1 = rankValueMapper[previousCard.rank];
-        const value2 = rankValueMapper[nextCard.rank];
-
-        if (previousCard.rank === cardRanks.ace || previousCard.rank === cardRanks.two || value1 === value2) {
+    canPlayNextTurn(choice, currentCard, resultCard) {
+        if (currentCard.rank === cardRanks.ace || currentCard.rank === cardRanks.two) {
             return true;
         }
 
-        return (choice === choiceNames.h && value1 < value2) || (choice === choiceNames.l && value2 < value1);
+        const currentValue = rankValueMapper[currentCard.rank];
+        const resultValue = rankValueMapper[resultCard.rank];
+        return (
+            currentValue === resultValue ||
+            (choice === choiceNames.h && currentValue < resultValue) ||
+            (choice === choiceNames.l && resultValue < currentValue)
+        );
     }
 
-    getSettlementResult(previousCard, nextCard) {
-        if (previousCard.rank === nextCard.rank) {
+    getSettlementResult(currentCard, resultCard) {
+        if (currentCard.rank === resultCard.rank) {
             return gameSettings.tieResult;
         }
 
-        const value1 = rankValueMapper[previousCard.rank];
-        const value2 = rankValueMapper[nextCard.rank];
+        const currentValue = rankValueMapper[currentCard.rank];
+        const resultValue = rankValueMapper[resultCard.rank];
 
-        return value1 < value2 ? choiceNames.h : choiceNames.l;
+        return currentValue < resultValue ? choiceNames.h : choiceNames.l;
     }
 
     queryBets(roundId) {

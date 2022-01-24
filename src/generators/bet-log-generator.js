@@ -1,4 +1,4 @@
-export const createBetLog = (gameData, runningRound, card1, card2, choice, betWin) => {
+export const createBetLog = (gameData, runningRound, currentCard, resultCard, choice, betWin) => {
     const player = Object.values(gameData.realPlayers).find((p) => p.UID === runningRound.uid);
     const rate = player.session.multiplier * gameData.exchangeRates.code[player.session.currencyCode];
 
@@ -19,6 +19,6 @@ export const createBetLog = (gameData, runningRound, card1, card2, choice, betWi
         rate: rate,
 
         order: runningRound.totalTurns + 1,
-        cards: [card1, card2],
+        cards: [currentCard, resultCard],
     };
 };

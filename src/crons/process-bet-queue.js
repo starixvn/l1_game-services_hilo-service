@@ -31,7 +31,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
         const turnTime = new Date();
         runningRound.turnTime = turnTime;
         runningRound.settlementBetResult = {
-            isWin: true,
+            canPlayNextTurn: true,
             turnTime: turnTime,
             turnEndTime: new Date(turnTime.getTime() + gameSettings.durations.turnTime * 1000),
             betwin: runningRound.betwin,

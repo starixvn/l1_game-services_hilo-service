@@ -56,10 +56,10 @@ describe("settle-game-round-consumer", () => {
                 // arrange
                 const gameData = {};
                 const consumer = new SettleGameRoundConsumer({ gameData });
-                const settlementResult = { isWin: false, betwin: 0 };
+                const settlementResult = { canPlayNextTurn: false, betwin: 0 };
                 const bet = { amount: 10 };
                 const expectedValue = {
-                    isWin: false,
+                    canPlayNextTurn: false,
                     betwin: 0,
                     totalBetAmount: 10,
                     netWin: 0,
@@ -80,10 +80,10 @@ describe("settle-game-round-consumer", () => {
                 // arrange
                 const gameData = {};
                 const consumer = new SettleGameRoundConsumer({ gameData });
-                const settlementResult = { isWin: true, betwin: 20 };
+                const settlementResult = { canPlayNextTurn: true, betwin: 20 };
                 const bet = { amount: 10 };
                 const expectedValue = {
-                    isWin: true,
+                    canPlayNextTurn: true,
                     totalBetAmount: 10,
                     netWin: 10,
                     totalWin: 20,
@@ -239,7 +239,7 @@ describe("settle-game-round-consumer", () => {
         });
     });
 
-    describe("isWin", () => {
+    describe("canPlayNextTurn", () => {
         // arrange
         const testCases = [
             { nextCard: { rank: "3" }, previousCard: { rank: "A" }, expectedValue: true },
@@ -259,7 +259,7 @@ describe("settle-game-round-consumer", () => {
             const consumer = new SettleGameRoundConsumer({});
 
             // act
-            const actualValue = consumer.isWin(testCase.choice, testCase.previousCard, testCase.nextCard);
+            const actualValue = consumer.canPlayNextTurn(testCase.choice, testCase.previousCard, testCase.nextCard);
 
             // assert
             expect(actualValue).toStrictEqual(testCase.expectedValue);
