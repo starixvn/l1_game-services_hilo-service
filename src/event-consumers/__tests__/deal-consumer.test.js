@@ -336,13 +336,13 @@ describe("deal-consumer", () => {
 
     describe("consume", () => {
         describe("when not have ingame data", () => {
-            it("should not call settleGameRoundConsumer.settleTurn", () => {
+            it("should not push deal info to queue", () => {
                 // arrange
                 const definition = { choices: [] };
-                const gameData = { ingame: { m2: { betTracks: { result: [{ rank: "2" }, { rank: "A" }] } }, m1: {} } };
+                const gameData = { ingame: { m2: { betTracks: { result: [{ rank: "2" }, { rank: "A" }] } }, m1: { betQueue: [] } } };
                 const publisher = { publishToUser: jest.fn() };
-                const settleGameRoundConsumer = { settleTurn: jest.fn() };
-                const consumer = new DealConsumer(definition, gameData, publisher, null, settleGameRoundConsumer);
+                const settleTurnConsumer = { settleTurn: jest.fn() };
+                const consumer = new DealConsumer(definition, gameData, publisher, null, settleTurnConsumer);
                 const player = { UID: "m1", profile: { name: "m1" } };
                 spyOn(consumer, "validateBetRequest").and.returnValue(false);
                 const payload = {};
@@ -351,15 +351,15 @@ describe("deal-consumer", () => {
                 consumer.consume(player, payload);
 
                 // assert
-                expect(settleGameRoundConsumer.settleTurn).not.toBeCalled();
+                expect(gameData.ingame.m1.betQueue.length).toBe(0);
             });
         });
 
         describe("when not have bet tracks data", () => {
-            it("should not call settleGameRoundConsumer.settleTurn", () => {
+            it("should not push deal info to queue", () => {
                 // arrange
                 const definition = { choices: [] };
-                const gameData = { ingame: { m1: { betTracks: null }, m1: {} } };
+                const gameData = { ingame: { m1: { betTracks: null, betQueue: [] } } };
                 const publisher = { publishToUser: jest.fn() };
                 const settleGameRoundConsumer = { settleTurn: jest.fn() };
                 const consumer = new DealConsumer(definition, gameData, publisher, null, settleGameRoundConsumer);
@@ -371,18 +371,18 @@ describe("deal-consumer", () => {
                 consumer.consume(player, payload);
 
                 // assert
-                expect(settleGameRoundConsumer.settleTurn).not.toBeCalled();
+                expect(gameData.ingame.m1.betQueue.length).toBe(0);
             });
         });
 
         describe("when validateBetRequest failed", () => {
-            it("should not call settleGameRoundConsumer.settleTurn", async () => {
+            it("should not push deal info to queue", async () => {
                 // arrange
                 const definition = { choices: [] };
-                const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "A" }] } } } };
+                const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "A" }] }, betQueue: [] } } };
                 const publisher = { publishToUser: jest.fn() };
-                const settleGameRoundConsumer = { settleTurn: jest.fn() };
-                const consumer = new DealConsumer(definition, gameData, publisher, null, settleGameRoundConsumer);
+                const settleTurnConsumer = { settleTurn: jest.fn() };
+                const consumer = new DealConsumer(definition, gameData, publisher, null, settleTurnConsumer);
                 const player = { UID: "m1", profile: { name: "m1" } };
                 spyOn(consumer, "validateBetRequest").and.returnValue(false);
                 const payload = {};
@@ -391,7 +391,7 @@ describe("deal-consumer", () => {
                 consumer.consume(player, payload);
 
                 // assert
-                expect(settleGameRoundConsumer.settleTurn).not.toBeCalled();
+                expect(gameData.ingame.m1.betQueue.length).toBe(0);
             });
         });
 

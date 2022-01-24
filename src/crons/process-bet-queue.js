@@ -9,6 +9,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
         this.roundsRepository = params.roundsRepository;
         this.settleGameRoundConsumer = params.settleGameRoundConsumer;
+        this.settleTurnConsumer = params.settleTurnConsumer;
     }
 
     async bet(player, payload) {
@@ -30,7 +31,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
         const turnTime = new Date();
         runningRound.turnTime = turnTime;
-        runningRound.settlementBetResult = {
+        runningRound.turnResult = {
             canPlayNextTurn: true,
             turnTime: turnTime,
             turnEndTime: new Date(turnTime.getTime() + gameSettings.durations.turnTime * 1000),
@@ -48,7 +49,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     async deal(player, bet) {
         const runningRound = this.gameData.ingame[player.profile.name]?.betTracks;
         if (!!runningRound && runningRound.totalTurns === bet.order) {
-            const result = await this.settleGameRoundConsumer.settleTurn({ uid: runningRound.UID, name: player.profile.name }, bet);
+            const result = await this.settleTurnConsumer.settleTurn({ uid: runningRound.UID, name: player.profile.name }, bet);
             const payload = {
                 roundId: result.id,
                 betwin: result.betwin,

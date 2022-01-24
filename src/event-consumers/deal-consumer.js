@@ -5,12 +5,6 @@ import errorCodes from "../constants/error-codes";
 import { cardRanks } from "../cards";
 
 export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsumer {
-    constructor(definition, gameData, publisher, roundsRepository, settleGameRoundConsumer) {
-        super(definition, gameData, publisher);
-        this.roundsRepository = roundsRepository;
-        this.settleGameRoundConsumer = settleGameRoundConsumer;
-    }
-
     composeValidationCriteria(player, betChoice, freeBet, roundId) {
         const bettingTimeValidationCriteria = this.composeBettingTimeValidationCriteria(roundId) ?? [];
         const betChoiceValidationCriteria = this.composeBetChoiceValidationCriteria(player, betChoice) || [];

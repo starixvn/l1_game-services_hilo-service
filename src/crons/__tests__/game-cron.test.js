@@ -96,20 +96,17 @@ describe("game-cron", () => {
                 },
                 realPlayers,
             };
-            const settleGameRoundConsumer = { settleTurn: jest.fn() };
+            const settleTurnConsumer = { settleTurn: jest.fn() };
             const collectConsumer = { consume: jest.fn() };
-            const cron = new GameCron({ definition, gameData, settleGameRoundConsumer, collectConsumer });
+            const cron = new GameCron({ definition, gameData, settleTurnConsumer, collectConsumer });
 
             // act
             await cron.processRunningRounds();
 
             // assert
-            expect(cron.settleGameRoundConsumer.settleTurn).toHaveBeenCalledWith(
-                expect.objectContaining({ name: "m1" }),
-                expect.any(Object)
-            );
+            expect(cron.settleTurnConsumer.settleTurn).toHaveBeenCalledWith(expect.objectContaining({ name: "m1" }), expect.any(Object));
             expect(collectConsumer.consume).toHaveBeenCalled();
-            expect(cron.settleGameRoundConsumer.settleTurn).not.toHaveBeenCalledWith(
+            expect(cron.settleTurnConsumer.settleTurn).not.toHaveBeenCalledWith(
                 expect.objectContaining({ name: "m3" }),
                 expect.any(Object)
             );

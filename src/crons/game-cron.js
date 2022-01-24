@@ -5,6 +5,7 @@ export default class GameCron extends Core.Crons.BaseGameCron {
     constructor(params) {
         super(params);
         this.collectConsumer = params.collectConsumer;
+        this.settleTurnConsumer = params.settleTurnConsumer;
         this.chance = new Chance();
     }
 
@@ -38,7 +39,7 @@ export default class GameCron extends Core.Crons.BaseGameCron {
 
                 if (round.turnEndTime <= currentTime && round.totalTurns === 0) {
                     const payload = { betChoice: this.autoChooseChoice() };
-                    await this.settleGameRoundConsumer.settleTurn(round, payload);
+                    await this.settleTurnConsumer.settleTurn(round, payload);
                     return;
                 }
 
@@ -60,7 +61,7 @@ export default class GameCron extends Core.Crons.BaseGameCron {
             this.gameData.ingame[bet.name] = {
                 betTracks: {
                     ...bet,
-                    settlementBetResult: {
+                    turnResult: {
                         canPlayNextTurn: true,
                         betwin: bet.betwin,
                     },

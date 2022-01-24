@@ -4,7 +4,14 @@ import { RoundModel, BetLogModel } from "./models";
 import { SocketRouter, HttpRouter } from "./routers";
 import { ProcessBetQueue, GameCron, GameBot } from "./crons";
 import { RoundQuery, HistoryQuery } from "./query-apis";
-import { InGameConsumer, PlaceBetConsumer, SettleGameRoundConsumer, DealConsumer, CollectConsumer } from "./event-consumers";
+import {
+    InGameConsumer,
+    PlaceBetConsumer,
+    SettleGameRoundConsumer,
+    DealConsumer,
+    CollectConsumer,
+    SettleTurnConsumer,
+} from "./event-consumers";
 
 export default class ServiceContainerRegistry extends Core.ContainerRegistry {
     registerModels() {
@@ -25,6 +32,7 @@ export default class ServiceContainerRegistry extends Core.ContainerRegistry {
             settleGameRoundConsumer: asClass(SettleGameRoundConsumer).singleton().proxy(),
             dealConsumer: asClass(DealConsumer).singleton(),
             collectConsumer: asClass(CollectConsumer).singleton(),
+            settleTurnConsumer: asClass(SettleTurnConsumer).singleton().proxy(),
         });
     }
 
