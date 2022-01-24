@@ -10,7 +10,7 @@ describe("deck-helper", () => {
             // act
             const actualValue = drawCard(drawnCards);
 
-            //assert
+            // assert
             expect(actualValue).not.toBeNull();
         });
 
@@ -21,7 +21,7 @@ describe("deck-helper", () => {
             // act
             const actualValue = drawCard(drawnCards);
 
-            //assert
+            // assert
             expect(actualValue).not.toBeNull();
         });
     });
@@ -35,7 +35,7 @@ describe("deck-helper", () => {
             // act
             const actualValue = getCardFromAdmin(cardRank, testCase.drawnCards);
 
-            //assert
+            // assert
             expect(actualValue.rank).toBe("2");
         });
     });

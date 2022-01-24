@@ -11,7 +11,7 @@ describe("deal-consumer", () => {
             // act
             const consumer = new DealConsumer();
 
-            //assert
+            // assert
             expect(consumer instanceof Core.BaseEventConsumers.PlaceBetConsumer);
         });
     });
@@ -29,7 +29,7 @@ describe("deal-consumer", () => {
             // act
             const actualValue = consumer.composeValidationCriteria();
 
-            //assert
+            // assert
             expect(actualValue).toStrictEqual(expectedValue);
         });
     });
@@ -50,7 +50,7 @@ describe("deal-consumer", () => {
             // act
             const actualValue = consumer.composeBettingTimeValidationCriteria(roundId);
 
-            //assert
+            // assert
             expect(actualValue[0]).toStrictEqual(testCase.expectedValue);
         });
 
@@ -81,7 +81,7 @@ describe("deal-consumer", () => {
             // act
             const actualValue = consumer.composeBettingTimeValidationCriteria(roundId);
 
-            //assert
+            // assert
             expect(actualValue[1]).toStrictEqual(testCase.expectedValue);
         });
     });
@@ -110,7 +110,7 @@ describe("deal-consumer", () => {
             // act
             const actualValue = await consumer.composeBetAmountValidationCriteria(freeBet);
 
-            //assert
+            // assert
             expect(actualValue[0]).toStrictEqual(expectedValue);
         });
     });
@@ -128,7 +128,7 @@ describe("deal-consumer", () => {
             // act
             const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
 
-            //assert
+            // assert
             expect(actualValue[0]).toStrictEqual(expectedValue);
         });
 
@@ -144,7 +144,7 @@ describe("deal-consumer", () => {
             // act
             const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
 
-            //assert
+            // assert
             expect(actualValue[0]).toStrictEqual(expectedValue);
         });
 
@@ -163,7 +163,7 @@ describe("deal-consumer", () => {
             // act
             const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
 
-            //assert
+            // assert
             expect(actualValue[1]).toStrictEqual(expectedValue);
         });
 
@@ -182,7 +182,7 @@ describe("deal-consumer", () => {
             // act
             const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
 
-            //assert
+            // assert
             expect(actualValue[1]).toStrictEqual(expectedValue);
         });
 
@@ -201,7 +201,7 @@ describe("deal-consumer", () => {
             // act
             const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
 
-            //assert
+            // assert
             expect(actualValue[1]).toStrictEqual(expectedValue);
         });
 
@@ -220,7 +220,7 @@ describe("deal-consumer", () => {
             // act
             const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
 
-            //assert
+            // assert
             expect(actualValue[1]).toStrictEqual(expectedValue);
         });
 
@@ -239,7 +239,7 @@ describe("deal-consumer", () => {
             // act
             const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
 
-            //assert
+            // assert
             expect(actualValue[2]).toStrictEqual(expectedValue);
         });
 
@@ -258,7 +258,7 @@ describe("deal-consumer", () => {
             // act
             const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
 
-            //assert
+            // assert
             expect(actualValue[2]).toStrictEqual(expectedValue);
         });
 
@@ -277,7 +277,7 @@ describe("deal-consumer", () => {
             // act
             const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
 
-            //assert
+            // assert
             expect(actualValue[2]).toStrictEqual(expectedValue);
         });
 
@@ -296,7 +296,7 @@ describe("deal-consumer", () => {
             // act
             const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
 
-            //assert
+            // assert
             expect(actualValue[2]).toStrictEqual(expectedValue);
         });
     });
@@ -316,7 +316,7 @@ describe("deal-consumer", () => {
             // act
             const actualValue = await consumer.validateBetRequest(player, betChoice, amount);
 
-            //assert
+            // assert
             expect(actualValue).toBeFalse();
         });
 
@@ -334,7 +334,7 @@ describe("deal-consumer", () => {
             // act
             const actualValue = await consumer.validateBetRequest(player, betChoice, amount);
 
-            //assert
+            // assert
             expect(actualValue).toBeTruthy();
         });
     });
@@ -354,7 +354,7 @@ describe("deal-consumer", () => {
             // act
             consumer.consume(player, payload);
 
-            //assert
+            // assert
             expect(settleGameRoundConsumer.settleTurn).not.toBeCalled();
         });
 
@@ -372,7 +372,7 @@ describe("deal-consumer", () => {
             // act
             consumer.consume(player, payload);
 
-            //assert
+            // assert
             expect(settleGameRoundConsumer.settleTurn).not.toBeCalled();
         });
 
@@ -390,7 +390,7 @@ describe("deal-consumer", () => {
             // act
             consumer.consume(player, payload);
 
-            //assert
+            // assert
             expect(settleGameRoundConsumer.settleTurn).not.toBeCalled();
         });
 
@@ -412,7 +412,7 @@ describe("deal-consumer", () => {
             // act
             consumer.consume(player, payload);
 
-            //assert
+            // assert
             expect(gameData.ingame.m1.betQueue.length > 0).toBeTruthy();
         });
     });

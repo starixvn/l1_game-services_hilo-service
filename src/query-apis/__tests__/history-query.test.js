@@ -9,7 +9,7 @@ describe("history-query", () => {
             // act
             const query = new HistoryQuery();
 
-            //assert
+            // assert
             expect(query instanceof Core.QueryApis.HistoryQuery);
         });
     });

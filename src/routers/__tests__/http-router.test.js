@@ -26,7 +26,7 @@ describe("http-router", () => {
             // act
             const cron = new HttpRouter();
 
-            //assert
+            // assert
             expect(cron instanceof Core.Routers.HttpRouter);
         });
     });

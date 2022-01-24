@@ -1,7 +1,7 @@
 import { Core } from "sc-game-base";
 import { helpers } from "sc-common";
 import { PlaceBetConsumer } from "../index";
-import gameSettings from "../../game-settings";
+import { choiceNames } from "../../game-settings";
 
 describe("place-bet-consumer", () => {
     describe("extends", () => {
@@ -9,7 +9,7 @@ describe("place-bet-consumer", () => {
             // act
             const consumer = new PlaceBetConsumer();
 
-            //assert
+            // assert
             expect(consumer instanceof Core.BaseEventConsumers.PlaceBetConsumer);
         });
     });
@@ -25,7 +25,7 @@ describe("place-bet-consumer", () => {
             // act
             const actualValue = consumer.composeValidationCriteria();
 
-            //assert
+            // assert
             expect(actualValue).toStrictEqual(expectedValue);
         });
     });
@@ -41,7 +41,7 @@ describe("place-bet-consumer", () => {
             // act
             const actualValue = consumer.composeBettingTimeValidationCriteria(player);
 
-            //assert
+            // assert
             expect(actualValue).toStrictEqual(expectedValue);
         });
 
@@ -55,7 +55,7 @@ describe("place-bet-consumer", () => {
             // act
             const actualValue = consumer.composeBettingTimeValidationCriteria(player);
 
-            //assert
+            // assert
             expect(actualValue).toStrictEqual(expectedValue);
         });
 
@@ -69,7 +69,7 @@ describe("place-bet-consumer", () => {
             // act
             const actualValue = consumer.composeBettingTimeValidationCriteria(player);
 
-            //assert
+            // assert
             expect(actualValue).toStrictEqual(expectedValue);
         });
     });
@@ -90,7 +90,7 @@ describe("place-bet-consumer", () => {
             // act
             const actualValue = consumer.composeBetAmountValidationCriteria(player, amount);
 
-            //assert
+            // assert
             expect(actualValue[0]).toStrictEqual(expectedValue);
         });
 
@@ -109,7 +109,7 @@ describe("place-bet-consumer", () => {
             // act
             const actualValue = consumer.composeBetAmountValidationCriteria(player, amount);
 
-            //assert
+            // assert
             expect(actualValue[1]).toStrictEqual(expectedValue);
         });
     });
@@ -128,7 +128,7 @@ describe("place-bet-consumer", () => {
             // act
             const actualValue = consumer.validateBetRequest(player, amount);
 
-            //assert
+            // assert
             expect(actualValue).toBeFalsy();
             expect(publisher.publishToUser).toHaveBeenCalledWith("m1", expect.objectContaining({ endBet: -1, notice: { code: 1 } }));
         });
@@ -146,7 +146,7 @@ describe("place-bet-consumer", () => {
             // act
             const actualValue = consumer.validateBetRequest(player, amount);
 
-            //assert
+            // assert
             expect(actualValue).toBeTruthy();
             expect(publisher.publishToUser).not.toHaveBeenCalled();
         });
@@ -165,7 +165,7 @@ describe("place-bet-consumer", () => {
             // act
             consumer.consume(player, payload);
 
-            //assert
+            // assert
             expect(gameData.ingame.m1.betQueue.length).toBe(0);
         });
 
@@ -181,7 +181,7 @@ describe("place-bet-consumer", () => {
             // act
             consumer.consume(player, payload);
 
-            //assert
+            // assert
             expect(gameData.ingame.m1.betQueue.length).toBe(1);
         });
 
@@ -197,7 +197,7 @@ describe("place-bet-consumer", () => {
             // act
             consumer.consume(player, payload);
 
-            //assert
+            // assert
             expect(gameData.ingame.m1.betQueue.length).toBe(1);
         });
     });

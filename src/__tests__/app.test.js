@@ -53,7 +53,7 @@ describe("app", () => {
             // act
             await run();
 
-            //assert
+            // assert
             expect(mAppStatus.started).toBe(true);
         });
     });

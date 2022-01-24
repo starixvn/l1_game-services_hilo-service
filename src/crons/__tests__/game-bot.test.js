@@ -14,7 +14,7 @@ describe("game-bot", () => {
             // act
             const cron = new GameBot({});
 
-            //assert
+            // assert
             expect(cron instanceof Core.Crons.BaseBot);
         });
     });
@@ -29,7 +29,7 @@ describe("game-bot", () => {
             // act
             await cron.run();
 
-            //assert
+            // assert
             expect(gameData.roundId).toBe(expectedValue);
         });
 
@@ -42,7 +42,7 @@ describe("game-bot", () => {
             // act
             await cron.run();
 
-            //assert
+            // assert
             expect(gameData.roundId).toBe(expectedValue);
         });
 
@@ -63,7 +63,7 @@ describe("game-bot", () => {
             // act
             await cron.run();
 
-            //assert
+            // assert
             expect(gameData.roundId).toBe(expectedValue);
         });
 
@@ -85,7 +85,7 @@ describe("game-bot", () => {
             // act
             await cron.run();
 
-            //assert
+            // assert
             expect(11 <= gameData.roundId && gameData.roundId <= 110).toBeTruthy();
         });
     });

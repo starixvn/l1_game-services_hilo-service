@@ -31,7 +31,7 @@ describe("service-container-registry", () => {
             // arrange
             const containerRegistry = new ServiceContainerRegistry();
 
-            //assert
+            // assert
             expect(containerRegistry instanceof Core.ContainerRegistry);
         });
     });
@@ -45,7 +45,7 @@ describe("service-container-registry", () => {
             // act
             containerRegistry.registerModels();
 
-            //assert
+            // assert
             expect(containerRegistry.container.register).toBeCalledWith({
                 roundsRepository: expect.any(Function),
                 betLogsRepository: expect.any(Function),
@@ -62,7 +62,7 @@ describe("service-container-registry", () => {
             // act
             containerRegistry.registerConsumers();
 
-            //assert
+            // assert
             expect(containerRegistry.container.register).toBeCalledWith({
                 inGameConsumer: expect.any(Object),
                 placeBetConsumer: expect.any(Object),
@@ -82,7 +82,7 @@ describe("service-container-registry", () => {
             // act
             containerRegistry.registerRouters();
 
-            //assert
+            // assert
             expect(containerRegistry.container.register).toBeCalledWith({
                 socketRouter: expect.any(Function),
                 httpRouter: expect.any(Object),
@@ -99,7 +99,7 @@ describe("service-container-registry", () => {
             // act
             containerRegistry.registerCrons();
 
-            //assert
+            // assert
             expect(containerRegistry.container.register).toBeCalledWith({
                 gameCron: expect.any(Function),
                 processBetQueue: expect.any(Function),
@@ -117,7 +117,7 @@ describe("service-container-registry", () => {
             // act
             containerRegistry.registerApis();
 
-            //assert
+            // assert
             expect(containerRegistry.container.register).toBeCalledWith({
                 roundQuery: expect.any(Object),
                 historyQuery: expect.any(Object),

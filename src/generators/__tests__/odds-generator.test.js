@@ -17,7 +17,7 @@ describe("odds-generator", () => {
             // act
             const actualValue = oddsGenerator.generate(odds, testCase.rank, totalTurns);
 
-            //assert
+            // assert
             expect(actualValue).toStrictEqual(testCase.expectedValue);
         });
     });

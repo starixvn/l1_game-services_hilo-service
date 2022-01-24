@@ -1,6 +1,6 @@
 import { Core } from "sc-game-base";
 import { drawCard } from "../helpers/deck-helper";
-import gameSettings from "../game-settings";
+import gameSettings, { choiceNames } from "../game-settings";
 import oddsGenerator from "../generators/odds-generator";
 import { rankValueMapper, cardRanks } from "../cards";
 
@@ -55,8 +55,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             settlementResult: runningRound.settlementResult,
             turnTime: new Date(),
             nextAmounts: {
-                [gameSettings.hiChoice]: parseFloat(((1 + newOdds[gameSettings.hiChoice]) * runningRound.betwin).toFixed(2)),
-                [gameSettings.loChoice]: parseFloat(((1 + newOdds[gameSettings.loChoice]) * runningRound.betwin).toFixed(2)),
+                [choiceNames.h]: parseFloat(((1 + newOdds[choiceNames.h]) * runningRound.betwin).toFixed(2)),
+                [choiceNames.l]: parseFloat(((1 + newOdds[choiceNames.l]) * runningRound.betwin).toFixed(2)),
             },
         };
 
@@ -143,7 +143,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             return true;
         }
 
-        return (choice === gameSettings.hiChoice && value1 < value2) || (choice === gameSettings.loChoice && value2 < value1);
+        return (choice === choiceNames.h && value1 < value2) || (choice === choiceNames.l && value2 < value1);
     }
 
     getSettlementResult(previousCard, nextCard) {
@@ -154,7 +154,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const value1 = rankValueMapper[previousCard.rank];
         const value2 = rankValueMapper[nextCard.rank];
 
-        return value1 < value2 ? gameSettings.hiChoice : gameSettings.loChoice;
+        return value1 < value2 ? choiceNames.h : choiceNames.l;
     }
 
     queryBets(roundId) {

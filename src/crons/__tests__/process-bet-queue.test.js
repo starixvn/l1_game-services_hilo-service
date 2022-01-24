@@ -10,7 +10,7 @@ describe("process-bet-queue", () => {
             // act
             const cron = new ProcessBetQueue({});
 
-            //assert
+            // assert
             expect(cron instanceof Core.Crons.ProcessBetQueue);
         });
     });
@@ -40,7 +40,7 @@ describe("process-bet-queue", () => {
             // act
             await cron.bet(player, payload);
 
-            //assert
+            // assert
             expect(payload.roundId).toBe(testCase.expectedValue);
         });
     });
@@ -56,7 +56,7 @@ describe("process-bet-queue", () => {
             // act
             await cron.collect(player);
 
-            //assert
+            // assert
             expect(settleGameRoundConsumer.settleBets).not.toBeCalled();
         });
 
@@ -70,7 +70,7 @@ describe("process-bet-queue", () => {
             // act
             await cron.collect(player);
 
-            //assert
+            // assert
             expect(settleGameRoundConsumer.settleBets).toBeCalled();
         });
     });
@@ -86,7 +86,7 @@ describe("process-bet-queue", () => {
             // act
             await cron.deal(player);
 
-            //assert
+            // assert
             expect(settleGameRoundConsumer.settleTurn).not.toBeCalled();
         });
 
@@ -101,7 +101,7 @@ describe("process-bet-queue", () => {
             // act
             await cron.deal(player, bet);
 
-            //assert
+            // assert
             expect(settleGameRoundConsumer.settleTurn).not.toBeCalled();
         });
 
@@ -118,7 +118,7 @@ describe("process-bet-queue", () => {
             // act
             await cron.deal(player, bet);
 
-            //assert
+            // assert
             expect(settleGameRoundConsumer.settleTurn).toBeCalled();
         });
     });
@@ -136,7 +136,7 @@ describe("process-bet-queue", () => {
             // act
             await cron.proceedBet(player, payload);
 
-            //assert
+            // assert
             expect(cron.bet).toBeCalled();
         });
 
@@ -152,7 +152,7 @@ describe("process-bet-queue", () => {
             // act
             await cron.proceedBet(player, payload);
 
-            //assert
+            // assert
             expect(cron.collect).toBeCalled();
         });
 
@@ -168,7 +168,7 @@ describe("process-bet-queue", () => {
             // act
             await cron.proceedBet(player, payload);
 
-            //assert
+            // assert
             expect(cron.deal).toBeCalled();
         });
     });
@@ -188,7 +188,7 @@ describe("process-bet-queue", () => {
             // act
             const actualValue = await cron.composeValidationCriteria(player, payload);
 
-            //assert
+            // assert
             expect(actualValue).toStrictEqual([]);
         });
 
@@ -206,7 +206,7 @@ describe("process-bet-queue", () => {
             // act
             const actualValue = await cron.composeValidationCriteria(player, payload);
 
-            //assert
+            // assert
             expect(actualValue).toStrictEqual({ failed: true });
         });
     });
@@ -221,7 +221,7 @@ describe("process-bet-queue", () => {
             // act
             cron.decreaseBetTracks(playerName);
 
-            //assert
+            // assert
             expect(gameData.ingame["m1"].betTracks).toStrictEqual({ amount: 10 });
         });
     });
@@ -244,7 +244,7 @@ describe("process-bet-queue", () => {
             // act
             await cron.upsertBet(player, roundId, bet, rate);
 
-            //assert
+            // assert
             expect(roundsRepository.updateOne).toHaveBeenCalled();
             expect(gameData.roundId).toBe(11);
         });
@@ -259,7 +259,7 @@ describe("process-bet-queue", () => {
             // act
             await cron.insertBetLog();
 
-            //assert
+            // assert
             expect(betLogsRepository.create).not.toBeCalled();
         });
     });
@@ -275,7 +275,7 @@ describe("process-bet-queue", () => {
             // act
             cron.adjustTotalBets(null, bet);
 
-            //assert
+            // assert
             expect(gameData).toStrictEqual(expectedValue);
         });
     });
@@ -295,7 +295,7 @@ describe("process-bet-queue", () => {
             // act
             const actualValue = cron.generateFirstCard(name);
 
-            //assert
+            // assert
             expect(actualValue).not.toBeNull();
         });
 
@@ -308,7 +308,7 @@ describe("process-bet-queue", () => {
             // act
             const actualValue = cron.generateFirstCard(name);
 
-            //assert
+            // assert
             expect(actualValue.rank).toBe("3");
         });
     });
@@ -335,7 +335,7 @@ describe("process-bet-queue", () => {
             // act
             const actualValue = cron.generatePlacingBetResult(player, balance, bet);
 
-            //assert
+            // assert
             expect(actualValue).toStrictEqual(expectedValue);
         });
 
@@ -360,7 +360,7 @@ describe("process-bet-queue", () => {
             // act
             const actualValue = cron.generatePlacingBetResult(player, balance, bet);
 
-            //assert
+            // assert
             expect(actualValue).toStrictEqual(expectedValue);
         });
     });

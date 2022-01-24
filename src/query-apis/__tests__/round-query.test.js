@@ -9,7 +9,7 @@ describe("round-query", () => {
             // act
             const query = new RoundQuery();
 
-            //assert
+            // assert
             expect(query instanceof Core.QueryApis.RoundQuery);
         });
     });

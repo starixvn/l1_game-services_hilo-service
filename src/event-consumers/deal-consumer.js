@@ -1,6 +1,6 @@
 import { Core } from "sc-game-base";
 import { helpers } from "sc-common";
-import gameSettings from "../game-settings";
+import gameSettings, { choiceNames } from "../game-settings";
 import errorCodes from "../constants/error-codes";
 import { cardRanks } from "../cards";
 
@@ -55,11 +55,11 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
                 notice: this.getNoticeObj(helpers.noticeHelper.invalidBet),
             },
             {
-                failure: betChoice === gameSettings.loChoice && currentCard.rank === cardRanks.two,
+                failure: betChoice === choiceNames.l && currentCard.rank === cardRanks.two,
                 notice: this.getNoticeObj(errorCodes.cannotLowerThan),
             },
             {
-                failure: betChoice === gameSettings.hiChoice && currentCard.rank === cardRanks.ace,
+                failure: betChoice === choiceNames.h && currentCard.rank === cardRanks.ace,
                 notice: this.getNoticeObj(errorCodes.cannotGreaterThan),
             },
         ];

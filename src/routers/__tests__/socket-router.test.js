@@ -7,7 +7,7 @@ describe("socket-router", () => {
             // act
             const cron = new SocketRouter({});
 
-            //assert
+            // assert
             expect(cron instanceof Core.Routers.BaseSocketRouter);
         });
     });
@@ -21,7 +21,7 @@ describe("socket-router", () => {
             // act
             socketRouter.init(socketClient);
 
-            //assert
+            // assert
             expect(socketClient.on).toBeCalledWith("deal", expect.any(Function));
             expect(socketClient.on).toBeCalledWith("collect", expect.any(Function));
         });
@@ -37,7 +37,7 @@ describe("socket-router", () => {
             // act
             await socketRouter.handleDeal();
 
-            //assert
+            // assert
             expect(logService.logError).toHaveBeenCalled();
         });
 
@@ -52,7 +52,7 @@ describe("socket-router", () => {
             // act
             await socketRouter.handleDeal();
 
-            //assert
+            // assert
             expect(dealConsumer.consume).not.toBeCalled();
         });
 
@@ -70,7 +70,7 @@ describe("socket-router", () => {
             // act
             await socketRouter.handleDeal();
 
-            //assert
+            // assert
             expect(dealConsumer.consume).toBeCalled();
         });
     });
@@ -85,7 +85,7 @@ describe("socket-router", () => {
             // act
             await socketRouter.handleCollect();
 
-            //assert
+            // assert
             expect(logService.logError).toHaveBeenCalled();
         });
 
@@ -100,7 +100,7 @@ describe("socket-router", () => {
             // act
             await socketRouter.handleCollect();
 
-            //assert
+            // assert
             expect(collectConsumer.consume).not.toBeCalled();
         });
 
@@ -118,7 +118,7 @@ describe("socket-router", () => {
             // act
             await socketRouter.handleCollect();
 
-            //assert
+            // assert
             expect(collectConsumer.consume).toBeCalled();
         });
     });

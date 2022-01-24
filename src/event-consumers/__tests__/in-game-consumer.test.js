@@ -9,7 +9,7 @@ describe("in-game-consumer", () => {
             // act
             const consumer = new InGameConsumer({});
 
-            //assert
+            // assert
             expect(consumer instanceof Core.BaseEventConsumers.InGameConsumer);
         });
     });
@@ -37,7 +37,7 @@ describe("in-game-consumer", () => {
             // act
             const actualValue = await consumer.buildPayload(player);
 
-            //assert
+            // assert
             expect(actualValue.ownBets.id).toStrictEqual(testCase.expectedId);
         });
     });

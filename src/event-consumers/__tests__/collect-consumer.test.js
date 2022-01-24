@@ -17,7 +17,7 @@ describe("collect-consumer", () => {
             // act
             const actualValue = consumer.validate(testCase.runningRound);
 
-            //assert
+            // assert
             expect(actualValue).toStrictEqual(testCase.expectedValue);
         });
     });
@@ -34,7 +34,7 @@ describe("collect-consumer", () => {
             // act
             await consumer.consume(player);
 
-            //assert
+            // assert
             expect(publisher.publishToUser).toBeCalledWith("m1", expect.objectContaining({ isCollect: -1, failed: true }));
         });
 
@@ -52,7 +52,7 @@ describe("collect-consumer", () => {
             // act
             await consumer.consume(player);
 
-            //assert
+            // assert
             expect(gameData.ingame.m1.betQueue.length > 0).toBeTruthy();
         });
     });

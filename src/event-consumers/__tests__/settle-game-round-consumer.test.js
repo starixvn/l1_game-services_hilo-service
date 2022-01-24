@@ -10,7 +10,7 @@ describe("settle-game-round-consumer", () => {
             // act
             const consumer = new SettleGameRoundConsumer({});
 
-            //assert
+            // assert
             expect(consumer instanceof Core.BaseEventConsumers.SettleGameRoundConsumer);
         });
     });
@@ -26,7 +26,7 @@ describe("settle-game-round-consumer", () => {
             // act
             const actualValue = consumer.generateResult(runningRound);
 
-            //assert
+            // assert
             expect(actualValue.rank).toStrictEqual(expectedValue.rank);
         });
 
@@ -41,7 +41,7 @@ describe("settle-game-round-consumer", () => {
             // act
             const actualValue = consumer.generateResult(runningRound);
 
-            //assert
+            // assert
             expect(actualValue).not.toBe(expectedValue);
         });
     });
@@ -65,7 +65,7 @@ describe("settle-game-round-consumer", () => {
             // act
             const actualValue = consumer.calculateBetResult(settlementResult, bet);
 
-            //assert
+            // assert
             expect(actualValue).toStrictEqual(expectedValue);
         });
 
@@ -87,7 +87,7 @@ describe("settle-game-round-consumer", () => {
             // act
             const actualValue = consumer.calculateBetResult(settlementResult, bet);
 
-            //assert
+            // assert
             expect(actualValue).toStrictEqual(expectedValue);
         });
     });
@@ -137,7 +137,7 @@ describe("settle-game-round-consumer", () => {
             // act
             await consumer.settleTurn(player, payload);
 
-            //assert
+            // assert
             expect(consumer.addBetLog).toHaveBeenCalled();
         });
     });
@@ -158,7 +158,7 @@ describe("settle-game-round-consumer", () => {
             // act
             await consumer.addBetLog(runningRound, card1, card2, "h", 10);
 
-            //assert
+            // assert
             expect(betLogsRepository.create).toBeCalled();
         });
     });
@@ -172,7 +172,7 @@ describe("settle-game-round-consumer", () => {
             // act
             await consumer.settleRound();
 
-            //assert
+            // assert
             expect(consumer.generateResult).not.toHaveBeenCalled();
         });
     });
@@ -199,7 +199,7 @@ describe("settle-game-round-consumer", () => {
             // act
             await consumer.settleBets("m1");
 
-            //assert
+            // assert
             expect(bet.save).not.toHaveBeenCalled();
         });
 
@@ -224,7 +224,7 @@ describe("settle-game-round-consumer", () => {
             // act
             await consumer.settleBets("m1");
 
-            //assert
+            // assert
             expect(bet.save).toHaveBeenCalled();
         });
     });
@@ -251,7 +251,7 @@ describe("settle-game-round-consumer", () => {
             // act
             const actualValue = consumer.isWin(testCase.choice, testCase.previousCard, testCase.nextCard);
 
-            //assert
+            // assert
             expect(actualValue).toStrictEqual(testCase.expectedValue);
         });
     });
@@ -279,7 +279,7 @@ describe("settle-game-round-consumer", () => {
             // act
             const actualValue = consumer.getSettlementResult(testCase.previousCard, testCase.nextCard);
 
-            //assert
+            // assert
             expect(actualValue).toStrictEqual(testCase.expectedValue);
         });
     });
@@ -299,7 +299,7 @@ describe("settle-game-round-consumer", () => {
             // act
             const actualValue = await consumer.queryBets();
 
-            //assert
+            // assert
             expect(actualValue).toStrictEqual(bets);
         });
     });

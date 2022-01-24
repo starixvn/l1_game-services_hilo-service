@@ -1,3 +1,5 @@
+export const choiceNames = { h: "h", l: "l" };
+
 export default {
     id: 45,
     name: "Hilo",
@@ -7,9 +9,7 @@ export default {
         lockingBet: 5, // time for bot place bet
         turnTime: 120,
     },
-    choices: ["h", "l"],
-    hiChoice: "h",
-    loChoice: "l",
+    choices: [choiceNames.h, choiceNames.l],
     tieResult: "t",
     actions: {
         bet: "bet",

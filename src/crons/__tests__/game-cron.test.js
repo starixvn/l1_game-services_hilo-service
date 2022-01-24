@@ -23,7 +23,7 @@ describe("game-cron", () => {
             // act
             const cron = new GameCron({ definition });
 
-            //assert
+            // assert
             expect(cron instanceof Core.Crons.BaseGameCron);
         });
     });
@@ -60,7 +60,7 @@ describe("game-cron", () => {
             // act
             await cron.start();
 
-            //assert
+            // assert
             expect(gameData.roundId).toStrictEqual(testCase.expectedValue);
             expect(cron.proceedUnsettledBets).toHaveBeenCalled();
         });
@@ -76,7 +76,7 @@ describe("game-cron", () => {
             // act
             await cron.proceed();
 
-            //assert
+            // assert
             expect(cron.processRunningRounds).toHaveBeenCalled();
         });
     });
@@ -103,7 +103,7 @@ describe("game-cron", () => {
             // act
             await cron.processRunningRounds();
 
-            //assert
+            // assert
             expect(cron.settleGameRoundConsumer.settleTurn).toHaveBeenCalledWith(
                 expect.objectContaining({ name: "m1" }),
                 expect.any(Object)
@@ -129,7 +129,7 @@ describe("game-cron", () => {
                 choiceCounts[choice]++;
             }
 
-            //assert
+            // assert
             expect(Math.abs(choiceCounts.hi / testCount - 0.5) <= 0.05).toBeTruthy();
             expect(Math.abs(choiceCounts.lo / testCount - 0.5) <= 0.05).toBeTruthy();
         });
@@ -144,7 +144,7 @@ describe("game-cron", () => {
             // act
             cron.resetForNewRound();
 
-            //assert
+            // assert
             expect(gameData.ingame.m1).not.toBeNull();
             expect(gameData.settlementResultFromAdmin["10"]).not.toBeNull();
         });
@@ -165,7 +165,7 @@ describe("game-cron", () => {
             // act
             await cron.proceedUnsettledBets();
 
-            //assert
+            // assert
             expect(settleGameRoundConsumer.settleBets).toHaveBeenCalled();
         });
     });

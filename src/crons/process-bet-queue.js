@@ -1,7 +1,7 @@
 import { Core } from "sc-game-base";
 import { drawCard } from "../helpers/deck-helper";
 import oddsGenerator from "../generators/odds-generator";
-import gameSettings from "../game-settings";
+import gameSettings, { choiceNames } from "../game-settings";
 
 export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     constructor(params) {
@@ -119,8 +119,8 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
         const odds = oddsGenerator.generate(this.gameData.gameConfigs.odds, firstCard.rank, 1);
         newBet.nextAmounts = {
-            [gameSettings.hiChoice]: parseFloat(((1 + odds[gameSettings.hiChoice]) * newBet.betwin).toFixed(2)),
-            [gameSettings.loChoice]: parseFloat(((1 + odds[gameSettings.loChoice]) * newBet.betwin).toFixed(2)),
+            [choiceNames.h]: parseFloat(((1 + odds[choiceNames.h]) * newBet.betwin).toFixed(2)),
+            [choiceNames.l]: parseFloat(((1 + odds[choiceNames.l]) * newBet.betwin).toFixed(2)),
         };
 
         this.gameData.ingame[player.profile.name].betTracks = newBet;
