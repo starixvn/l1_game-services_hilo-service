@@ -24,22 +24,24 @@ describe("event deal - already have running round", () => {
         });
     });
 
-    it("when deal is valid should return endBet", (done) => {
-        // arrange
-        gameClientDriver.sendBetEvent(null, 20);
-        let startDeal = false;
-        const endDealFunc = (endBetData) => {
-            if (startDeal && endBetData?.endBet) {
-                done();
-            }
-        };
+    describe("when deal is valid", () => {
+        it("should return endBet", (done) => {
+            // arrange
+            gameClientDriver.sendBetEvent(null, 20);
+            let startDeal = false;
+            const endDealFunc = (endBetData) => {
+                if (startDeal && endBetData?.endBet) {
+                    done();
+                }
+            };
 
-        gameClientDriver.handleEndBetEvent((endBetData) => {
-            if (endBetData?.endBet) {
-                startDeal = true;
-                gameClientDriver.emit("deal", { betChoice: "h" });
-                gameClientDriver.on(gameSettings.name, endDealFunc);
-            }
+            gameClientDriver.handleEndBetEvent((endBetData) => {
+                if (endBetData?.endBet) {
+                    startDeal = true;
+                    gameClientDriver.emit("deal", { betChoice: "h" });
+                    gameClientDriver.on(gameSettings.name, endDealFunc);
+                }
+            });
         });
     });
 });

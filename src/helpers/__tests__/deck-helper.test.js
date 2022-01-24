@@ -3,26 +3,30 @@ import { drawCard, getCardFromAdmin } from "../deck-helper";
 
 describe("deck-helper", () => {
     describe("drawCard", () => {
-        it("when already drawn all cards should also return card, card can be duplicate", () => {
-            // arrange
-            const drawnCards = baseCards;
+        describe("when already drawn all cards", () => {
+            it("should also return card, card can be duplicate", () => {
+                // arrange
+                const drawnCards = baseCards;
 
-            // act
-            const actualValue = drawCard(drawnCards);
+                // act
+                const actualValue = drawCard(drawnCards);
 
-            // assert
-            expect(actualValue).not.toBeNull();
+                // assert
+                expect(actualValue).not.toBeNull();
+            });
         });
 
-        it("when 1st draw should return card", () => {
-            // arrange
-            const drawnCards = [];
+        describe("when 1st draw", () => {
+            it("should return card", () => {
+                // arrange
+                const drawnCards = [];
 
-            // act
-            const actualValue = drawCard(drawnCards);
+                // act
+                const actualValue = drawCard(drawnCards);
 
-            // assert
-            expect(actualValue).not.toBeNull();
+                // assert
+                expect(actualValue).not.toBeNull();
+            });
         });
     });
 

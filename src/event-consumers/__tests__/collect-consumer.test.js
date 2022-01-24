@@ -23,37 +23,41 @@ describe("collect-consumer", () => {
     });
 
     describe("consume", () => {
-        it("when validate failed should publish error to user", async () => {
-            // arrange
-            const publisher = { publishToUser: jest.fn() };
-            const gameData = { ingame: { m1: { betTracks: {} } } };
-            const consumer = new CollectConsumer(null, gameData, publisher);
-            spyOn(consumer, "validate").and.returnValue({ failed: true });
-            const player = { UID: "m1", profile: { name: "m1" } };
+        describe("when validate failed", () => {
+            it("should publish error to user", async () => {
+                // arrange
+                const publisher = { publishToUser: jest.fn() };
+                const gameData = { ingame: { m1: { betTracks: {} } } };
+                const consumer = new CollectConsumer(null, gameData, publisher);
+                spyOn(consumer, "validate").and.returnValue({ failed: true });
+                const player = { UID: "m1", profile: { name: "m1" } };
 
-            // act
-            await consumer.consume(player);
+                // act
+                await consumer.consume(player);
 
-            // assert
-            expect(publisher.publishToUser).toBeCalledWith("m1", expect.objectContaining({ isCollect: -1, failed: true }));
+                // assert
+                expect(publisher.publishToUser).toBeCalledWith("m1", expect.objectContaining({ isCollect: -1, failed: true }));
+            });
         });
 
-        const testCases = [{ betQueue: null }, { betQueue: [] }];
-        it.each(testCases)("when validate passed should push collect info to queue", async (testCase) => {
-            // arrange
-            const publisher = { publishToUser: jest.fn() };
-            const gameData = { ingame: { m1: { betQueue: testCase.betQueue }, betTracks: { id: 2 } } };
-            const settleGameRoundConsumer = { settleBets: jest.fn() };
-            const definition = { durations: {} };
-            const consumer = new CollectConsumer(definition, gameData, publisher, settleGameRoundConsumer);
-            spyOn(consumer, "validate").and.returnValue(null);
-            const player = { UID: "m1", profile: { name: "m1" } };
+        describe("when validate passed", () => {
+            const testCases = [{ betQueue: null }, { betQueue: [] }];
+            it.each(testCases)("should push collect info to queue", async (testCase) => {
+                // arrange
+                const publisher = { publishToUser: jest.fn() };
+                const gameData = { ingame: { m1: { betQueue: testCase.betQueue }, betTracks: { id: 2 } } };
+                const settleGameRoundConsumer = { settleBets: jest.fn() };
+                const definition = { durations: {} };
+                const consumer = new CollectConsumer(definition, gameData, publisher, settleGameRoundConsumer);
+                spyOn(consumer, "validate").and.returnValue(null);
+                const player = { UID: "m1", profile: { name: "m1" } };
 
-            // act
-            await consumer.consume(player);
+                // act
+                await consumer.consume(player);
 
-            // assert
-            expect(gameData.ingame.m1.betQueue.length > 0).toBeTruthy();
+                // assert
+                expect(gameData.ingame.m1.betQueue.length > 0).toBeTruthy();
+            });
         });
     });
 });

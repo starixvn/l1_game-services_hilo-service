@@ -116,304 +116,336 @@ describe("deal-consumer", () => {
     });
 
     describe("composeBetChoiceValidationCriteria", () => {
-        it("when bet choice not in definition.choices should failed choices criterion", () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { ingame: { m1: { betTracks: null } } };
-            const consumer = new DealConsumer(definition, gameData, {});
-            const expectedValue = { failure: true, notice: { errorCode: helpers.noticeHelper.invalidBet } };
-            const player = { profile: { maxBet: 8, maxBet: 6, name: "m1" }, session: { currencyGroupId: "g1" } };
-            const betChoice = "h";
+        describe("when bet choice not in definition.choices", () => {
+            it("should failed choices criterion", () => {
+                // arrange
+                const definition = { choices: [] };
+                const gameData = { ingame: { m1: { betTracks: null } } };
+                const consumer = new DealConsumer(definition, gameData, {});
+                const expectedValue = { failure: true, notice: { errorCode: helpers.noticeHelper.invalidBet } };
+                const player = { profile: { maxBet: 8, maxBet: 6, name: "m1" }, session: { currencyGroupId: "g1" } };
+                const betChoice = "h";
 
-            // act
-            const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
+                // act
+                const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
 
-            // assert
-            expect(actualValue[0]).toStrictEqual(expectedValue);
+                // assert
+                expect(actualValue[0]).toStrictEqual(expectedValue);
+            });
         });
 
-        it("when bet choice in definition.choices should not failed choices criterion", () => {
-            // arrange
-            const definition = { choices: ["h", "l"] };
-            const gameData = { ingame: { m1: { betTracks: null } } };
-            const consumer = new DealConsumer(definition, gameData, {});
-            const expectedValue = { failure: false, notice: { errorCode: helpers.noticeHelper.invalidBet } };
-            const player = { profile: { maxBet: 8, maxBet: 6, name: "m1" }, session: { currencyGroupId: "g1" } };
-            const betChoice = "h";
+        describe("when bet choice in definition.choices", () => {
+            it("should not failed choices criterion", () => {
+                // arrange
+                const definition = { choices: ["h", "l"] };
+                const gameData = { ingame: { m1: { betTracks: null } } };
+                const consumer = new DealConsumer(definition, gameData, {});
+                const expectedValue = { failure: false, notice: { errorCode: helpers.noticeHelper.invalidBet } };
+                const player = { profile: { maxBet: 8, maxBet: 6, name: "m1" }, session: { currencyGroupId: "g1" } };
+                const betChoice = "h";
 
-            // act
-            const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
+                // act
+                const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
 
-            // assert
-            expect(actualValue[0]).toStrictEqual(expectedValue);
+                // assert
+                expect(actualValue[0]).toStrictEqual(expectedValue);
+            });
         });
 
-        it("when loChoice and card is 2 should failed loChoice criterion", () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }] } } } };
-            const consumer = new DealConsumer(definition, gameData, {});
-            const expectedValue = {
-                failure: true,
-                notice: { errorCode: errorCodes.cannotLowerThan },
-            };
-            const player = { UID: "m1", profile: { name: "m1" } };
-            const betChoice = "l";
+        describe("when loChoice and card is 2", () => {
+            it("should failed loChoice criterion", () => {
+                // arrange
+                const definition = { choices: [] };
+                const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }] } } } };
+                const consumer = new DealConsumer(definition, gameData, {});
+                const expectedValue = {
+                    failure: true,
+                    notice: { errorCode: errorCodes.cannotLowerThan },
+                };
+                const player = { UID: "m1", profile: { name: "m1" } };
+                const betChoice = "l";
 
-            // act
-            const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
+                // act
+                const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
 
-            // assert
-            expect(actualValue[1]).toStrictEqual(expectedValue);
+                // assert
+                expect(actualValue[1]).toStrictEqual(expectedValue);
+            });
         });
 
-        it("when loChoice and card is not 2 should not failed loChoice criterion", () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "4" }] } } } };
-            const consumer = new DealConsumer(definition, gameData, {});
-            const expectedValue = {
-                failure: false,
-                notice: { errorCode: errorCodes.cannotLowerThan },
-            };
-            const player = { UID: "m1", profile: { name: "m1" } };
-            const betChoice = "l";
+        describe("when loChoice and card is not 2", () => {
+            it("should not failed loChoice criterion", () => {
+                // arrange
+                const definition = { choices: [] };
+                const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "4" }] } } } };
+                const consumer = new DealConsumer(definition, gameData, {});
+                const expectedValue = {
+                    failure: false,
+                    notice: { errorCode: errorCodes.cannotLowerThan },
+                };
+                const player = { UID: "m1", profile: { name: "m1" } };
+                const betChoice = "l";
 
-            // act
-            const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
+                // act
+                const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
 
-            // assert
-            expect(actualValue[1]).toStrictEqual(expectedValue);
+                // assert
+                expect(actualValue[1]).toStrictEqual(expectedValue);
+            });
         });
 
-        it("when hiChoice and card is not 2 should not failed loChoice criterion", () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "4" }] } } } };
-            const consumer = new DealConsumer(definition, gameData, {});
-            const expectedValue = {
-                failure: false,
-                notice: { errorCode: errorCodes.cannotLowerThan },
-            };
-            const player = { UID: "m1", profile: { name: "m1" } };
-            const betChoice = "h";
+        describe("when hiChoice and card is not 2", () => {
+            it("should not failed loChoice criterion", () => {
+                // arrange
+                const definition = { choices: [] };
+                const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "4" }] } } } };
+                const consumer = new DealConsumer(definition, gameData, {});
+                const expectedValue = {
+                    failure: false,
+                    notice: { errorCode: errorCodes.cannotLowerThan },
+                };
+                const player = { UID: "m1", profile: { name: "m1" } };
+                const betChoice = "h";
 
-            // act
-            const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
+                // act
+                const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
 
-            // assert
-            expect(actualValue[1]).toStrictEqual(expectedValue);
+                // assert
+                expect(actualValue[1]).toStrictEqual(expectedValue);
+            });
         });
 
-        it("when hiChoice and card is 2 should not failed loChoice criterion", () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "2" }] } } } };
-            const consumer = new DealConsumer(definition, gameData, {});
-            const expectedValue = {
-                failure: false,
-                notice: { errorCode: errorCodes.cannotLowerThan },
-            };
-            const player = { UID: "m1", profile: { name: "m1" } };
-            const betChoice = "h";
+        describe("when hiChoice and card is 2", () => {
+            it("should not failed loChoice criterion", () => {
+                // arrange
+                const definition = { choices: [] };
+                const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "2" }] } } } };
+                const consumer = new DealConsumer(definition, gameData, {});
+                const expectedValue = {
+                    failure: false,
+                    notice: { errorCode: errorCodes.cannotLowerThan },
+                };
+                const player = { UID: "m1", profile: { name: "m1" } };
+                const betChoice = "h";
 
-            // act
-            const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
+                // act
+                const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
 
-            // assert
-            expect(actualValue[1]).toStrictEqual(expectedValue);
+                // assert
+                expect(actualValue[1]).toStrictEqual(expectedValue);
+            });
         });
 
-        it("when hiChoice and card is 1 should failed hiChoice criterion", () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "A" }] } } } };
-            const consumer = new DealConsumer(definition, gameData, {});
-            const expectedValue = {
-                failure: true,
-                notice: { errorCode: errorCodes.cannotGreaterThan },
-            };
-            const player = { UID: "m1", profile: { name: "m1" } };
-            const betChoice = "h";
+        describe("when hiChoice and card is 1", () => {
+            it("should failed hiChoice criterion", () => {
+                // arrange
+                const definition = { choices: [] };
+                const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "A" }] } } } };
+                const consumer = new DealConsumer(definition, gameData, {});
+                const expectedValue = {
+                    failure: true,
+                    notice: { errorCode: errorCodes.cannotGreaterThan },
+                };
+                const player = { UID: "m1", profile: { name: "m1" } };
+                const betChoice = "h";
 
-            // act
-            const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
+                // act
+                const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
 
-            // assert
-            expect(actualValue[2]).toStrictEqual(expectedValue);
+                // assert
+                expect(actualValue[2]).toStrictEqual(expectedValue);
+            });
         });
 
-        it("when hiChoice and card is not 1 should not failed hiChoice criterion", () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "4" }] } } } };
-            const consumer = new DealConsumer(definition, gameData, {});
-            const expectedValue = {
-                failure: false,
-                notice: { errorCode: errorCodes.cannotGreaterThan },
-            };
-            const player = { UID: "m1", profile: { name: "m1" } };
-            const betChoice = "h";
+        describe("when hiChoice and card is not 1", () => {
+            it("should not failed hiChoice criterion", () => {
+                // arrange
+                const definition = { choices: [] };
+                const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "4" }] } } } };
+                const consumer = new DealConsumer(definition, gameData, {});
+                const expectedValue = {
+                    failure: false,
+                    notice: { errorCode: errorCodes.cannotGreaterThan },
+                };
+                const player = { UID: "m1", profile: { name: "m1" } };
+                const betChoice = "h";
 
-            // act
-            const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
+                // act
+                const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
 
-            // assert
-            expect(actualValue[2]).toStrictEqual(expectedValue);
+                // assert
+                expect(actualValue[2]).toStrictEqual(expectedValue);
+            });
         });
 
-        it("when loChoice and card is not 1 should not failed hiChoice criterion", () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "4" }] } } } };
-            const consumer = new DealConsumer(definition, gameData, {});
-            const expectedValue = {
-                failure: false,
-                notice: { errorCode: errorCodes.cannotGreaterThan },
-            };
-            const player = { UID: "m1", profile: { name: "m1" } };
-            const betChoice = "l";
+        describe("when loChoice and card is not 1", () => {
+            it("should not failed hiChoice criterion", () => {
+                // arrange
+                const definition = { choices: [] };
+                const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "4" }] } } } };
+                const consumer = new DealConsumer(definition, gameData, {});
+                const expectedValue = {
+                    failure: false,
+                    notice: { errorCode: errorCodes.cannotGreaterThan },
+                };
+                const player = { UID: "m1", profile: { name: "m1" } };
+                const betChoice = "l";
 
-            // act
-            const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
+                // act
+                const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
 
-            // assert
-            expect(actualValue[2]).toStrictEqual(expectedValue);
+                // assert
+                expect(actualValue[2]).toStrictEqual(expectedValue);
+            });
         });
 
-        it("when loChoice and card is 2 should not failed hiChoice criterion", () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "A" }] } } } };
-            const consumer = new DealConsumer(definition, gameData, {});
-            const expectedValue = {
-                failure: false,
-                notice: { errorCode: errorCodes.cannotGreaterThan },
-            };
-            const player = { UID: "m1", profile: { name: "m1" } };
-            const betChoice = "l";
+        describe("when loChoice and card is 2", () => {
+            it("should not failed hiChoice criterion", () => {
+                // arrange
+                const definition = { choices: [] };
+                const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "A" }] } } } };
+                const consumer = new DealConsumer(definition, gameData, {});
+                const expectedValue = {
+                    failure: false,
+                    notice: { errorCode: errorCodes.cannotGreaterThan },
+                };
+                const player = { UID: "m1", profile: { name: "m1" } };
+                const betChoice = "l";
 
-            // act
-            const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
+                // act
+                const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
 
-            // assert
-            expect(actualValue[2]).toStrictEqual(expectedValue);
+                // assert
+                expect(actualValue[2]).toStrictEqual(expectedValue);
+            });
         });
     });
 
     describe("validateBetRequest", () => {
-        it("when have failedCriterion should return failed", async () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "A" }] } } } };
-            const publisher = { publishToUser: jest.fn() };
-            const consumer = new DealConsumer(definition, gameData, publisher);
-            const player = { UID: "m1" };
-            const amount = 10;
-            const betChoice = "hi";
-            spyOn(consumer, "composeValidationCriteria").and.returnValue([{ failure: true }]);
+        describe("when have failedCriterion", () => {
+            it("should return failed", async () => {
+                // arrange
+                const definition = { choices: [] };
+                const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "A" }] } } } };
+                const publisher = { publishToUser: jest.fn() };
+                const consumer = new DealConsumer(definition, gameData, publisher);
+                const player = { UID: "m1" };
+                const amount = 10;
+                const betChoice = "hi";
+                spyOn(consumer, "composeValidationCriteria").and.returnValue([{ failure: true }]);
 
-            // act
-            const actualValue = await consumer.validateBetRequest(player, betChoice, amount);
+                // act
+                const actualValue = await consumer.validateBetRequest(player, betChoice, amount);
 
-            // assert
-            expect(actualValue).toBeFalse();
+                // assert
+                expect(actualValue).toBeFalse();
+            });
         });
 
-        it("when not have failedCriterion should return true", async () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "A" }] } } } };
-            const publisher = { publishToUser: jest.fn() };
-            const consumer = new DealConsumer(definition, gameData, publisher);
-            const player = { UID: "m1" };
-            const amount = 10;
-            const betChoice = "hi";
-            spyOn(consumer, "composeValidationCriteria").and.returnValue([]);
+        describe("when not have failedCriterion", () => {
+            it("should return true", async () => {
+                // arrange
+                const definition = { choices: [] };
+                const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "A" }] } } } };
+                const publisher = { publishToUser: jest.fn() };
+                const consumer = new DealConsumer(definition, gameData, publisher);
+                const player = { UID: "m1" };
+                const amount = 10;
+                const betChoice = "hi";
+                spyOn(consumer, "composeValidationCriteria").and.returnValue([]);
 
-            // act
-            const actualValue = await consumer.validateBetRequest(player, betChoice, amount);
+                // act
+                const actualValue = await consumer.validateBetRequest(player, betChoice, amount);
 
-            // assert
-            expect(actualValue).toBeTruthy();
+                // assert
+                expect(actualValue).toBeTruthy();
+            });
         });
     });
 
     describe("consume", () => {
-        it("when not have ingame data should not call settleGameRoundConsumer.settleTurn", () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { ingame: { m2: { betTracks: { result: [{ rank: "2" }, { rank: "A" }] } }, m1: {} } };
-            const publisher = { publishToUser: jest.fn() };
-            const settleGameRoundConsumer = { settleTurn: jest.fn() };
-            const consumer = new DealConsumer(definition, gameData, publisher, null, settleGameRoundConsumer);
-            const player = { UID: "m1", profile: { name: "m1" } };
-            spyOn(consumer, "validateBetRequest").and.returnValue(false);
-            const payload = {};
+        describe("when not have ingame data", () => {
+            it("should not call settleGameRoundConsumer.settleTurn", () => {
+                // arrange
+                const definition = { choices: [] };
+                const gameData = { ingame: { m2: { betTracks: { result: [{ rank: "2" }, { rank: "A" }] } }, m1: {} } };
+                const publisher = { publishToUser: jest.fn() };
+                const settleGameRoundConsumer = { settleTurn: jest.fn() };
+                const consumer = new DealConsumer(definition, gameData, publisher, null, settleGameRoundConsumer);
+                const player = { UID: "m1", profile: { name: "m1" } };
+                spyOn(consumer, "validateBetRequest").and.returnValue(false);
+                const payload = {};
 
-            // act
-            consumer.consume(player, payload);
+                // act
+                consumer.consume(player, payload);
 
-            // assert
-            expect(settleGameRoundConsumer.settleTurn).not.toBeCalled();
+                // assert
+                expect(settleGameRoundConsumer.settleTurn).not.toBeCalled();
+            });
         });
 
-        it("when not have bet tracks data should not call settleGameRoundConsumer.settleTurn", () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { ingame: { m1: { betTracks: null }, m1: {} } };
-            const publisher = { publishToUser: jest.fn() };
-            const settleGameRoundConsumer = { settleTurn: jest.fn() };
-            const consumer = new DealConsumer(definition, gameData, publisher, null, settleGameRoundConsumer);
-            const player = { UID: "m1", profile: { name: "m1" } };
-            spyOn(consumer, "validateBetRequest").and.returnValue(false);
-            const payload = {};
+        describe("when not have bet tracks data", () => {
+            it("should not call settleGameRoundConsumer.settleTurn", () => {
+                // arrange
+                const definition = { choices: [] };
+                const gameData = { ingame: { m1: { betTracks: null }, m1: {} } };
+                const publisher = { publishToUser: jest.fn() };
+                const settleGameRoundConsumer = { settleTurn: jest.fn() };
+                const consumer = new DealConsumer(definition, gameData, publisher, null, settleGameRoundConsumer);
+                const player = { UID: "m1", profile: { name: "m1" } };
+                spyOn(consumer, "validateBetRequest").and.returnValue(false);
+                const payload = {};
 
-            // act
-            consumer.consume(player, payload);
+                // act
+                consumer.consume(player, payload);
 
-            // assert
-            expect(settleGameRoundConsumer.settleTurn).not.toBeCalled();
+                // assert
+                expect(settleGameRoundConsumer.settleTurn).not.toBeCalled();
+            });
         });
 
-        it("when validateBetRequest failed should not call settleGameRoundConsumer.settleTurn", async () => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "A" }] } } } };
-            const publisher = { publishToUser: jest.fn() };
-            const settleGameRoundConsumer = { settleTurn: jest.fn() };
-            const consumer = new DealConsumer(definition, gameData, publisher, null, settleGameRoundConsumer);
-            const player = { UID: "m1", profile: { name: "m1" } };
-            spyOn(consumer, "validateBetRequest").and.returnValue(false);
-            const payload = {};
+        describe("when validateBetRequest failed", () => {
+            it("should not call settleGameRoundConsumer.settleTurn", async () => {
+                // arrange
+                const definition = { choices: [] };
+                const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "A" }] } } } };
+                const publisher = { publishToUser: jest.fn() };
+                const settleGameRoundConsumer = { settleTurn: jest.fn() };
+                const consumer = new DealConsumer(definition, gameData, publisher, null, settleGameRoundConsumer);
+                const player = { UID: "m1", profile: { name: "m1" } };
+                spyOn(consumer, "validateBetRequest").and.returnValue(false);
+                const payload = {};
 
-            // act
-            consumer.consume(player, payload);
+                // act
+                consumer.consume(player, payload);
 
-            // assert
-            expect(settleGameRoundConsumer.settleTurn).not.toBeCalled();
+                // assert
+                expect(settleGameRoundConsumer.settleTurn).not.toBeCalled();
+            });
         });
 
-        const testCases = [{ betQueue: null }, { betQueue: [] }];
-        it.each(testCases)("when validateBetRequest passed should push deal info to queue", (testCase) => {
-            // arrange
-            const definition = { choices: [] };
-            const gameData = {
-                ingame: { m1: { betQueue: testCase.betQueue, betTracks: { result: [{ rank: "2" }, { rank: "A" }] } } },
-            };
-            const publisher = { publishToUser: jest.fn() };
-            const settleGameRoundConsumer = { settleTurn: jest.fn() };
-            const consumer = new DealConsumer(definition, gameData, publisher, null, settleGameRoundConsumer);
+        describe("when validateBetRequest passed", () => {
+            const testCases = [{ betQueue: null }, { betQueue: [] }];
+            it.each(testCases)("should push deal info to queue", (testCase) => {
+                // arrange
+                const definition = { choices: [] };
+                const gameData = {
+                    ingame: { m1: { betQueue: testCase.betQueue, betTracks: { result: [{ rank: "2" }, { rank: "A" }] } } },
+                };
+                const publisher = { publishToUser: jest.fn() };
+                const settleGameRoundConsumer = { settleTurn: jest.fn() };
+                const consumer = new DealConsumer(definition, gameData, publisher, null, settleGameRoundConsumer);
 
-            const player = { UID: "m1", profile: { name: "m1" } };
-            spyOn(consumer, "validateBetRequest").and.returnValue(true);
-            const payload = {};
+                const player = { UID: "m1", profile: { name: "m1" } };
+                spyOn(consumer, "validateBetRequest").and.returnValue(true);
+                const payload = {};
 
-            // act
-            consumer.consume(player, payload);
+                // act
+                consumer.consume(player, payload);
 
-            // assert
-            expect(gameData.ingame.m1.betQueue.length > 0).toBeTruthy();
+                // assert
+                expect(gameData.ingame.m1.betQueue.length > 0).toBeTruthy();
+            });
         });
     });
 });

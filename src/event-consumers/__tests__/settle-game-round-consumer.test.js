@@ -16,79 +16,87 @@ describe("settle-game-round-consumer", () => {
     });
 
     describe("generateResult", () => {
-        it("when resultFromAdmin is set for user should return resultFromAdmin", () => {
-            // arrange
-            const gameData = { settlementResultFromAdmin: { player: [{ rank: "3" }] } };
-            const consumer = new SettleGameRoundConsumer({ gameData });
-            const expectedValue = { rank: "3" };
-            const runningRound = { name: "player", id: 10, result: [], totalTurns: 0 };
+        describe("when resultFromAdmin is set for user", () => {
+            it("should return resultFromAdmin", () => {
+                // arrange
+                const gameData = { settlementResultFromAdmin: { player: [{ rank: "3" }] } };
+                const consumer = new SettleGameRoundConsumer({ gameData });
+                const expectedValue = { rank: "3" };
+                const runningRound = { name: "player", id: 10, result: [], totalTurns: 0 };
 
-            // act
-            const actualValue = consumer.generateResult(runningRound);
+                // act
+                const actualValue = consumer.generateResult(runningRound);
 
-            // assert
-            expect(actualValue.rank).toStrictEqual(expectedValue.rank);
+                // assert
+                expect(actualValue.rank).toStrictEqual(expectedValue.rank);
+            });
         });
 
-        const testCases = [{ settlementResultFromAdmin: null }, { settlementResultFromAdmin: { player: [{ rank: "2" }] } }];
-        it.each(testCases)("when resultFromAdmin is not set for user should generate new result", (testCase) => {
-            // arrange
-            const gameData = { settlementResultFromAdmin: testCase.settlementResultFromAdmin };
-            const consumer = new SettleGameRoundConsumer({ gameData });
-            const expectedValue = null;
-            const runningRound = { name: "player01", id: 11, result: [...baseCards], totalTurns: 3 };
+        describe("when resultFromAdmin is not set for user", () => {
+            const testCases = [{ settlementResultFromAdmin: null }, { settlementResultFromAdmin: { player: [{ rank: "2" }] } }];
+            it.each(testCases)("should generate new result", (testCase) => {
+                // arrange
+                const gameData = { settlementResultFromAdmin: testCase.settlementResultFromAdmin };
+                const consumer = new SettleGameRoundConsumer({ gameData });
+                const expectedValue = null;
+                const runningRound = { name: "player01", id: 11, result: [...baseCards], totalTurns: 3 };
 
-            // act
-            const actualValue = consumer.generateResult(runningRound);
+                // act
+                const actualValue = consumer.generateResult(runningRound);
 
-            // assert
-            expect(actualValue).not.toBe(expectedValue);
+                // assert
+                expect(actualValue).not.toBe(expectedValue);
+            });
         });
     });
 
     describe("calculateBetResult", () => {
-        it("when not win should return correct value", () => {
-            // arrange
-            const gameData = {};
-            const consumer = new SettleGameRoundConsumer({ gameData });
-            const settlementResult = { isWin: false, betwin: 0 };
-            const bet = { amount: 10 };
-            const expectedValue = {
-                isWin: false,
-                betwin: 0,
-                totalBetAmount: 10,
-                netWin: 0,
-                totalWin: 0,
-                totalLost: 10,
-            };
+        describe("when not win should", () => {
+            it("should return correct value", () => {
+                // arrange
+                const gameData = {};
+                const consumer = new SettleGameRoundConsumer({ gameData });
+                const settlementResult = { isWin: false, betwin: 0 };
+                const bet = { amount: 10 };
+                const expectedValue = {
+                    isWin: false,
+                    betwin: 0,
+                    totalBetAmount: 10,
+                    netWin: 0,
+                    totalWin: 0,
+                    totalLost: 10,
+                };
 
-            // act
-            const actualValue = consumer.calculateBetResult(settlementResult, bet);
+                // act
+                const actualValue = consumer.calculateBetResult(settlementResult, bet);
 
-            // assert
-            expect(actualValue).toStrictEqual(expectedValue);
+                // assert
+                expect(actualValue).toStrictEqual(expectedValue);
+            });
         });
 
-        it("when win should return correct value", () => {
-            // arrange
-            const gameData = {};
-            const consumer = new SettleGameRoundConsumer({ gameData });
-            const settlementResult = { isWin: true, betwin: 20 };
-            const bet = { amount: 10 };
-            const expectedValue = {
-                isWin: true,
-                totalBetAmount: 10,
-                netWin: 10,
-                totalWin: 20,
-                totalLost: 0,
-                betwin: 20,
-            };
+        describe("when win", () => {
+            it("should return correct value", () => {
+                // arrange
+                const gameData = {};
+                const consumer = new SettleGameRoundConsumer({ gameData });
+                const settlementResult = { isWin: true, betwin: 20 };
+                const bet = { amount: 10 };
+                const expectedValue = {
+                    isWin: true,
+                    totalBetAmount: 10,
+                    netWin: 10,
+                    totalWin: 20,
+                    totalLost: 0,
+                    betwin: 20,
+                };
 
-            // act
-            const actualValue = consumer.calculateBetResult(settlementResult, bet);
+                // act
+                const actualValue = consumer.calculateBetResult(settlementResult, bet);
 
-            // assert
-            expect(actualValue).toStrictEqual(expectedValue);
+                // assert
+                expect(actualValue).toStrictEqual(expectedValue);
+            });
         });
     });
 
@@ -178,29 +186,31 @@ describe("settle-game-round-consumer", () => {
     });
 
     describe("settleBets", () => {
-        it("when not have bet should not call bet with end time", async () => {
-            // arrange
-            const gameData = {
-                gameConfigs: {},
-                ingame: { m1: { betTracks: { result: {}, settlementBetResult: { betwin: 10 }, id: 1, endTime: new Date() } } },
-            };
-            const definition = {};
-            const userBetResultPublisher = { publish: jest.fn() };
-            const roundResultPublisher = { publishRoundResult: jest.fn() };
-            const consumer = new SettleGameRoundConsumer({ gameData, definition, userBetResultPublisher, roundResultPublisher });
-            const bet = { save: jest.fn() };
-            spyOn(consumer, "queryBets").and.returnValue([]);
-            consumer.endGame = async () => {
-                return {
-                    isOk: true,
+        describe("when not have bet", () => {
+            it("should not call bet with end time", async () => {
+                // arrange
+                const gameData = {
+                    gameConfigs: {},
+                    ingame: { m1: { betTracks: { result: {}, settlementBetResult: { betwin: 10 }, id: 1, endTime: new Date() } } },
                 };
-            };
+                const definition = {};
+                const userBetResultPublisher = { publish: jest.fn() };
+                const roundResultPublisher = { publishRoundResult: jest.fn() };
+                const consumer = new SettleGameRoundConsumer({ gameData, definition, userBetResultPublisher, roundResultPublisher });
+                const bet = { save: jest.fn() };
+                spyOn(consumer, "queryBets").and.returnValue([]);
+                consumer.endGame = async () => {
+                    return {
+                        isOk: true,
+                    };
+                };
 
-            // act
-            await consumer.settleBets("m1");
+                // act
+                await consumer.settleBets("m1");
 
-            // assert
-            expect(bet.save).not.toHaveBeenCalled();
+                // assert
+                expect(bet.save).not.toHaveBeenCalled();
+            });
         });
 
         it("should save bet with end time", async () => {
