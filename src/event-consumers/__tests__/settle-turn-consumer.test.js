@@ -88,7 +88,7 @@ describe("settle-turn-consumer", () => {
         });
     });
 
-    describe("canPlayNextTurn", () => {
+    describe("isWinOrTie", () => {
         // arrange
         const testCases = [
             { nextCard: { rank: "3" }, previousCard: { rank: "A" }, expectedValue: true },
@@ -108,7 +108,7 @@ describe("settle-turn-consumer", () => {
             const consumer = new SettleTurnConsumer({});
 
             // act
-            const actualValue = consumer.canPlayNextTurn(testCase.choice, testCase.previousCard, testCase.nextCard);
+            const actualValue = consumer.isWinOrTie(testCase.choice, testCase.previousCard, testCase.nextCard);
 
             // assert
             expect(actualValue).toStrictEqual(testCase.expectedValue);

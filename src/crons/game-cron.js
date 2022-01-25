@@ -62,7 +62,7 @@ export default class GameCron extends Core.Crons.BaseGameCron {
                 betTracks: {
                     ...bet,
                     turnResult: {
-                        canPlayNextTurn: true,
+                        isWinOrTie: true,
                         betwin: bet.betwin,
                     },
                 },

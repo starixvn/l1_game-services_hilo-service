@@ -18,10 +18,10 @@ describe("settle-game-round-consumer", () => {
                 // arrange
                 const gameData = {};
                 const consumer = new SettleGameRoundConsumer({ gameData });
-                const settlementResult = { canPlayNextTurn: false, betwin: 0 };
+                const settlementResult = { isWinOrTie: false, betwin: 0 };
                 const bet = { amount: 10 };
                 const expectedValue = {
-                    canPlayNextTurn: false,
+                    isWinOrTie: false,
                     betwin: 0,
                     totalBetAmount: 10,
                     netWin: 0,
@@ -42,10 +42,10 @@ describe("settle-game-round-consumer", () => {
                 // arrange
                 const gameData = {};
                 const consumer = new SettleGameRoundConsumer({ gameData });
-                const settlementResult = { canPlayNextTurn: true, betwin: 20 };
+                const settlementResult = { isWinOrTie: true, betwin: 20 };
                 const bet = { amount: 10 };
                 const expectedValue = {
-                    canPlayNextTurn: true,
+                    isWinOrTie: true,
                     totalBetAmount: 10,
                     netWin: 10,
                     totalWin: 20,

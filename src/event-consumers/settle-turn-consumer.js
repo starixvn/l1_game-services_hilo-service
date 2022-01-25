@@ -27,20 +27,20 @@ export default class SettleTurnConsumer {
 
         const currentCard = runningRound.result[runningRound.result.length - 1];
         const resultCard = this.generateResult(runningRound);
-        const canPlayNextTurn = this.canPlayNextTurn(payload.betChoice, currentCard, resultCard);
+        const isWinOrTie = this.isWinOrTie(payload.betChoice, currentCard, resultCard);
         const odds = oddsGenerator.generate(this.gameData.gameConfigs.odds, currentCard.rank, runningRound.totalTurns + 1);
-        const betWin = canPlayNextTurn ? runningRound.betwin * (1 + odds[payload.betChoice]) : 0;
+        const betWin = isWinOrTie ? runningRound.betwin * (1 + odds[payload.betChoice]) : 0;
 
         await this.addBetLog(runningRound, currentCard, resultCard, payload.betChoice, betWin);
 
-        const turnResult = this.calculateTurnResult(canPlayNextTurn, betWin, runningRound, currentCard, resultCard);
+        const turnResult = this.calculateTurnResult(isWinOrTie, betWin, runningRound, currentCard, resultCard);
         await this.roundsRepository.updateOne({ id: runningRound.id }, { $set: turnResult }).exec();
 
         const settleResult = { ...runningRound, ...turnResult };
         await this.userBetResultPublisher.publish(uid, settleResult);
         runningRound.turnResult = turnResult;
 
-        if (canPlayNextTurn) {
+        if (isWinOrTie) {
             Object.assign(runningRound, turnResult);
         } else {
             await this.settleGameRoundConsumer.settleBets(name);
@@ -51,11 +51,11 @@ export default class SettleTurnConsumer {
         return settleResult;
     }
 
-    calculateTurnResult(canPlayNextTurn, betwin, runningRound, currentCard, resultCard) {
+    calculateTurnResult(isWinOrTie, betwin, runningRound, currentCard, resultCard) {
         const newOdds = oddsGenerator.generate(this.gameData.gameConfigs.odds, resultCard.rank, runningRound.totalTurns + 2);
 
         const turnResult = {
-            canPlayNextTurn,
+            isWinOrTie,
             betwin,
             totalTurns: runningRound.totalTurns + 1,
             result: runningRound.result,
@@ -89,7 +89,7 @@ export default class SettleTurnConsumer {
         await this.betLogsRepository.create(log);
     }
 
-    canPlayNextTurn(choice, currentCard, resultCard) {
+    isWinOrTie(choice, currentCard, resultCard) {
         if (currentCard.rank === cardRanks.ace || currentCard.rank === cardRanks.two) {
             return true;
         }

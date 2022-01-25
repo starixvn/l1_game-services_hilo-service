@@ -3,14 +3,14 @@ import { Core } from "sc-game-base";
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
     calculateBetResult(settlementResult, bet) {
         const amount = bet.amount;
-        const betWin = settlementResult.canPlayNextTurn ? settlementResult.betwin - bet.amount : 0;
+        const netWin = settlementResult.isWinOrTie ? settlementResult.betwin - bet.amount : 0;
 
         return {
             ...settlementResult,
             totalBetAmount: amount,
-            netWin: settlementResult.canPlayNextTurn ? betWin : 0,
+            netWin,
             totalWin: settlementResult.betwin,
-            totalLost: settlementResult.canPlayNextTurn ? 0 : amount,
+            totalLost: settlementResult.isWinOrTie ? 0 : amount,
         };
     }
 
