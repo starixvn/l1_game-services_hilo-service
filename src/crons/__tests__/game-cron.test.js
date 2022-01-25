@@ -114,7 +114,7 @@ describe("game-cron", () => {
     });
 
     describe("autoChooseChoice", () => {
-        it("difference of frequency of choice not too high", () => {
+        it("difference of choice frequency not too high", () => {
             // arrange
             const cron = new GameCron({ definition });
             const choiceCounts = { hi: 0, lo: 0 };

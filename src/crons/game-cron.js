@@ -44,7 +44,7 @@ export default class GameCron extends Core.Crons.BaseGameCron {
                 }
 
                 if (round.turnEndTime <= currentTime && round.totalTurns > 0) {
-                    await this.collectConsumer.consume({ UID: round.uid });
+                    await this.collectConsumer.consume({ UID: round.uid, profile: { name: round.name } });
                 }
             })
         );

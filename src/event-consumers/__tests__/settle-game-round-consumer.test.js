@@ -13,8 +13,8 @@ describe("settle-game-round-consumer", () => {
     });
 
     describe("calculateBetResult", () => {
-        describe("when not win should", () => {
-            it("should return correct value", () => {
+        describe("when not win", () => {
+            it("should return isWinOrTie false", () => {
                 // arrange
                 const gameData = {};
                 const consumer = new SettleGameRoundConsumer({ gameData });
@@ -38,7 +38,7 @@ describe("settle-game-round-consumer", () => {
         });
 
         describe("when win", () => {
-            it("should return correct value", () => {
+            it("should return isWinOrTie true", () => {
                 // arrange
                 const gameData = {};
                 const consumer = new SettleGameRoundConsumer({ gameData });

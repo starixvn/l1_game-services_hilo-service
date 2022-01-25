@@ -18,7 +18,7 @@ describe("deal-consumer", () => {
 
     describe("composeValidationCriteria", () => {
         const testCases = [{ criterion: [] }, { criterion: null }];
-        it.each(testCases)("should return correct value", (testCase) => {
+        it.each(testCases)("should return concat of time/amount/choice validation", (testCase) => {
             // arrange
             const consumer = new DealConsumer();
             spyOn(consumer, "composeBettingTimeValidationCriteria").and.returnValue(testCase.criterion);

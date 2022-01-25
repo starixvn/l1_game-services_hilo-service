@@ -64,47 +64,53 @@ describe("http-router", () => {
             jest.clearAllMocks();
         });
 
-        const testCases = [{ param: null }, { param: {} }, { param: { roundId: 1 } }];
-        it.each(testCases)("when params are invalid should logError ", async (testCase) => {
-            // arrange
-            const router = new HttpRouter(appConfigs, null, null, null, null, logService);
-            const res = { send: jest.fn() };
+        describe("when params are invalid", () => {
+            const testCases = [{ param: null }, { param: {} }, { param: { roundId: 1 } }];
+            it.each(testCases)("should logError ", async (testCase) => {
+                // arrange
+                const router = new HttpRouter(appConfigs, null, null, null, null, logService);
+                const res = { send: jest.fn() };
 
-            // act
-            await router.handleSetResult(testCase.param, res);
+                // act
+                await router.handleSetResult(testCase.param, res);
 
-            // assert
-            expect(logService.logError).toHaveBeenCalled();
-            expect(res.send).toHaveBeenCalledWith([]);
+                // assert
+                expect(logService.logError).toHaveBeenCalled();
+                expect(res.send).toHaveBeenCalledWith([]);
+            });
         });
 
-        it("when params are valid should logWarning", async () => {
-            // arrange
-            const gameData = { settlementResultFromAdmin: {} };
-            const router = new HttpRouter(appConfigs, gameData, null, null, null, logService);
-            const res = { send: jest.fn() };
-            const param = { name: "player", result: ["A", "2", "3"] };
+        describe("when params are valid", () => {
+            it("should logWarning", async () => {
+                // arrange
+                const gameData = { settlementResultFromAdmin: {} };
+                const router = new HttpRouter(appConfigs, gameData, null, null, null, logService);
+                const res = { send: jest.fn() };
+                const param = { name: "player", result: ["A", "2", "3"] };
 
-            // act
-            await router.handleSetResult(param, res);
+                // act
+                await router.handleSetResult(param, res);
 
-            // assert
-            expect(logService.logWarning).toHaveBeenCalled();
+                // assert
+                expect(logService.logWarning).toHaveBeenCalled();
+            });
         });
 
-        it("when have error should logError", async () => {
-            // arrange
-            const gameData = { settlementResultFromAdmin: null };
-            const router = new HttpRouter(appConfigs, gameData, null, null, null, logService);
-            const res = { send: jest.fn() };
-            const param = { name: "player", result: [] };
+        describe("when have error", () => {
+            it("should logError", async () => {
+                // arrange
+                const gameData = { settlementResultFromAdmin: null };
+                const router = new HttpRouter(appConfigs, gameData, null, null, null, logService);
+                const res = { send: jest.fn() };
+                const param = { name: "player", result: [] };
 
-            // act
-            await router.handleSetResult(param, res);
+                // act
+                await router.handleSetResult(param, res);
 
-            // assert
-            expect(logService.logWarning).toHaveBeenCalled();
-            expect(logService.logError).toHaveBeenCalled();
+                // assert
+                expect(logService.logWarning).toHaveBeenCalled();
+                expect(logService.logError).toHaveBeenCalled();
+            });
         });
     });
 });

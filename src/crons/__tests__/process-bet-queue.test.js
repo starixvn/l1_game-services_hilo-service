@@ -301,41 +301,45 @@ describe("process-bet-queue", () => {
     });
 
     describe("generateFirstCard", () => {
-        const testCases = [
-            { settlementResultFromAdmin: null },
-            { settlementResultFromAdmin: {} },
-            { settlementResultFromAdmin: { player: [] } },
-        ];
-        it.each(testCases)("not have result from admin should return random", (testCase) => {
-            // arrange
-            const gameData = { settlementResultFromAdmin: testCase.settlementResultFromAdmin };
-            const cron = new ProcessBetQueue({ gameData });
-            const name = "player";
+        describe("when not have result from admin", () => {
+            const testCases = [
+                { settlementResultFromAdmin: null },
+                { settlementResultFromAdmin: {} },
+                { settlementResultFromAdmin: { player: [] } },
+            ];
+            it.each(testCases)("should return random", (testCase) => {
+                // arrange
+                const gameData = { settlementResultFromAdmin: testCase.settlementResultFromAdmin };
+                const cron = new ProcessBetQueue({ gameData });
+                const name = "player";
 
-            // act
-            const actualValue = cron.generateFirstCard(name);
+                // act
+                const actualValue = cron.generateFirstCard(name);
 
-            // assert
-            expect(actualValue).not.toBeNull();
+                // assert
+                expect(actualValue).not.toBeNull();
+            });
         });
 
-        it("have result from admin should return from that", () => {
-            // arrange
-            const gameData = { settlementResultFromAdmin: { player: [{ rank: "3" }] } };
-            const cron = new ProcessBetQueue({ gameData });
-            const name = "player";
+        describe("when have result from admin", () => {
+            it("should return from that", () => {
+                // arrange
+                const gameData = { settlementResultFromAdmin: { player: [{ rank: "3" }] } };
+                const cron = new ProcessBetQueue({ gameData });
+                const name = "player";
 
-            // act
-            const actualValue = cron.generateFirstCard(name);
+                // act
+                const actualValue = cron.generateFirstCard(name);
 
-            // assert
-            expect(actualValue.rank).toBe("3");
+                // assert
+                expect(actualValue.rank).toBe("3");
+            });
         });
     });
 
     describe("generatePlacingBetResult", () => {
         describe("when not have betTracks", () => {
-            it("should return correct value", () => {
+            it("should return end bet wih own bets info has undefined values", () => {
                 // arrange
                 const gameData = { ingame: {} };
                 const cron = new ProcessBetQueue({ gameData });
@@ -362,7 +366,7 @@ describe("process-bet-queue", () => {
         });
 
         describe("when have betTracks", () => {
-            it("should return correct value", () => {
+            it("should return end bet wih own bets info has values", () => {
                 // arrange
                 const gameData = { ingame: { m1: { betTracks: { id: 3, result: [], nextAmounts: { h: 100, l: 150 } } } } };
                 const cron = new ProcessBetQueue({ gameData });

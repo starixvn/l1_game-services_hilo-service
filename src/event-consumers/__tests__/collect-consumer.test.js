@@ -26,7 +26,7 @@ describe("collect-consumer", () => {
                 { runningRound: { totalTurns: 10 }, expectedValue: null },
             ];
 
-            it.each(testCases)("should return correct value", (testCase) => {
+            it.each(testCases)("should return validation result of runningRound", (testCase) => {
                 // arrange
                 const gameData = { gameConfigs: { enabled: true } };
                 const consumer = new CollectConsumer(null, gameData);
