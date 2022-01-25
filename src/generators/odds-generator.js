@@ -8,8 +8,8 @@ export default {
         }
 
         const stepOdds = 6 / (5 + totalTurns);
-        const hiOdds = odds[`h_${rankValueMapper[rank]}`] * stepOdds;
-        const loOdds = odds[`l_${rankValueMapper[rank]}`] * stepOdds;
+        const hiOdds = odds[`high${rankValueMapper[rank]}`] * stepOdds;
+        const loOdds = odds[`low${rankValueMapper[rank]}`] * stepOdds;
 
         return { [choiceNames.h]: hiOdds, [choiceNames.l]: loOdds };
     },
