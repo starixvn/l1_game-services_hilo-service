@@ -57,5 +57,5 @@ export default {
         "http://games.lumigame.com",
         "http://admin.lumigame.com",
     ],
-    useMsgpackParser: false,
+    enableMsgpackParser: false,
 };
