@@ -8,7 +8,7 @@ export const createBetLog = (gameData, runningRound, currentCard, resultCard, ch
         roundId: runningRound.id,
 
         time: new Date(),
-        amount: runningRound.betWin,
+        amount: runningRound.betwin,
         betwin: betWin,
         choice,
 

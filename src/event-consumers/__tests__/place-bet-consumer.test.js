@@ -1,7 +1,6 @@
 import { Core } from "sc-game-base";
 import { helpers } from "sc-common";
 import { PlaceBetConsumer } from "../index";
-import { choiceNames } from "../../game-settings";
 
 describe("place-bet-consumer", () => {
     describe("extends", () => {
