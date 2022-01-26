@@ -33,7 +33,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
                 notice: this.getNoticeObj(helpers.noticeHelper.minBet, { minBet }),
             },
             {
-                failure: maxBet < amount,
+                failure: amount > maxBet,
                 notice: this.getNoticeObj(helpers.noticeHelper.maxBet, { maxBet }),
             },
         ];
@@ -66,15 +66,19 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
 
         this.gameData.roundId++;
         const name = player.profile.name;
-        const inGameInfo = this.gameData.ingame[name] ?? {
-            name: player.profile.name,
-            currency: player.session.currencyName,
-            system: player.session.system,
-            partnerId: player.session.partnerId,
-            betQueue: [],
-        };
+        if (!this.gameData.ingame[name]) {
+            const newPlayer = {
+                name: player.profile.name,
+                currency: player.session.currencyName,
+                system: player.session.system,
+                partnerId: player.session.partnerId,
+                betTracks: {},
+                betQueue: [],
+            };
 
-        inGameInfo.betQueue.push({ player, payload: { action: gameSettings.actions.bet, bet: payload } });
-        this.gameData.ingame[name] = inGameInfo;
+            this.gameData.ingame[name] = newPlayer;
+        }
+
+        this.gameData.ingame[name].betQueue.push({ player, payload: { action: gameSettings.actions.bet, bet: payload } });
     }
 }

@@ -150,7 +150,7 @@ describe("settle-turn-consumer", () => {
                 },
             };
 
-            const userBetResultPublisher = { publish: jest.fn() };
+            const userBetResultPublisher = { publishToUser: jest.fn() };
             const settleGameRoundConsumer = { settleBets: jest.fn() };
             const consumer = new SettleTurnConsumer({
                 gameData,

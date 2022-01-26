@@ -3,7 +3,7 @@ import { GameCron } from "../index";
 import mongoose from "mongoose";
 import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
 
-const bot = { resetInRoomTrackings: jest.fn() };
+const bot = { resetInRoomTrackings: jest.fn(), reset: jest.fn(), run: jest.fn() };
 const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
 const archiveStatusesRepository = stubMongooseModelStupidly(mongoose.Model);
 const gameConfigsRepository = stubMongooseModelStupidly(mongoose.Model);
@@ -16,7 +16,7 @@ const currencyRepository = stubMongooseModelStupidly(mongoose.Model);
 
 describe("game-cron", () => {
     // arrange
-    const definition = { durations: { wholeRound: 120 }, choices: ["hi", "lo"] };
+    const definition = { durations: { wholeRound: 120, placingBets: 40 }, choices: ["hi", "lo"] };
 
     describe("extends", () => {
         it("inherit Core.Crons.BaseGameCron", () => {
@@ -79,6 +79,63 @@ describe("game-cron", () => {
             // assert
             expect(cron.processRunningRounds).toHaveBeenCalled();
         });
+
+        describe("when remainingTime is wholeRound", () => {
+            it("should checkGameStatus", async () => {
+                // arrange
+                const gameData = { ingame: {}, remainingTime: 120 };
+                const cron = new GameCron({ definition, gameData });
+                spyOn(cron, "checkGameStatus");
+
+                // act
+                await cron.proceed();
+
+                // assert
+                expect(cron.checkGameStatus).toHaveBeenCalled();
+            });
+        });
+
+        describe("when is Starting Time", () => {
+            it("should call bot.reset", async () => {
+                // arrange
+                const gameData = { ingame: {}, remainingTime: 40, disabled: true };
+                const cron = new GameCron({ definition, gameData, bot });
+
+                // act
+                await cron.proceed();
+
+                // assert
+                expect(bot.reset).toHaveBeenCalled();
+            });
+        });
+
+        describe("when remainingTime < 0", () => {
+            it("should reset remainingTime", async () => {
+                // arrange
+                const gameData = { ingame: {}, remainingTime: -1, disabled: false };
+                const cron = new GameCron({ definition, gameData, bot });
+
+                // act
+                await cron.proceed();
+
+                // assert
+                expect(gameData.remainingTime).toBe(definition.durations.wholeRound);
+            });
+        });
+
+        describe("when remainingTime < placingBets", () => {
+            it("should call bot.run", async () => {
+                // arrange
+                const gameData = { ingame: {}, remainingTime: 39, disabled: false };
+                const cron = new GameCron({ definition, gameData, bot });
+
+                // act
+                await cron.proceed();
+
+                // assert
+                expect(bot.run).toHaveBeenCalled();
+            });
+        });
     });
 
     describe("processRunningRounds", () => {
@@ -129,21 +186,6 @@ describe("game-cron", () => {
             // assert
             expect(Math.abs(choiceCounts.hi / testCount - 0.5) <= 0.05).toBeTruthy();
             expect(Math.abs(choiceCounts.lo / testCount - 0.5) <= 0.05).toBeTruthy();
-        });
-    });
-
-    describe("resetForNewRound", () => {
-        it("should do nothing", () => {
-            // arrange
-            const gameData = { ingame: { m1: { betTracks: { amount: 10 } } }, settlementResultFromAdmin: { 10: {} } };
-            const cron = new GameCron({ gameData });
-
-            // act
-            cron.resetForNewRound();
-
-            // assert
-            expect(gameData.ingame.m1).not.toBeNull();
-            expect(gameData.settlementResultFromAdmin["10"]).not.toBeNull();
         });
     });
 

@@ -43,7 +43,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
             return;
         }
 
-        await this.settleTurnConsumer.settleTurn({ uid: runningRound.UID, name: player.profile.name }, bet);
+        await this.settleTurnConsumer.settleTurn({ uid: runningRound.uid, name: player.profile.name }, bet);
     }
 
     async proceedBet(player, payload) {
@@ -63,9 +63,6 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     async composeValidationCriteria(player, payload) {
         return (await this.composeBalanceValidationCriteria(player, payload)) || [];
     }
-
-    decreaseBetTracks() {}
-    adjustTotalBets() {}
 
     async upsertBet(player, roundId, bet, rate) {
         const firstCard = this.generateFirstCard(player.profile.name);
@@ -110,6 +107,10 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
         this.gameData.ingame[player.profile.name].betTracks = newBet;
     }
+
+    decreaseBetTracks() {}
+
+    adjustTotalBets() {}
 
     async insertBetLog() {}
 

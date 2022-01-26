@@ -289,7 +289,7 @@ describe("process-bet-queue", () => {
                     ownBets: {
                         roundId: undefined,
                         result: undefined,
-                        remainingTime: 120,
+                        remainingTime: 122,
                         nextAmounts: undefined,
                     },
                     user: {},
@@ -316,7 +316,7 @@ describe("process-bet-queue", () => {
                     ownBets: {
                         roundId: 3,
                         result: [],
-                        remainingTime: 120,
+                        remainingTime: 122,
                         nextAmounts: { h: 100, l: 150 },
                     },
                     user: {},

@@ -15,8 +15,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         };
     }
 
-    async settleRound() {}
-
     async collect(player) {
         const runningRound = this.gameData.ingame[player.profile.name]?.betTracks;
         if (!runningRound) {

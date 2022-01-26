@@ -29,7 +29,7 @@ export default class SettleTurnConsumer {
         const resultCard = this.generateResult(runningRound);
         const isWinOrTie = this.isWinOrTie(payload.betChoice, currentCard, resultCard);
         const odds = oddsGenerator.generate(this.gameData.gameConfigs.odds, currentCard.rank, runningRound.totalTurns + 1);
-        const betWin = isWinOrTie ? runningRound.betwin * (1 + odds[payload.betChoice]) : 0;
+        const betWin = isWinOrTie ? parseFloat((runningRound.betwin * (1 + odds[payload.betChoice])).toFixed(2)) : 0;
 
         await this.addBetLog(runningRound, currentCard, resultCard, payload.betChoice, betWin);
 
@@ -37,7 +37,8 @@ export default class SettleTurnConsumer {
         await this.roundsRepository.updateOne({ id: runningRound.id }, { $set: turnResult }).exec();
 
         const settleResult = { ...runningRound, ...turnResult };
-        await this.userBetResultPublisher.publish(uid, { endBet: 1, bet: payload, result: settleResult });
+        await this.userBetResultPublisher.publishToUser(uid, { endBet: 1, bet: payload, result: settleResult });
+
         runningRound.turnResult = turnResult;
 
         if (isWinOrTie) {

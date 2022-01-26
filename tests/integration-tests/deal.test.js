@@ -38,8 +38,8 @@ describe("event deal - already have running round", () => {
             gameClientDriver.handleEndBetEvent((endBetData) => {
                 if (endBetData?.endBet) {
                     startDeal = true;
-                    gameClientDriver.emit("deal", { betChoice: "h" });
                     gameClientDriver.on(gameSettings.name, endDealFunc);
+                    gameClientDriver.emit("deal", { betChoice: "h" });
                 }
             });
         });

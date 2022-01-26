@@ -62,20 +62,6 @@ describe("settle-game-round-consumer", () => {
         });
     });
 
-    describe("settleRound", () => {
-        it("should do nothing", async () => {
-            // arrange
-            const consumer = new SettleGameRoundConsumer({});
-            spyOn(consumer, "generateResult");
-
-            // act
-            await consumer.settleRound();
-
-            // assert
-            expect(consumer.generateResult).not.toHaveBeenCalled();
-        });
-    });
-
     describe("settleBets", () => {
         describe("when not have bet", () => {
             it("should not call bet with end time", async () => {
