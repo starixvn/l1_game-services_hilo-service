@@ -56,7 +56,7 @@ export default class GameCron extends Core.Crons.BaseGameCron {
     }
 
     async proceedUnsettledBets() {
-        const unsettledBets = await this.roundsRepository.find({ endTime: null, paid: false }).lean().exec();
+        const unsettledBets = await this.roundsRepository.find({ paid: false }).lean().exec();
         unsettledBets.forEach((bet) => {
             this.gameData.ingame[bet.name] = {
                 betTracks: {
