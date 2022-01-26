@@ -149,4 +149,38 @@ describe("settle-game-round-consumer", () => {
             expect(actualValue).toStrictEqual(bets);
         });
     });
+
+    describe("collect", () => {
+        describe("when not have running round", () => {
+            it("should not call settleGameRoundConsumer.settleBets", async () => {
+                // arrange
+                const gameData = { ingame: { m1: { betTracks: null } } };
+                const consumer = new SettleGameRoundConsumer({ gameData });
+                spyOn(consumer, "settleBets");
+                const player = { session: {}, profile: { name: "m1" } };
+
+                // act
+                await consumer.collect(player);
+
+                // assert
+                expect(consumer.settleBets).not.toBeCalled();
+            });
+        });
+
+        describe("when have running round", () => {
+            it("should call settleGameRoundConsumer.settleBets", async () => {
+                // arrange
+                const gameData = { ingame: { m1: { betTracks: {} } }, settlementResultFromAdmin: {} };
+                const consumer = new SettleGameRoundConsumer({ gameData });
+                const player = { UID: "m1", session: {}, profile: { name: "m1" } };
+                spyOn(consumer, "settleBets");
+
+                // act
+                await consumer.collect(player);
+
+                // assert
+                expect(consumer.settleBets).toBeCalled();
+            });
+        });
+    });
 });

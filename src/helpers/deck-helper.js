@@ -2,12 +2,11 @@ import { baseCards } from "../cards";
 import Chance from "chance";
 import _ from "lodash";
 
-export const drawCard = (drawnCards) => {
+export const drawCard = (excludedCard = null) => {
     const rand = new Chance();
     let cards = [...baseCards];
 
-    if (drawnCards.length > 0) {
-        const excludedCard = drawnCards[drawnCards.length - 1];
+    if (!!excludedCard) {
         const index = _.findIndex(cards, excludedCard);
         cards.splice(index, 1);
     }

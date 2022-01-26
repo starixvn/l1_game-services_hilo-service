@@ -1,4 +1,5 @@
 import { Core } from "sc-game-base";
+import gameSettings from "../game-settings";
 
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
     calculateBetResult(settlementResult, bet) {
@@ -15,6 +16,29 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     async settleRound() {}
+
+    async collect(player) {
+        const runningRound = this.gameData.ingame[player.profile.name]?.betTracks;
+        if (!runningRound) {
+            return;
+        }
+
+        const turnTime = new Date();
+        runningRound.turnTime = turnTime;
+        runningRound.turnResult = {
+            isWinOrTie: true,
+            turnTime: turnTime,
+            turnEndTime: new Date(turnTime.getTime() + gameSettings.durations.turnTime * 1000),
+            betwin: runningRound.betwin,
+            totalTurns: runningRound.totalTurns,
+            result: runningRound.result,
+            settlementResult: runningRound.settlementResult,
+        };
+
+        await this.settleBets(runningRound.name);
+        delete this.gameData.settlementResultFromAdmin[runningRound.name];
+        delete this.gameData.ingame[player.profile.name].betTracks;
+    }
 
     async settleBets(name) {
         const result = this.gameData.ingame[name].betTracks;

@@ -2,73 +2,57 @@ import { Core } from "sc-game-base";
 import { drawCard } from "../helpers/deck-helper";
 import oddsGenerator from "../generators/odds-generator";
 import gameSettings, { choiceNames } from "../game-settings";
+import { helpers } from "sc-common";
 
 export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
-    constructor(params) {
-        super(params);
-
-        this.roundsRepository = params.roundsRepository;
-        this.settleGameRoundConsumer = params.settleGameRoundConsumer;
-        this.settleTurnConsumer = params.settleTurnConsumer;
-    }
-
-    async bet(player, payload) {
-        Object.assign(payload, {
-            amount: payload.amount >> 0,
-            roundId: this.gameData.roundId,
-            freeBet: payload.freeBet ?? false,
-            receivedTime: new Date(),
+    constructor({
+        definition,
+        gameData,
+        placeBetPublisher,
+        placeBet,
+        logService,
+        betsRepository,
+        betLogsRepository,
+        userInfosRepository,
+        baseMetrics,
+        roundsRepository,
+        settleGameRoundConsumer,
+        settleTurnConsumer,
+    }) {
+        super({
+            definition,
+            gameData,
+            placeBetPublisher,
+            placeBet,
+            logService,
+            betsRepository,
+            betLogsRepository,
+            userInfosRepository,
+            baseMetrics,
         });
 
-        await super.proceedBet(player, payload);
-    }
-
-    async collect(player) {
-        const runningRound = this.gameData.ingame[player.profile.name]?.betTracks;
-        if (!runningRound) {
-            return;
-        }
-
-        const turnTime = new Date();
-        runningRound.turnTime = turnTime;
-        runningRound.turnResult = {
-            isWinOrTie: true,
-            turnTime: turnTime,
-            turnEndTime: new Date(turnTime.getTime() + gameSettings.durations.turnTime * 1000),
-            betwin: runningRound.betwin,
-            totalTurns: runningRound.totalTurns,
-            result: runningRound.result,
-            settlementResult: runningRound.settlementResult,
-        };
-
-        await this.settleGameRoundConsumer.settleBets(runningRound.name);
-        delete this.gameData.settlementResultFromAdmin[runningRound.name];
-        delete this.gameData.ingame[player.profile.name].betTracks;
+        this.roundsRepository = roundsRepository;
+        this.settleGameRoundConsumer = settleGameRoundConsumer;
+        this.settleTurnConsumer = settleTurnConsumer;
     }
 
     async deal(player, bet) {
         const runningRound = this.gameData.ingame[player.profile.name]?.betTracks;
-        if (!!runningRound && runningRound.totalTurns === bet.order) {
-            const result = await this.settleTurnConsumer.settleTurn({ uid: runningRound.UID, name: player.profile.name }, bet);
-            const payload = {
-                roundId: result.id,
-                betwin: result.betwin,
-                settlementResult: result.settlementResult,
-                remainingTime: gameSettings.durations.turnTime,
-                nextAmounts: result.nextAmounts,
-            };
-
-            this.placeBetPublisher.publishToUser(player.UID, { endBet: 1, bet, payload });
+        if (!runningRound || runningRound.totalTurns !== bet.order) {
+            this.placeBetPublisher.publishToUser(player.UID, { endBet: -1, notice: { errorCode: helpers.noticeHelper.invalidBet } });
+            return;
         }
+
+        await this.settleTurnConsumer.settleTurn({ uid: runningRound.UID, name: player.profile.name }, bet);
     }
 
     async proceedBet(player, payload) {
         switch (payload.action) {
             case gameSettings.actions.bet:
-                await this.bet(player, payload.bet);
+                await super.proceedBet(player, payload.bet);
                 break;
             case gameSettings.actions.collect:
-                await this.collect(player);
+                await this.settleGameRoundConsumer.collect(player);
                 break;
             case gameSettings.actions.deal:
                 await this.deal(player, payload.bet);
@@ -125,7 +109,6 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
         };
 
         this.gameData.ingame[player.profile.name].betTracks = newBet;
-        this.gameData.roundId++;
     }
 
     async insertBetLog() {}
@@ -133,7 +116,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     generateFirstCard(name) {
         const resultFromAdmin = this.gameData.settlementResultFromAdmin ? this.gameData.settlementResultFromAdmin[name] : null;
 
-        return !!resultFromAdmin && resultFromAdmin.length > 0 ? resultFromAdmin[0] : drawCard([]);
+        return !!resultFromAdmin && resultFromAdmin.length > 0 ? resultFromAdmin[0] : drawCard();
     }
 
     generatePlacingBetResult(player, balance, bet) {

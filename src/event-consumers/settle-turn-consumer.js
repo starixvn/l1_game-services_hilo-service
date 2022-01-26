@@ -18,7 +18,7 @@ export default class SettleTurnConsumer {
 
         return !!resultFromAdmin && runningRound.totalTurns < resultFromAdmin.length
             ? resultFromAdmin[runningRound.totalTurns]
-            : drawCard(runningRound.result);
+            : drawCard(runningRound.result[runningRound.result.length - 1]);
     }
 
     async settleTurn(player, payload) {
@@ -37,7 +37,7 @@ export default class SettleTurnConsumer {
         await this.roundsRepository.updateOne({ id: runningRound.id }, { $set: turnResult }).exec();
 
         const settleResult = { ...runningRound, ...turnResult };
-        await this.userBetResultPublisher.publish(uid, settleResult);
+        await this.userBetResultPublisher.publish(uid, { endBet: 1, bet: payload, result: settleResult });
         runningRound.turnResult = turnResult;
 
         if (isWinOrTie) {
@@ -61,6 +61,7 @@ export default class SettleTurnConsumer {
             result: runningRound.result,
             settlementResult: runningRound.settlementResult,
             turnTime: new Date(),
+            remainingTime: gameSettings.durations.turnTime,
             nextAmounts: {
                 [choiceNames.h]: parseFloat(((1 + newOdds[choiceNames.h]) * runningRound.betwin).toFixed(2)),
                 [choiceNames.l]: parseFloat(((1 + newOdds[choiceNames.l]) * runningRound.betwin).toFixed(2)),
