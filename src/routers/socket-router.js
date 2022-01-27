@@ -1,10 +1,34 @@
 import { Core } from "sc-game-base";
 
 export default class SocketRouter extends Core.Routers.BaseSocketRouter {
-    constructor(params) {
-        super(params);
-        this.dealConsumer = params.dealConsumer;
-        this.collectConsumer = params.collectConsumer;
+    constructor({
+        definition,
+        gameData,
+        userSignInConsumer,
+        inGameConsumer,
+        placeBetConsumer,
+        userDisconnectConsumer,
+        userSignInPublisher,
+        historyQuery,
+        logService,
+        playGamePermissionValidator,
+        dealConsumer,
+        collectConsumer,
+    }) {
+        super({
+            definition,
+            gameData,
+            userSignInConsumer,
+            inGameConsumer,
+            placeBetConsumer,
+            userDisconnectConsumer,
+            userSignInPublisher,
+            historyQuery,
+            logService,
+            playGamePermissionValidator,
+        });
+        this.dealConsumer = dealConsumer;
+        this.collectConsumer = collectConsumer;
     }
 
     init(socketClient) {

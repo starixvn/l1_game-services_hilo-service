@@ -2,10 +2,46 @@ import Chance from "chance";
 import { Core } from "sc-game-base";
 
 export default class GameCron extends Core.Crons.BaseGameCron {
-    constructor(params) {
-        super(params);
-        this.collectConsumer = params.collectConsumer;
-        this.settleTurnConsumer = params.settleTurnConsumer;
+    constructor({
+        definition,
+        gameData,
+        bot,
+        settleGameRoundConsumer,
+        gameStatusPublisher,
+        runningRoundInfoPublisher,
+        logService,
+        gameConfigsRepository,
+        roundsRepository,
+        archiveStatusesRepository,
+        notificationRepository,
+        exchangeRatesRepository,
+        currencyGroupGamesRepository,
+        partnerConfigRepository,
+        currencyGroupRepository,
+        currencyRepository,
+        collectConsumer,
+        settleTurnConsumer,
+    }) {
+        super({
+            definition,
+            gameData,
+            bot,
+            settleGameRoundConsumer,
+            gameStatusPublisher,
+            runningRoundInfoPublisher,
+            logService,
+            gameConfigsRepository,
+            roundsRepository,
+            archiveStatusesRepository,
+            notificationRepository,
+            exchangeRatesRepository,
+            currencyGroupGamesRepository,
+            partnerConfigRepository,
+            currencyGroupRepository,
+            currencyRepository,
+        });
+        this.collectConsumer = collectConsumer;
+        this.settleTurnConsumer = settleTurnConsumer;
         this.chance = new Chance();
     }
 
@@ -81,7 +117,7 @@ export default class GameCron extends Core.Crons.BaseGameCron {
                 betTracks: {
                     ...bet,
                     turnResult: {
-                        isWinOrTie: true,
+                        isLose: false,
                         betwin: bet.totalTurns === 0 ? bet.amount : bet.betwin,
                     },
                 },

@@ -14,14 +14,14 @@ describe("settle-game-round-consumer", () => {
 
     describe("calculateBetResult", () => {
         describe("when not win", () => {
-            it("should return isWinOrTie false", () => {
+            it("should return isLose true", () => {
                 // arrange
                 const gameData = {};
                 const consumer = new SettleGameRoundConsumer({ gameData });
-                const settlementResult = { isWinOrTie: false, betwin: 0 };
+                const settlementResult = { isLose: true, betwin: 0 };
                 const bet = { amount: 10 };
                 const expectedValue = {
-                    isWinOrTie: false,
+                    isLose: true,
                     betwin: 0,
                     totalBetAmount: 10,
                     netWin: 0,
@@ -38,14 +38,14 @@ describe("settle-game-round-consumer", () => {
         });
 
         describe("when win", () => {
-            it("should return isWinOrTie true", () => {
+            it("should return isLose false", () => {
                 // arrange
                 const gameData = {};
                 const consumer = new SettleGameRoundConsumer({ gameData });
-                const settlementResult = { isWinOrTie: true, betwin: 20 };
+                const settlementResult = { isLose: false, betwin: 20 };
                 const bet = { amount: 10 };
                 const expectedValue = {
-                    isWinOrTie: true,
+                    isLose: false,
                     totalBetAmount: 10,
                     netWin: 10,
                     totalWin: 20,

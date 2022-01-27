@@ -27,13 +27,13 @@ export default class SettleTurnConsumer {
 
         const currentCard = runningRound.result[runningRound.result.length - 1];
         const resultCard = this.generateResult(runningRound);
-        const isWinOrTie = this.isWinOrTie(payload.betChoice, currentCard, resultCard);
+        const isLose = this.isLose(payload.betChoice, currentCard, resultCard);
         const odds = oddsGenerator.generate(this.gameData.gameConfigs.odds, currentCard.rank, runningRound.totalTurns + 1);
-        const betWin = isWinOrTie ? parseFloat((runningRound.betwin * (1 + odds[payload.betChoice])).toFixed(2)) : 0;
+        const betWin = isLose ? 0 : parseFloat((runningRound.betwin * (1 + odds[payload.betChoice])).toFixed(2));
 
         await this.addBetLog(runningRound, currentCard, resultCard, payload.betChoice, betWin);
 
-        const turnResult = this.calculateTurnResult(isWinOrTie, betWin, runningRound, currentCard, resultCard);
+        const turnResult = this.calculateTurnResult(isLose, betWin, runningRound, currentCard, resultCard);
         await this.roundsRepository.updateOne({ id: runningRound.id }, { $set: turnResult }).exec();
 
         const settleResult = { ...runningRound, ...turnResult };
@@ -41,22 +41,22 @@ export default class SettleTurnConsumer {
 
         runningRound.turnResult = turnResult;
 
-        if (isWinOrTie) {
-            Object.assign(runningRound, turnResult);
-        } else {
+        if (isLose) {
             await this.settleGameRoundConsumer.settleBets(name);
             delete this.gameData.ingame[name].betTracks;
             delete this.gameData.settlementResultFromAdmin[runningRound.name];
+        } else {
+            Object.assign(runningRound, turnResult);
         }
 
         return settleResult;
     }
 
-    calculateTurnResult(isWinOrTie, betwin, runningRound, currentCard, resultCard) {
+    calculateTurnResult(isLose, betwin, runningRound, currentCard, resultCard) {
         const newOdds = oddsGenerator.generate(this.gameData.gameConfigs.odds, resultCard.rank, runningRound.totalTurns + 2);
 
         const turnResult = {
-            isWinOrTie,
+            isLose,
             betwin,
             totalTurns: runningRound.totalTurns + 1,
             result: runningRound.result,
@@ -91,17 +91,10 @@ export default class SettleTurnConsumer {
         await this.betLogsRepository.create(log);
     }
 
-    isWinOrTie(choice, currentCard, resultCard) {
-        if (currentCard.rank === cardRanks.ace || currentCard.rank === cardRanks.two) {
-            return true;
-        }
-
+    isLose(choice, currentCard, resultCard) {
         const currentValue = rankValueMapper[currentCard.rank];
         const resultValue = rankValueMapper[resultCard.rank];
-        return (
-            currentValue === resultValue ||
-            (choice === choiceNames.h && currentValue < resultValue) ||
-            (choice === choiceNames.l && resultValue < currentValue)
-        );
+
+        return (choice === choiceNames.h && resultValue < currentValue) || (choice === choiceNames.l && resultValue > currentValue);
     }
 }

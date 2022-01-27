@@ -4,14 +4,14 @@ import gameSettings from "../game-settings";
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
     calculateBetResult(settlementResult, bet) {
         const amount = bet.amount;
-        const netWin = settlementResult.isWinOrTie ? settlementResult.betwin - bet.amount : 0;
+        const netWin = settlementResult.isLose ? 0 : settlementResult.betwin - bet.amount;
 
         return {
             ...settlementResult,
             totalBetAmount: amount,
             netWin,
             totalWin: settlementResult.betwin,
-            totalLost: settlementResult.isWinOrTie ? 0 : amount,
+            totalLost: settlementResult.isLose ? amount : 0,
         };
     }
 
@@ -24,7 +24,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const turnTime = new Date();
         runningRound.turnTime = turnTime;
         runningRound.turnResult = {
-            isWinOrTie: true,
+            isLose: false,
             turnTime: turnTime,
             turnEndTime: new Date(turnTime.getTime() + gameSettings.durations.turnTime * 1000),
             betwin: runningRound.betwin,

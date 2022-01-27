@@ -88,19 +88,17 @@ describe("settle-turn-consumer", () => {
         });
     });
 
-    describe("isWinOrTie", () => {
+    describe("isLose", () => {
         // arrange
         const testCases = [
-            { resultCard: { rank: "3" }, currentCard: { rank: "A" }, expectedValue: true },
-            { resultCard: { rank: "3" }, currentCard: { rank: "2" }, expectedValue: true },
-            { resultCard: { rank: "A" }, currentCard: { rank: "4" }, choice: "h", expectedValue: true },
-            { resultCard: { rank: "4" }, currentCard: { rank: "4" }, choice: "h", expectedValue: true },
-            { resultCard: { rank: "4" }, currentCard: { rank: "3" }, choice: "h", expectedValue: true },
-            { resultCard: { rank: "4" }, currentCard: { rank: "5" }, choice: "h", expectedValue: false },
-            { resultCard: { rank: "2" }, currentCard: { rank: "4" }, choice: "l", expectedValue: true },
-            { resultCard: { rank: "4" }, currentCard: { rank: "4" }, choice: "l", expectedValue: true },
-            { resultCard: { rank: "4" }, currentCard: { rank: "3" }, choice: "l", expectedValue: false },
-            { resultCard: { rank: "4" }, currentCard: { rank: "5" }, choice: "l", expectedValue: true },
+            { resultCard: { rank: "A" }, currentCard: { rank: "4" }, choice: "h", expectedValue: false },
+            { resultCard: { rank: "4" }, currentCard: { rank: "4" }, choice: "h", expectedValue: false },
+            { resultCard: { rank: "4" }, currentCard: { rank: "3" }, choice: "h", expectedValue: false },
+            { resultCard: { rank: "4" }, currentCard: { rank: "5" }, choice: "h", expectedValue: true },
+            { resultCard: { rank: "2" }, currentCard: { rank: "4" }, choice: "l", expectedValue: false },
+            { resultCard: { rank: "4" }, currentCard: { rank: "4" }, choice: "l", expectedValue: false },
+            { resultCard: { rank: "4" }, currentCard: { rank: "3" }, choice: "l", expectedValue: true },
+            { resultCard: { rank: "4" }, currentCard: { rank: "5" }, choice: "l", expectedValue: false },
         ];
 
         it.each(testCases)("should return correct result base on current card and result card", (testCase) => {
@@ -108,7 +106,7 @@ describe("settle-turn-consumer", () => {
             const consumer = new SettleTurnConsumer({});
 
             // act
-            const actualValue = consumer.isWinOrTie(testCase.choice, testCase.currentCard, testCase.resultCard);
+            const actualValue = consumer.isLose(testCase.choice, testCase.currentCard, testCase.resultCard);
 
             // assert
             expect(actualValue).toStrictEqual(testCase.expectedValue);
