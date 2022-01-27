@@ -29,12 +29,13 @@ export default class SettleTurnConsumer {
         await this.addBetLog(runningRound, payload.betChoice, turnResult);
         await this.roundsRepository.updateOne({ id: runningRound.id }, { $set: turnResult }).exec();
 
-        await this.userBetResultPublisher.publishToUser(uid, {
+        const endBetData = {
             endBet: 1,
             bet: payload,
             result: { roundId: runningRound.id, ...settleResult },
-        });
+        };
 
+        await this.userBetResultPublisher.publishToUser(uid, endBetData);
         runningRound.turnResult = turnResult;
 
         if (turnResult.isLose) {

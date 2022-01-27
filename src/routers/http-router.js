@@ -19,7 +19,7 @@ export default class HttpRouter extends Core.Routers.HttpRouter {
     async handleSetResult(params, res) {
         try {
             if (!params || !params.Name || !params.Result) {
-                this.logService.logError("receives a result cheating call with invalid params ${JSON.stringify(params)}.");
+                this.logService.logError(`receives a result cheating call with invalid params ${JSON.stringify(params)}.`);
                 res.send([]);
                 return;
             }

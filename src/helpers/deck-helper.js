@@ -21,13 +21,13 @@ export const drawCard = (excludedCard = null) => {
 
 export const getCardFromAdmin = (cardRank, drawnCards) => {
     const chance = new Chance();
-    let cards = [...baseCards];
+    const cards = [...baseCards];
 
     if (drawnCards.length > 0) {
         const excludedCard = drawnCards[drawnCards.length - 1];
         const index = cards.findIndex((x) => x.rank === excludedCard.rank && x.suit === excludedCard.suit);
         cards.splice(index, 1);
     }
-    
+
     return chance.pickone(cards.filter((x) => x.rank === cardRank));
 };
