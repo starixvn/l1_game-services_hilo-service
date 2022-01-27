@@ -27,6 +27,7 @@ export default class SocketRouter extends Core.Routers.BaseSocketRouter {
             logService,
             playGamePermissionValidator,
         });
+
         this.dealConsumer = dealConsumer;
         this.collectConsumer = collectConsumer;
     }

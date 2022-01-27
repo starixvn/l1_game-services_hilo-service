@@ -306,7 +306,8 @@ describe("process-bet-queue", () => {
             it("should upsertBet", async () => {
                 // arrange
                 const gameData = { gameConfigs: { odds: {} }, ingame: { m1: { betTracks: { result: [{ rank: 3 }] } } } };
-                const cron = new ProcessBetQueue({ gameData });
+                const settleTurnConsumer = { calculateWinAmounts: jest.fn() };
+                const cron = new ProcessBetQueue({ gameData, settleTurnConsumer });
                 spyOn(cron, "calculateCurrencyRate");
                 spyOn(cron, "upsertBet");
                 spyOn(cron, "notifyPlacingBetResult");

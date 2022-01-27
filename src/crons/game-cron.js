@@ -42,6 +42,7 @@ export default class GameCron extends Core.Crons.BaseGameCron {
             currencyGroupRepository,
             currencyRepository,
         });
+
         this.collectConsumer = collectConsumer;
         this.settleTurnConsumer = settleTurnConsumer;
         this.chance = new Chance();
@@ -127,10 +128,7 @@ export default class GameCron extends Core.Crons.BaseGameCron {
             this.gameData.ingame[bet.name] = {
                 betTracks: {
                     ...bet,
-                    turnResult: {
-                        isLose: false,
-                        betwin: bet.totalTurns === 0 ? bet.amount : bet.betwin,
-                    },
+                    turnResult: { isLose: false, betwin: bet.totalTurns === 0 ? bet.amount : bet.betwin },
                 },
             };
         });

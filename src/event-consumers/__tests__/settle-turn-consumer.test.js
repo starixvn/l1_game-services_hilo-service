@@ -76,12 +76,11 @@ describe("settle-turn-consumer", () => {
             };
             const betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
             const consumer = new SettleTurnConsumer({ gameData, betLogsRepository });
-            const runningRound = { totalTurns: 3 };
-            const card1 = { rank: "4", suit: 0 };
-            const card2 = { rank: "5", suit: 0 };
+            const runningRound = { totalTurns: 3, result: [{ rank: "4", suit: 0 }] };
+            const turnResult = { betwin: 10, result: [{ rank: "5", suit: 0 }] };
 
             // act
-            await consumer.addBetLog(runningRound, card1, card2, "h", 10);
+            await consumer.addBetLog(runningRound, "h", turnResult);
 
             // assert
             expect(betLogsRepository.create).toBeCalled();

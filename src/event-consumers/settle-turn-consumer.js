@@ -1,8 +1,7 @@
 import { drawCard } from "../helpers/deck-helper";
 import gameSettings, { choiceNames } from "../game-settings";
 import oddsGenerator from "../generators/odds-generator";
-import { rankValueMapper, cardRanks } from "../cards";
-import { createBetLog } from "../generators/bet-log-generator";
+import { rankValueMapper } from "../cards";
 
 export default class SettleTurnConsumer {
     constructor({ gameData, betLogsRepository, settleGameRoundConsumer, roundsRepository, userBetResultPublisher }) {
@@ -24,24 +23,21 @@ export default class SettleTurnConsumer {
     async settleTurn(player, payload) {
         const { uid, name } = player;
         const runningRound = this.gameData.ingame[name].betTracks;
+        const turnResult = this.calculateTurnResult(payload, runningRound);
+        const settleResult = { ...runningRound, ...turnResult };
 
-        const currentCard = runningRound.result[runningRound.result.length - 1];
-        const resultCard = this.generateResult(runningRound);
-        const isLose = this.isLose(payload.betChoice, currentCard, resultCard);
-        const odds = oddsGenerator.generate(this.gameData.gameConfigs.odds, currentCard.rank, runningRound.totalTurns + 1);
-        const betWin = isLose ? 0 : parseFloat((runningRound.betwin * (1 + odds[payload.betChoice])).toFixed(2));
-
-        await this.addBetLog(runningRound, currentCard, resultCard, payload.betChoice, betWin);
-
-        const turnResult = this.calculateTurnResult(isLose, betWin, runningRound, currentCard, resultCard);
+        await this.addBetLog(runningRound, payload.betChoice, turnResult);
         await this.roundsRepository.updateOne({ id: runningRound.id }, { $set: turnResult }).exec();
 
-        const settleResult = { ...runningRound, ...turnResult };
-        await this.userBetResultPublisher.publishToUser(uid, { endBet: 1, bet: payload, result: settleResult });
+        await this.userBetResultPublisher.publishToUser(uid, {
+            endBet: 1,
+            bet: payload,
+            result: { roundId: runningRound.id, ...settleResult },
+        });
 
         runningRound.turnResult = turnResult;
 
-        if (isLose) {
+        if (turnResult.isLose) {
             await this.settleGameRoundConsumer.settleBets(name);
             delete this.gameData.ingame[name].betTracks;
             delete this.gameData.settlementResultFromAdmin[runningRound.name];
@@ -52,27 +48,23 @@ export default class SettleTurnConsumer {
         return settleResult;
     }
 
-    calculateTurnResult(isLose, betwin, runningRound, currentCard, resultCard) {
-        const newOdds = oddsGenerator.generate(this.gameData.gameConfigs.odds, resultCard.rank, runningRound.totalTurns + 2);
+    calculateTurnResult(payload, runningRound) {
+        const currentCard = runningRound.result[runningRound.result.length - 1];
+        const resultCard = this.generateResult(runningRound);
+        const isLose = this.isLose(payload.betChoice, currentCard, resultCard);
+        const odds = oddsGenerator.generate(this.gameData.gameConfigs.odds, currentCard.rank, runningRound.totalTurns + 1);
+        const settlementResult = this.getSettlementResult(currentCard, resultCard);
 
-        const turnResult = {
+        return {
             isLose,
-            betwin,
+            betwin: isLose ? 0 : parseFloat((runningRound.betwin * (1 + odds[payload.betChoice])).toFixed(2)),
             totalTurns: runningRound.totalTurns + 1,
-            result: runningRound.result,
-            settlementResult: runningRound.settlementResult,
+            result: [...runningRound.result, resultCard],
+            settlementResult: [...runningRound.settlementResult, settlementResult],
             turnTime: new Date(),
             remainingTime: gameSettings.durations.turnTime,
-            nextAmounts: {
-                [choiceNames.h]: parseFloat(((1 + newOdds[choiceNames.h]) * runningRound.betwin).toFixed(2)),
-                [choiceNames.l]: parseFloat(((1 + newOdds[choiceNames.l]) * runningRound.betwin).toFixed(2)),
-            },
+            nextAmounts: isLose ? null : this.calculateWinAmounts(resultCard, runningRound.totalTurns + 2, runningRound.betwin),
         };
-
-        turnResult.result.push(resultCard);
-        turnResult.settlementResult.push(this.getSettlementResult(currentCard, resultCard));
-
-        return turnResult;
     }
 
     getSettlementResult(currentCard, resultCard) {
@@ -86,8 +78,31 @@ export default class SettleTurnConsumer {
         return currentValue < resultValue ? choiceNames.h : choiceNames.l;
     }
 
-    async addBetLog(runningRound, currentCard, resultCard, choice, betWin) {
-        const log = createBetLog(this.gameData, runningRound, currentCard, resultCard, choice, betWin);
+    async addBetLog(runningRound, choice, turnResult) {
+        const currentCard = runningRound.result[runningRound.result.length - 1];
+        const resultCard = turnResult.result[turnResult.result.length - 1];
+        const player = Object.values(this.gameData.realPlayers).find((p) => p.UID === runningRound.uid);
+
+        const log = {
+            uid: runningRound.uid,
+            name: runningRound.name,
+            roundId: runningRound.id,
+
+            time: new Date(),
+            amount: runningRound.betwin,
+            betwin: turnResult.betwin,
+            choice,
+
+            memberId: player.session.memberId,
+            siteId: player.session.siteId,
+            partnerId: player.session.partnerId,
+            currency: player.session.currencyName,
+            rate: player.session.multiplier * this.gameData.exchangeRates.code[player.session.currencyCode],
+
+            order: runningRound.totalTurns + 1,
+            cards: [currentCard, resultCard],
+        };
+
         await this.betLogsRepository.create(log);
     }
 
@@ -96,5 +111,14 @@ export default class SettleTurnConsumer {
         const resultValue = rankValueMapper[resultCard.rank];
 
         return (choice === choiceNames.h && resultValue < currentValue) || (choice === choiceNames.l && resultValue > currentValue);
+    }
+
+    calculateWinAmounts(currentCard, totalTurns, currentAmount) {
+        const odds = oddsGenerator.generate(this.gameData.gameConfigs.odds, currentCard.rank, totalTurns);
+
+        return {
+            [choiceNames.h]: parseFloat(((1 + odds[choiceNames.h]) * currentAmount).toFixed(2)),
+            [choiceNames.l]: parseFloat(((1 + odds[choiceNames.l]) * currentAmount).toFixed(2)),
+        };
     }
 }
