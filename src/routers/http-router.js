@@ -18,16 +18,16 @@ export default class HttpRouter extends Core.Routers.HttpRouter {
 
     async handleSetResult(params, res) {
         try {
-            if (!params || !params.name || !params.result) {
-                this.logService.logError("receives a result cheating call with invalid params.");
+            if (!params || !params.Name || !params.Result) {
+                this.logService.logError("receives a result cheating call with invalid params ${JSON.stringify(params)}.");
                 res.send([]);
                 return;
             }
 
             this.logService.logWarning(`receives a result cheating call ${JSON.stringify(params)}.`);
 
-            const result = this.generateResult(params.result);
-            this.gameData.settlementResultFromAdmin[params.name] = result;
+            const result = this.generateResult(params.Result);
+            this.gameData.settlementResultFromAdmin[params.Name] = result;
             res.send(result);
         } catch (error) {
             this.logService.logError(error);
