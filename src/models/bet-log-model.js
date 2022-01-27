@@ -12,7 +12,6 @@ const schema = new mongoose.Schema({
     choice: { type: String },
     memberId: { type: Number },
     siteId: { type: String },
-    freeBet: { type: Boolean },
 
     currency: { type: String, require: true },
     rate: { type: Number, require: true },

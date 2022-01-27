@@ -2,12 +2,12 @@ import { Core } from "sc-game-base";
 
 export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsumer {
     async buildPayload(player) {
-        const { odds, enableFreeBet } = this.gameData.gameConfigs;
+        const { odds } = this.gameData.gameConfigs;
         const { exchangeRates } = this.gameData;
         const { session } = player;
         const rate = exchangeRates.code[session.currencyCode] * session.multiplier;
         const settings = this.gameData.currencyGroupGames.find((x) => x.groupId.toString() === session.currencyGroupId);
-        const gameConfigs = { ...settings, odds, enableFreeBet };
+        const gameConfigs = { ...settings, odds };
         const { betTracks: ownBets } = this.gameData.ingame[player.profile.name] || { betTracks: {} };
 
         await this.getBalance(player, true);

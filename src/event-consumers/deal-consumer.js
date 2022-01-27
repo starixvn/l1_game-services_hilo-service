@@ -5,7 +5,7 @@ import errorCodes from "../constants/error-codes";
 import { cardRanks } from "../cards";
 
 export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsumer {
-    composeValidationCriteria(player, betChoice, freeBet, roundId) {
+    composeValidationCriteria(player, betChoice, roundId) {
         const bettingTimeValidationCriteria = this.composeBettingTimeValidationCriteria(roundId) ?? [];
         const betChoiceValidationCriteria = this.composeBetChoiceValidationCriteria(player, betChoice) || [];
 
@@ -47,8 +47,8 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
         ];
     }
 
-    validateBetRequest(player, betChoice, freeBet, roundId) {
-        const criteria = this.composeValidationCriteria(player, betChoice, freeBet, roundId);
+    validateBetRequest(player, betChoice, roundId) {
+        const criteria = this.composeValidationCriteria(player, betChoice, roundId);
         const failedCriterion = criteria.find((criterion) => criterion.failure);
         if (failedCriterion) {
             this.publisher.publishToUser(player.UID, { endBet: -1, betChoice, notice: failedCriterion.notice });
@@ -68,15 +68,14 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
         const runningRound = this.gameData.ingame[player.profile.name].betTracks;
 
         Object.assign(payload, {
-            freeBet: payload.freeBet ?? false,
             roundId: payload.roundId ?? runningRound.id,
             order: runningRound.totalTurns,
             receivedTime: new Date(),
         });
 
-        const { betChoice, freeBet, roundId } = payload;
+        const { betChoice, roundId } = payload;
 
-        if (!this.validateBetRequest(player, betChoice, freeBet, roundId)) {
+        if (!this.validateBetRequest(player, betChoice, roundId)) {
             return;
         }
 

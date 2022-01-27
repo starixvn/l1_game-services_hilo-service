@@ -56,7 +56,6 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
         Object.assign(payload, {
             amount: payload.amount >> 0,
             roundId: this.gameData.roundId,
-            freeBet: payload.freeBet ?? false,
             receivedTime: new Date(),
         });
 

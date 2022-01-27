@@ -15,7 +15,6 @@ const schema = new mongoose.Schema({
 
     memberId: { type: Number },
     siteId: { type: String, default: "" },
-    freeBet: { type: Boolean, default: false },
 
     currency: { type: String, default: "" },
     rate: { type: Number, require: true },

@@ -64,6 +64,20 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
         return (await this.composeBalanceValidationCriteria(player, payload)) || [];
     }
 
+    async handleSuccessBet(player, balance, roundId, bet) {
+        const rate = this.calculateCurrencyRate(player.session);
+        await this.upsertBet(player, roundId, bet, rate);
+
+        const newBet = this.gameData.ingame[player.profile.name].betTracks;
+        const odds = oddsGenerator.generate(this.gameData.gameConfigs.odds, newBet.result[0].rank, 1);
+        newBet.nextAmounts = {
+            [choiceNames.h]: parseFloat(((1 + odds[choiceNames.h]) * newBet.betwin).toFixed(2)),
+            [choiceNames.l]: parseFloat(((1 + odds[choiceNames.l]) * newBet.betwin).toFixed(2)),
+        };
+
+        this.notifyPlacingBetResult(player, balance, bet, rate);
+    }
+
     async upsertBet(player, roundId, bet, rate) {
         const firstCard = this.generateFirstCard(player.profile.name);
         const { exchangeRates } = this.gameData;
@@ -88,7 +102,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
             turnEndTime: new Date(turnTime.getTime() + gameSettings.durations.turnTime * 1000),
         };
 
-        const existingBetFilter = { uid: player.UID, id: roundId, freeBet: bet.freeBet };
+        const existingBetFilter = { uid: player.UID, id: roundId };
 
         if (player.session) {
             newBet.memberId = player.session.memberId;
@@ -98,21 +112,10 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
         }
 
         await this.roundsRepository.updateOne(existingBetFilter, { $setOnInsert: newBet }, { upsert: true, setDefaultsOnInsert: true });
-
-        const odds = oddsGenerator.generate(this.gameData.gameConfigs.odds, firstCard.rank, 1);
-        newBet.nextAmounts = {
-            [choiceNames.h]: parseFloat(((1 + odds[choiceNames.h]) * newBet.betwin).toFixed(2)),
-            [choiceNames.l]: parseFloat(((1 + odds[choiceNames.l]) * newBet.betwin).toFixed(2)),
-        };
-
         this.gameData.ingame[player.profile.name].betTracks = newBet;
     }
 
     decreaseBetTracks() {}
-
-    adjustTotalBets() {}
-
-    async insertBetLog() {}
 
     generateFirstCard(name) {
         const resultFromAdmin = this.gameData.settlementResultFromAdmin ? this.gameData.settlementResultFromAdmin[name] : null;

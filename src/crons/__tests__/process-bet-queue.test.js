@@ -208,36 +208,6 @@ describe("process-bet-queue", () => {
         });
     });
 
-    describe("insertBetLog", () => {
-        it("should do nothing", async () => {
-            // arrange
-            const betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
-            const cron = new ProcessBetQueue({ betLogsRepository });
-
-            // act
-            await cron.insertBetLog();
-
-            // assert
-            expect(betLogsRepository.create).not.toBeCalled();
-        });
-    });
-
-    describe("adjustTotalBets", () => {
-        it("should do nothing", () => {
-            // arrange
-            const gameData = { totalBets: {} };
-            const cron = new ProcessBetQueue({});
-            const bet = {};
-            const expectedValue = { ...gameData };
-
-            // act
-            cron.adjustTotalBets(null, bet);
-
-            // assert
-            expect(gameData).toStrictEqual(expectedValue);
-        });
-    });
-
     describe("generateFirstCard", () => {
         describe("when not have result from admin", () => {
             const testCases = [
@@ -327,6 +297,26 @@ describe("process-bet-queue", () => {
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
+            });
+        });
+    });
+
+    describe("handleSuccessBet", () => {
+        describe("always", () => {
+            it("should upsertBet", async () => {
+                // arrange
+                const gameData = { gameConfigs: { odds: {} }, ingame: { m1: { betTracks: { result: [{ rank: 3 }] } } } };
+                const cron = new ProcessBetQueue({ gameData });
+                spyOn(cron, "calculateCurrencyRate");
+                spyOn(cron, "upsertBet");
+                spyOn(cron, "notifyPlacingBetResult");
+                const player = { profile: { name: "m1" } };
+
+                // act
+                await cron.handleSuccessBet(player);
+
+                // assert
+                expect(cron.upsertBet).toHaveBeenCalled();
             });
         });
     });

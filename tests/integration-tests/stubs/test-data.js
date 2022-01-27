@@ -74,7 +74,6 @@ const rounds = [
 
         memberId: 1001051,
         siteId: "4100300",
-        freeBet: false,
 
         currency: "$US",
         rate: 1,
