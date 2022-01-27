@@ -25,7 +25,7 @@ export const getCardFromAdmin = (cardRank, drawnCards) => {
 
     if (drawnCards.length > 0) {
         const excludedCard = drawnCards[drawnCards.length - 1];
-        cards = cards.filter((x) => x.rank !== excludedCard.rank || x.suit !== excludedCard.suit);
+        cards = cards.filter((x) => x.rank !== excludedCard.rank && x.suit !== excludedCard.suit);
     }
 
     return chance.pickone(cards.filter((x) => x.rank === cardRank));
