@@ -2,6 +2,7 @@ import { Core } from "sc-game-base";
 import { GameCron } from "../index";
 import mongoose from "mongoose";
 import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
+import { choiceNames } from "../../game-settings";
 
 const bot = { resetInRoomTrackings: jest.fn(), reset: jest.fn(), run: jest.fn() };
 const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
@@ -146,9 +147,9 @@ describe("game-cron", () => {
             const realPlayers = { m1: { UID: "m1" }, m2: { UID: "m2" } };
             const gameData = {
                 ingame: {
-                    m1: { betTracks: { turnEndTime: expiredTime, uid: "m1", totalTurns: 0, name: "m1" } },
-                    m2: { betTracks: { turnEndTime: expiredTime, uid: "m2", totalTurns: 1, name: "m2" } },
-                    m3: { betTracks: { turnEndTime: new Date(dt.getTime() + 20000), uid: "m3", name: "m3" } },
+                    m1: { betTracks: { turnEndTime: expiredTime, uid: "m1", totalTurns: 0, name: "m1", result: [{ rank: 3 }] } },
+                    m2: { betTracks: { turnEndTime: expiredTime, uid: "m2", totalTurns: 1, name: "m2" }, result: [{ rank: 3 }] },
+                    m3: { betTracks: { turnEndTime: new Date(dt.getTime() + 20000), uid: "m3", name: "m3", result: [{ rank: 3 }] } },
                     m4: {},
                 },
                 realPlayers,
@@ -176,16 +177,45 @@ describe("game-cron", () => {
             const cron = new GameCron({ definition });
             const choiceCounts = { hi: 0, lo: 0 };
             const testCount = 1000;
+            const round = { result: [{ rank: 3 }] };
 
             // act
             for (let i = 0; i < testCount; i++) {
-                const choice = cron.autoChooseChoice();
+                const choice = cron.autoChooseChoice(round);
                 choiceCounts[choice]++;
             }
 
             // assert
             expect(Math.abs(choiceCounts.hi / testCount - 0.5) <= 0.05).toBeTruthy();
             expect(Math.abs(choiceCounts.lo / testCount - 0.5) <= 0.05).toBeTruthy();
+        });
+
+        describe("when current card is Ace", () => {
+            it("should return low", () => {
+                // arrange
+                const cron = new GameCron({ definition });
+                const round = { result: [{ rank: "A" }] };
+
+                // act
+                const actualValue = cron.autoChooseChoice(round);
+
+                // assert
+                expect(actualValue).toBe(choiceNames.l);
+            });
+        });
+
+        describe("when current card is Two", () => {
+            it("should return high", () => {
+                // arrange
+                const cron = new GameCron({ definition });
+                const round = { result: [{ rank: "2" }] };
+
+                // act
+                const actualValue = cron.autoChooseChoice(round);
+
+                // assert
+                expect(actualValue).toBe(choiceNames.h);
+            });
         });
     });
 

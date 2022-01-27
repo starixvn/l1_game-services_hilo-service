@@ -1,5 +1,7 @@
 import Chance from "chance";
 import { Core } from "sc-game-base";
+import { cardRanks } from "../cards";
+import { choiceNames } from "../game-settings";
 
 export default class GameCron extends Core.Crons.BaseGameCron {
     constructor({
@@ -93,7 +95,7 @@ export default class GameCron extends Core.Crons.BaseGameCron {
                 }
 
                 if (round.turnEndTime <= currentTime && round.totalTurns === 0) {
-                    const payload = { betChoice: this.autoChooseChoice() };
+                    const payload = { betChoice: this.autoChooseChoice(round) };
                     await this.settleTurnConsumer.settleTurn(round, payload);
                     return;
                 }
@@ -105,7 +107,16 @@ export default class GameCron extends Core.Crons.BaseGameCron {
         );
     }
 
-    autoChooseChoice() {
+    autoChooseChoice(round) {
+        const currentCard = round.result[round.result.length - 1];
+        if (currentCard.rank === cardRanks.ace) {
+            return choiceNames.l;
+        }
+
+        if (currentCard.rank === cardRanks.two) {
+            return choiceNames.h;
+        }
+
         const choiceIndex = this.chance.integer({ min: 0, max: 1 });
         return this.definition.choices[choiceIndex];
     }
