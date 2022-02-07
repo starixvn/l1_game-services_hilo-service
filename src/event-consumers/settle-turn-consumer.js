@@ -82,7 +82,6 @@ export default class SettleTurnConsumer {
     async addBetLog(runningRound, choice, turnResult) {
         const currentCard = runningRound.result[runningRound.result.length - 1];
         const resultCard = turnResult.result[turnResult.result.length - 1];
-        const player = Object.values(this.gameData.realPlayers).find((p) => p.UID === runningRound.uid);
 
         const log = {
             uid: runningRound.uid,
@@ -94,11 +93,11 @@ export default class SettleTurnConsumer {
             betwin: turnResult.betwin,
             choice,
 
-            memberId: player.session.memberId,
-            siteId: player.session.siteId,
-            partnerId: player.session.partnerId,
-            currency: player.session.currencyName,
-            rate: player.session.multiplier * this.gameData.exchangeRates.code[player.session.currencyCode],
+            memberId: runningRound.memberId,
+            siteId: runningRound.siteId,
+            partnerId: runningRound.partnerId,
+            currency: runningRound.currency,
+            rate: runningRound.rate,
 
             order: runningRound.totalTurns + 1,
             cards: [currentCard, resultCard],
