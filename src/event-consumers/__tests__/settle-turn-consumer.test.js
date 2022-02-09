@@ -167,4 +167,42 @@ describe("settle-turn-consumer", () => {
             expect(consumer.addBetLog).toHaveBeenCalled();
         });
     });
+
+    describe("calculateTurnResult", () => {
+        describe("when lose", () => {
+            it("should return next amounts = null", async () => {
+                // arrange
+                const gameData = { gameConfigs: { odds: {} } };
+                const betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
+                const consumer = new SettleTurnConsumer({ gameData, betLogsRepository });
+                const runningRound = { totalTurns: 3, result: [{ rank: "A", suit: 0 }], settlementResult: [] };
+                const payload = { betChoice: "h" };
+
+                // act
+                const actualValue = await consumer.calculateTurnResult(payload, runningRound);
+
+                // assert
+                expect(actualValue.nextAmounts).toBeNull();
+            });
+        });
+
+        describe("when win", () => {
+            it("should return next amounts base on odds and turn order", async () => {
+                // arrange
+                const gameData = { gameConfigs: { odds: { high8: 0.9, low8: 0.9 } } };
+                const betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
+                const consumer = new SettleTurnConsumer({ gameData, betLogsRepository });
+                spyOn(consumer, "generateResult").and.returnValue({ rank: "8", suit: 0 });
+                const runningRound = { totalTurns: 0, betwin: 1, result: [{ rank: "8", suit: 0 }], settlementResult: [] };
+                const payload = { betChoice: "h" };
+                const expectedValue = { h: 3.37, l: 3.37 };
+
+                // act
+                const actualValue = await consumer.calculateTurnResult(payload, runningRound);
+
+                // assert
+                expect(actualValue.nextAmounts).toStrictEqual(expectedValue);
+            });
+        });
+    });
 });

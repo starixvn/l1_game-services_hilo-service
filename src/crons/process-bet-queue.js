@@ -38,7 +38,7 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     async deal(player, bet) {
         const runningRound = this.gameData.ingame[player.profile.name]?.betTracks;
         if (!runningRound || runningRound.totalTurns !== bet.order) {
-            this.placeBetPublisher.publishToUser(player.UID, { endBet: -1, notice: { errorCode: helpers.noticeHelper.invalidBet } });
+            this.placeBetPublisher.publishToUser(player.UID, { endDeal: -1, notice: { errorCode: helpers.noticeHelper.invalidBet } });
             return;
         }
 

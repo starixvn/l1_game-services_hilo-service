@@ -51,7 +51,7 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
         const criteria = this.composeValidationCriteria(player, betChoice, roundId);
         const failedCriterion = criteria.find((criterion) => criterion.failure);
         if (failedCriterion) {
-            this.publisher.publishToUser(player.UID, { endBet: -1, betChoice, notice: failedCriterion.notice });
+            this.publisher.publishToUser(player.UID, { endDeal: -1, betChoice, notice: failedCriterion.notice });
 
             return false;
         }
@@ -61,7 +61,7 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
 
     consume(player, payload) {
         if (!this.gameData.ingame[player.profile.name]?.betTracks) {
-            this.publisher.publishToUser(player.UID, { endBet: -1, notice: this.getNoticeObj(helpers.noticeHelper.invalidBet) });
+            this.publisher.publishToUser(player.UID, { endDeal: -1, notice: this.getNoticeObj(helpers.noticeHelper.invalidBet) });
             return;
         }
 
