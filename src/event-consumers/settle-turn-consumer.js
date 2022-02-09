@@ -32,7 +32,15 @@ export default class SettleTurnConsumer {
         const endBetData = {
             endBet: 1,
             bet: payload,
-            result: { roundId: runningRound.id, ...settleResult },
+            result: {
+                roundId: runningRound.id,
+                betwin: settleResult.betwin,
+                result: settleResult.result,
+                settlementResult: settleResult.settlementResult,
+                remainingTime: settleResult.remainingTime,
+                nextAmounts: settleResult.nextAmounts,
+                totalTurns: settleResult.totalTurns,
+            },
         };
 
         await this.userBetResultPublisher.publishToUser(uid, endBetData);
