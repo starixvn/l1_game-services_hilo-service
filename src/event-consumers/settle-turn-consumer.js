@@ -55,16 +55,17 @@ export default class SettleTurnConsumer {
         const isLose = this.isLose(payload.betChoice, currentCard, resultCard);
         const odds = oddsGenerator.generate(this.gameData.gameConfigs.odds, currentCard.rank, runningRound.totalTurns + 1);
         const settlementResult = this.getSettlementResult(currentCard, resultCard);
+        const betwin = isLose ? 0 : parseFloat((runningRound.betwin * (1 + odds[payload.betChoice])).toFixed(2));
 
         return {
             isLose,
-            betwin: isLose ? 0 : parseFloat((runningRound.betwin * (1 + odds[payload.betChoice])).toFixed(2)),
+            betwin,
             totalTurns: runningRound.totalTurns + 1,
             result: [...runningRound.result, resultCard],
             settlementResult: [...runningRound.settlementResult, settlementResult],
             turnTime: new Date(),
             remainingTime: gameSettings.durations.turnTime,
-            nextAmounts: isLose ? null : this.calculateWinAmounts(resultCard, runningRound.totalTurns + 2, runningRound.betwin),
+            nextAmounts: isLose ? null : this.calculateWinAmounts(resultCard, runningRound.totalTurns + 2, betwin),
         };
     }
 
