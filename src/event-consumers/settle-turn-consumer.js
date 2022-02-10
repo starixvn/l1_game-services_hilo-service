@@ -29,17 +29,19 @@ export default class SettleTurnConsumer {
         await this.addBetLog(runningRound, payload.betChoice, turnResult);
         await this.roundsRepository.updateOne({ id: runningRound.id }, { $set: turnResult }).exec();
 
+        const { betwin, result, settlementResult, remainingTime, nextAmounts, totalTurns } = settleResult;
+
         const endDealData = {
             endDeal: 1,
             bet: payload,
             result: {
                 roundId: runningRound.id,
-                betwin: settleResult.betwin,
-                result: settleResult.result,
-                settlementResult: settleResult.settlementResult,
-                remainingTime: settleResult.remainingTime,
-                nextAmounts: settleResult.nextAmounts,
-                totalTurns: settleResult.totalTurns,
+                betwin,
+                result,
+                settlementResult,
+                remainingTime,
+                nextAmounts,
+                totalTurns,
             },
         };
 

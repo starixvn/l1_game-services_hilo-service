@@ -122,6 +122,14 @@ describe("settle-turn-consumer", () => {
                 previousCards: [{ rank: "4", suit: 3 }],
                 betChoice: "l",
             },
+            {
+                previousCards: [{ rank: "8", suit: 3 }],
+                betChoice: "h",
+            },
+            {
+                previousCards: [{ rank: "8", suit: 3 }],
+                betChoice: "l",
+            },
         ];
         it.each(testCases)("should add new bet log", async (testCase) => {
             // arrange
@@ -159,6 +167,7 @@ describe("settle-turn-consumer", () => {
             const payload = { betChoice: testCase.betChoice };
             spyOn(consumer, "addBetLog");
             spyOn(settleGameRoundConsumer, "settleBets");
+            spyOn(consumer, "generateResult").and.returnValue({ rank: "8", suit: 0 });
 
             // act
             await consumer.settleTurn(player, payload);
