@@ -30,7 +30,7 @@ describe("event deal - already have running round", () => {
             gameClientDriver.sendBetEvent(null, 20);
             let startDeal = false;
             const endDealFunc = (endBetData) => {
-                if (startDeal && endBetData?.endBet) {
+                if (startDeal && endBetData?.endDeal) {
                     done();
                 }
             };
@@ -65,7 +65,7 @@ describe("event deal - not yet have running round", () => {
         });
     });
 
-    it("should return endBet=-1", (done) => {
+    it("should return endDeal=-1", (done) => {
         // arrange
         gameClientDriver.emit("collect", null);
 
@@ -76,8 +76,8 @@ describe("event deal - not yet have running round", () => {
                 done();
             }
 
-            if (resp?.endBet && resp.bet?.betChoice === "l") {
-                expect(resp.endBet).toBe(-1);
+            if (resp?.endDeal && resp.bet?.betChoice === "l") {
+                expect(resp.endDeal).toBe(-1);
                 done();
             }
         });
