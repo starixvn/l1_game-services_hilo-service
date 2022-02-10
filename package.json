@@ -49,7 +49,7 @@
         "jest-junit": "^12.2.0",
         "jest-micro-auto-stub": "^1.0.7",
         "jest-sonar-reporter": "^2.0.0",
-        "sc-game-service-integration-utils": "1.0.1-beta.0",
+        "sc-game-service-integration-utils": "1.0.1-beta.1",
         "sc-semantic-release": "^1.1.0",
         "semantic-release": "^17.1.1"
     },
