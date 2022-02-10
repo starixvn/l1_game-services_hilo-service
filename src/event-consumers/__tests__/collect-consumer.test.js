@@ -9,9 +9,10 @@ describe("collect-consumer", () => {
                 const gameData = { gameConfigs: { enabled: false } };
                 const consumer = new CollectConsumer(null, gameData);
                 const expectedValue = { notice: errorCodes.cannotCollect };
+                const round = { uid: "m1" };
 
                 // act
-                const actualValue = consumer.validate({});
+                const actualValue = consumer.validate(round);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -22,8 +23,8 @@ describe("collect-consumer", () => {
             // arrange
             const testCases = [
                 { runningRound: null, expectedValue: { notice: errorCodes.roundEnded } },
-                { runningRound: { totalTurns: 0 }, expectedValue: { notice: errorCodes.cannotCollect } },
-                { runningRound: { totalTurns: 10 }, expectedValue: null },
+                { runningRound: { uid: "m1", totalTurns: 0 }, expectedValue: { notice: errorCodes.cannotCollect } },
+                { runningRound: { uid: "m1", totalTurns: 10 }, expectedValue: null },
             ];
 
             it.each(testCases)("should return validation result of runningRound", (testCase) => {

@@ -17,7 +17,7 @@ describe("deal-consumer", () => {
     });
 
     describe("composeValidationCriteria", () => {
-        const testCases = [{ criterion: [] }, { criterion: null }];
+        const testCases = [{ criterion: [] }];
         it.each(testCases)("should return concat of time/amount/choice validation", (testCase) => {
             // arrange
             const consumer = new DealConsumer();
@@ -127,7 +127,7 @@ describe("deal-consumer", () => {
             it("should failed loChoice criterion", () => {
                 // arrange
                 const definition = { choices: [] };
-                const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }] } } } };
+                const gameData = { ingame: { m1: { betTracks: { uid: "m1", result: [{ rank: "2" }] } } } };
                 const consumer = new DealConsumer(definition, gameData, {});
                 const expectedValue = {
                     failure: true,
@@ -148,7 +148,7 @@ describe("deal-consumer", () => {
             it("should not failed loChoice criterion", () => {
                 // arrange
                 const definition = { choices: [] };
-                const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "4" }] } } } };
+                const gameData = { ingame: { m1: { betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "4" }] } } } };
                 const consumer = new DealConsumer(definition, gameData, {});
                 const expectedValue = {
                     failure: false,
@@ -169,7 +169,7 @@ describe("deal-consumer", () => {
             it("should not failed loChoice criterion", () => {
                 // arrange
                 const definition = { choices: [] };
-                const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "4" }] } } } };
+                const gameData = { ingame: { m1: { betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "4" }] } } } };
                 const consumer = new DealConsumer(definition, gameData, {});
                 const expectedValue = {
                     failure: false,
@@ -190,7 +190,7 @@ describe("deal-consumer", () => {
             it("should not failed loChoice criterion", () => {
                 // arrange
                 const definition = { choices: [] };
-                const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "2" }] } } } };
+                const gameData = { ingame: { m1: { betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "2" }] } } } };
                 const consumer = new DealConsumer(definition, gameData, {});
                 const expectedValue = {
                     failure: false,
@@ -232,7 +232,7 @@ describe("deal-consumer", () => {
             it("should not failed hiChoice criterion", () => {
                 // arrange
                 const definition = { choices: [] };
-                const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "4" }] } } } };
+                const gameData = { ingame: { m1: { betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "4" }] } } } };
                 const consumer = new DealConsumer(definition, gameData, {});
                 const expectedValue = {
                     failure: false,
@@ -253,7 +253,7 @@ describe("deal-consumer", () => {
             it("should not failed hiChoice criterion", () => {
                 // arrange
                 const definition = { choices: [] };
-                const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "4" }] } } } };
+                const gameData = { ingame: { m1: { betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "4" }] } } } };
                 const consumer = new DealConsumer(definition, gameData, {});
                 const expectedValue = {
                     failure: false,
@@ -274,7 +274,7 @@ describe("deal-consumer", () => {
             it("should not failed hiChoice criterion", () => {
                 // arrange
                 const definition = { choices: [] };
-                const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "A" }] } } } };
+                const gameData = { ingame: { m1: { betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "A" }] } } } };
                 const consumer = new DealConsumer(definition, gameData, {});
                 const expectedValue = {
                     failure: false,
@@ -297,7 +297,7 @@ describe("deal-consumer", () => {
             it("should return failed", async () => {
                 // arrange
                 const definition = { choices: [] };
-                const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "A" }] } } } };
+                const gameData = { ingame: { m1: { betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "A" }] } } } };
                 const publisher = { publishToUser: jest.fn() };
                 const consumer = new DealConsumer(definition, gameData, publisher);
                 const player = { UID: "m1" };
@@ -317,7 +317,7 @@ describe("deal-consumer", () => {
             it("should return true", async () => {
                 // arrange
                 const definition = { choices: [] };
-                const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "A" }] } } } };
+                const gameData = { ingame: { m1: { betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "A" }] } } } };
                 const publisher = { publishToUser: jest.fn() };
                 const consumer = new DealConsumer(definition, gameData, publisher);
                 const player = { UID: "m1" };
@@ -339,7 +339,9 @@ describe("deal-consumer", () => {
             it("should not push deal info to queue", () => {
                 // arrange
                 const definition = { choices: [] };
-                const gameData = { ingame: { m2: { betTracks: { result: [{ rank: "2" }, { rank: "A" }] } }, m1: { betQueue: [] } } };
+                const gameData = {
+                    ingame: { m2: { betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "A" }] } }, m1: { betQueue: [] } },
+                };
                 const publisher = { publishToUser: jest.fn() };
                 const settleTurnConsumer = { settleTurn: jest.fn() };
                 const consumer = new DealConsumer(definition, gameData, publisher, null, settleTurnConsumer);
@@ -379,7 +381,7 @@ describe("deal-consumer", () => {
             it("should not push deal info to queue", async () => {
                 // arrange
                 const definition = { choices: [] };
-                const gameData = { ingame: { m1: { betTracks: { result: [{ rank: "2" }, { rank: "A" }] }, betQueue: [] } } };
+                const gameData = { ingame: { m1: { betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "A" }] }, betQueue: [] } } };
                 const publisher = { publishToUser: jest.fn() };
                 const settleTurnConsumer = { settleTurn: jest.fn() };
                 const consumer = new DealConsumer(definition, gameData, publisher, null, settleTurnConsumer);
@@ -401,7 +403,7 @@ describe("deal-consumer", () => {
                 // arrange
                 const definition = { choices: [] };
                 const gameData = {
-                    ingame: { m1: { betQueue: testCase.betQueue, betTracks: { result: [{ rank: "2" }, { rank: "A" }] } } },
+                    ingame: { m1: { betQueue: testCase.betQueue, betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "A" }] } } },
                 };
                 const publisher = { publishToUser: jest.fn() };
                 const settleGameRoundConsumer = { settleTurn: jest.fn() };

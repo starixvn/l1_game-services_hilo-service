@@ -9,7 +9,7 @@ export default class CollectConsumer {
     }
 
     validate(runningRound) {
-        if (!runningRound) {
+        if (!runningRound || !runningRound.uid) {
             return { notice: errorCodes.roundEnded };
         }
 

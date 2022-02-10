@@ -6,9 +6,8 @@ import { cardRanks } from "../cards";
 
 export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsumer {
     composeValidationCriteria(player, betChoice, roundId) {
-        const bettingTimeValidationCriteria = this.composeBettingTimeValidationCriteria(roundId) ?? [];
-        const betChoiceValidationCriteria = this.composeBetChoiceValidationCriteria(player, betChoice) || [];
-
+        const bettingTimeValidationCriteria = this.composeBettingTimeValidationCriteria(roundId);
+        const betChoiceValidationCriteria = this.composeBetChoiceValidationCriteria(player, betChoice);
         return bettingTimeValidationCriteria.concat(betChoiceValidationCriteria);
     }
 
@@ -60,7 +59,7 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
     }
 
     consume(player, payload) {
-        if (!this.gameData.ingame[player.profile.name]?.betTracks) {
+        if (!this.gameData.ingame[player.profile.name]?.betTracks?.uid) {
             this.publisher.publishToUser(player.UID, { endDeal: -1, notice: this.getNoticeObj(helpers.noticeHelper.invalidBet) });
             return;
         }
@@ -74,7 +73,6 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
         });
 
         const { betChoice, roundId } = payload;
-
         if (!this.validateBetRequest(player, betChoice, roundId)) {
             return;
         }
