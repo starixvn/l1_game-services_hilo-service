@@ -33,7 +33,6 @@ export default class SettleTurnConsumer {
 
         const endDealData = {
             endDeal: 1,
-            bet: payload,
             result: {
                 roundId: runningRound.id,
                 betwin,
