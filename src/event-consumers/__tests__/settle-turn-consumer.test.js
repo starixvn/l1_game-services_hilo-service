@@ -189,9 +189,9 @@ describe("settle-turn-consumer", () => {
         describe("when win", () => {
             it("should return next amounts base on odds and turn order", async () => {
                 // arrange
-                consumer.gameData = { gameConfigs: { odds: { high8: 0.9, low8: 0.9 } } };
+                consumer.gameData = { gameConfigs: { odds: { high7: 0.9, low7: 0.9, high8: 0.9, low8: 0.9 } } };
                 spyOn(consumer, "generateResult").and.returnValue({ rank: "8", suit: 0 });
-                const runningRound = { totalTurns: 0, betwin: 1, result: [{ rank: "8", suit: 0 }], settlementResult: [] };
+                const runningRound = { totalTurns: 0, betwin: 1, result: [{ rank: "7", suit: 0 }], settlementResult: [] };
                 const payload = { betChoice: "h" };
                 const expectedValue = { h: 3.37, l: 3.37 };
 
@@ -199,6 +199,24 @@ describe("settle-turn-consumer", () => {
                 const actualValue = await consumer.calculateTurnResult(payload, runningRound);
 
                 // assert
+                expect(actualValue.nextAmounts).toStrictEqual(expectedValue);
+            });
+        });
+
+        describe("when tie", () => {
+            it("should return next amounts = current amount", async () => {
+                // arrange
+                consumer.gameData = { gameConfigs: { odds: { high8: 0.9, low8: 0.9 } } };
+                spyOn(consumer, "generateResult").and.returnValue({ rank: "8", suit: 0 });
+                const runningRound = { totalTurns: 0, betwin: 1, result: [{ rank: "8", suit: 0 }], settlementResult: [] };
+                const payload = { betChoice: "h" };
+                const expectedValue = { h: 1.77, l: 1.77 };
+
+                // act
+                const actualValue = await consumer.calculateTurnResult(payload, runningRound);
+
+                // assert
+                expect(actualValue.betwin).toStrictEqual(runningRound.betwin);
                 expect(actualValue.nextAmounts).toStrictEqual(expectedValue);
             });
         });
