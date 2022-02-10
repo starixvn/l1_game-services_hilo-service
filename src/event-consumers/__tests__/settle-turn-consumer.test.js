@@ -4,12 +4,20 @@ import mongoose from "mongoose";
 import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
 
 describe("settle-turn-consumer", () => {
+    let betLogsRepository;
+    let consumer;
+
+    beforeEach(() => {
+        // arrange
+        betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
+        consumer = new SettleTurnConsumer({ betLogsRepository });
+    });
+
     describe("generateResult", () => {
         describe("when resultFromAdmin is set for user", () => {
             it("should return resultFromAdmin", () => {
                 // arrange
-                const gameData = { settlementResultFromAdmin: { player: [{ rank: "3" }] } };
-                const consumer = new SettleTurnConsumer({ gameData });
+                consumer.gameData = { settlementResultFromAdmin: { player: [{ rank: "3" }] } };
                 const expectedValue = { rank: "3" };
                 const runningRound = { name: "player", id: 10, result: [], totalTurns: 0 };
 
@@ -25,8 +33,7 @@ describe("settle-turn-consumer", () => {
             const testCases = [{ settlementResultFromAdmin: null }, { settlementResultFromAdmin: { player: [{ rank: "2" }] } }];
             it.each(testCases)("should generate new result", (testCase) => {
                 // arrange
-                const gameData = { settlementResultFromAdmin: testCase.settlementResultFromAdmin };
-                const consumer = new SettleTurnConsumer({ gameData });
+                consumer.gameData = { settlementResultFromAdmin: testCase.settlementResultFromAdmin };
                 const expectedValue = null;
                 const runningRound = { name: "player01", id: 11, result: [...baseCards], totalTurns: 3 };
 
@@ -56,9 +63,6 @@ describe("settle-turn-consumer", () => {
         ];
 
         it.each(testCases)("should return correct settlement result base on current card and result card", (testCase) => {
-            // arrange
-            const consumer = new SettleTurnConsumer({});
-
             // act
             const actualValue = consumer.getSettlementResult(testCase.currentCard, testCase.resultCard);
 
@@ -70,12 +74,10 @@ describe("settle-turn-consumer", () => {
     describe("addBetLog", () => {
         it("should call betLogsRepository.create", async () => {
             // arrange
-            const gameData = {
+            consumer.gameData = {
                 realPlayers: { m1: { uid: "m1", session: {} } },
                 exchangeRates: { code: [] },
             };
-            const betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
-            const consumer = new SettleTurnConsumer({ gameData, betLogsRepository });
             const runningRound = { totalTurns: 3, result: [{ rank: "4", suit: 0 }] };
             const turnResult = { betwin: 10, result: [{ rank: "5", suit: 0 }] };
 
@@ -101,9 +103,6 @@ describe("settle-turn-consumer", () => {
         ];
 
         it.each(testCases)("should return correct result base on current card and result card", (testCase) => {
-            // arrange
-            const consumer = new SettleTurnConsumer({});
-
             // act
             const actualValue = consumer.isLose(testCase.choice, testCase.currentCard, testCase.resultCard);
 
@@ -133,7 +132,7 @@ describe("settle-turn-consumer", () => {
         ];
         it.each(testCases)("should add new bet log", async (testCase) => {
             // arrange
-            const gameData = {
+            consumer.gameData = {
                 ingame: {
                     m1: {
                         betTracks: {
@@ -149,24 +148,18 @@ describe("settle-turn-consumer", () => {
                 gameConfigs: { odds: {} },
             };
 
-            const roundsRepository = {
+            consumer.roundsRepository = {
                 updateOne: () => {
                     return { exec: jest.fn() };
                 },
             };
 
-            const userBetResultPublisher = { publishToUser: jest.fn() };
-            const settleGameRoundConsumer = { settleBets: jest.fn() };
-            const consumer = new SettleTurnConsumer({
-                gameData,
-                roundsRepository,
-                userBetResultPublisher,
-                settleGameRoundConsumer,
-            });
+            consumer.userBetResultPublisher = { publishToUser: jest.fn() };
+            consumer.settleGameRoundConsumer = { settleBets: jest.fn() };
             const player = { uid: "m1", name: "m1" };
             const payload = { betChoice: testCase.betChoice };
             spyOn(consumer, "addBetLog");
-            spyOn(settleGameRoundConsumer, "settleBets");
+            spyOn(consumer.settleGameRoundConsumer, "settleBets");
             spyOn(consumer, "generateResult").and.returnValue({ rank: "8", suit: 0 });
 
             // act
@@ -181,9 +174,7 @@ describe("settle-turn-consumer", () => {
         describe("when lose", () => {
             it("should return next amounts = null", async () => {
                 // arrange
-                const gameData = { gameConfigs: { odds: {} } };
-                const betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
-                const consumer = new SettleTurnConsumer({ gameData, betLogsRepository });
+                consumer.gameData = { gameConfigs: { odds: {} } };
                 const runningRound = { totalTurns: 3, result: [{ rank: "A", suit: 0 }], settlementResult: [] };
                 const payload = { betChoice: "h" };
 
@@ -198,9 +189,7 @@ describe("settle-turn-consumer", () => {
         describe("when win", () => {
             it("should return next amounts base on odds and turn order", async () => {
                 // arrange
-                const gameData = { gameConfigs: { odds: { high8: 0.9, low8: 0.9 } } };
-                const betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
-                const consumer = new SettleTurnConsumer({ gameData, betLogsRepository });
+                consumer.gameData = { gameConfigs: { odds: { high8: 0.9, low8: 0.9 } } };
                 spyOn(consumer, "generateResult").and.returnValue({ rank: "8", suit: 0 });
                 const runningRound = { totalTurns: 0, betwin: 1, result: [{ rank: "8", suit: 0 }], settlementResult: [] };
                 const payload = { betChoice: "h" };

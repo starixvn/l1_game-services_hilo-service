@@ -25,12 +25,16 @@ jest.mock(
 describe("service-container-registry", () => {
     // arrange
     const defaultInjectionMode = InjectionMode.CLASSIC;
+    let containerRegistry;
+
+    beforeEach(() => {
+        // arrange
+        containerRegistry = new ServiceContainerRegistry(defaultInjectionMode);
+        containerRegistry.container = { register: jest.fn() };
+    });
 
     describe("extends", () => {
         it("inherit Core.ContainerRegistry", () => {
-            // arrange
-            const containerRegistry = new ServiceContainerRegistry();
-
             // assert
             expect(containerRegistry instanceof Core.ContainerRegistry);
         });
@@ -38,10 +42,6 @@ describe("service-container-registry", () => {
 
     describe("registerModels", () => {
         it("should register correct Models", () => {
-            // arrange
-            const containerRegistry = new ServiceContainerRegistry(defaultInjectionMode);
-            containerRegistry.container = { register: jest.fn() };
-
             // act
             containerRegistry.registerModels();
 
@@ -55,10 +55,6 @@ describe("service-container-registry", () => {
 
     describe("registerConsumers", () => {
         it("should register correct consumers", () => {
-            // arrange
-            const containerRegistry = new ServiceContainerRegistry(defaultInjectionMode);
-            containerRegistry.container = { register: jest.fn() };
-
             // act
             containerRegistry.registerConsumers();
 
@@ -76,10 +72,6 @@ describe("service-container-registry", () => {
 
     describe("registerRouters", () => {
         it("should register correct routers", () => {
-            // arrange
-            const containerRegistry = new ServiceContainerRegistry(defaultInjectionMode);
-            containerRegistry.container = { register: jest.fn() };
-
             // act
             containerRegistry.registerRouters();
 
@@ -93,10 +85,6 @@ describe("service-container-registry", () => {
 
     describe("registerCrons", () => {
         it("should register correct Crons", () => {
-            // arrange
-            const containerRegistry = new ServiceContainerRegistry(defaultInjectionMode);
-            containerRegistry.container = { register: jest.fn() };
-
             // act
             containerRegistry.registerCrons();
 

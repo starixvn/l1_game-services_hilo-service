@@ -4,11 +4,17 @@ import { Core } from "sc-game-base";
 import { RoundQuery } from "../index";
 
 describe("round-query", () => {
+    let roundsRepository;
+    let query;
+
+    beforeEach(() => {
+        // arrange
+        roundsRepository = stubMongooseModelStupidly(mongoose.Model);
+        query = new RoundQuery(roundsRepository);
+    });
+
     describe("extends", () => {
         it("inherit Core.QueryApis.RoundQuery", () => {
-            // act
-            const query = new RoundQuery();
-
             // assert
             expect(query instanceof Core.QueryApis.RoundQuery);
         });
@@ -17,10 +23,8 @@ describe("round-query", () => {
     describe("getList", () => {
         it("should return result from roundsRepository", async () => {
             // arrange
-            const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
             const rounds = [{ id: 1 }];
             roundsRepository.find().lean().exec.mockReturnValueOnce(rounds);
-            const query = new RoundQuery(roundsRepository);
             const expectedValue = [{ roundId: 1, result: undefined, settlementResult: undefined }];
 
             // act
@@ -34,10 +38,8 @@ describe("round-query", () => {
     describe("countDocuments", () => {
         it("should return result from roundsRepository", async () => {
             // arrange
-            const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
             roundsRepository.countDocuments.mockReturnValue({ exec: jest.fn() });
             roundsRepository.countDocuments().exec.mockReturnValueOnce(1);
-            const query = new RoundQuery(roundsRepository);
             const player = {};
 
             // act
@@ -51,10 +53,8 @@ describe("round-query", () => {
     describe("getPlayerRounds", () => {
         it("should return result from roundsRepository", async () => {
             // arrange
-            const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
             const bets = [];
             roundsRepository.find().lean().exec.mockReturnValueOnce(bets);
-            const query = new RoundQuery(roundsRepository);
             const player = {};
 
             // act
