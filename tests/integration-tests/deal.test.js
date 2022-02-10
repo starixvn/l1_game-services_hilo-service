@@ -25,7 +25,7 @@ describe("event deal - already have running round", () => {
     });
 
     describe("when deal is valid", () => {
-        it("should return endBet", (done) => {
+        it("should return endDeal", (done) => {
             // arrange
             gameClientDriver.sendBetEvent(null, 20);
             let startDeal = false;
