@@ -21,40 +21,42 @@ const appConfigs = {
 const logService = stub(logger);
 
 describe("http-router", () => {
+    let router;
+    beforeEach(() => {
+        // Arrange
+        router = new HttpRouter();
+    });
+
     describe("extends", () => {
         it("inherit Core.Routers.HttpRouter", () => {
-            // act
-            const cron = new HttpRouter();
-
-            // assert
-            expect(cron instanceof Core.Routers.HttpRouter);
+            // Assert
+            expect(router instanceof Core.Routers.HttpRouter);
         });
     });
 
     describe("init", () => {
         it("should call supper init", () => {
-            // arrange
-            const router = new HttpRouter();
+            // Arrange
             spyOn(HttpRouter.prototype, "init");
 
-            // act
+            // Act
             router.init(app);
 
-            // assert
+            // Assert
             expect(HttpRouter.prototype.init).toHaveBeenCalled();
         });
 
         it("should call app.post", () => {
-            // arrange
+            // Arrange
             app.calledPost = false;
-            const router = new HttpRouter(appConfigs);
+            router.appConfigs = appConfigs;
             spyOn(app, "calledPost").and.callThrough();
             spyOn(router, "handleSetResult");
 
-            // act
+            // Act
             router.init(app);
 
-            // assert
+            // Assert
             expect(router.handleSetResult).toHaveBeenCalled();
         });
     });
@@ -67,14 +69,15 @@ describe("http-router", () => {
         describe("when params are invalid", () => {
             const testCases = [{ param: null }, { param: {} }, { param: { roundId: 1 } }];
             it.each(testCases)("should logError ", async (testCase) => {
-                // arrange
-                const router = new HttpRouter(appConfigs, null, null, null, null, logService);
+                // Arrange
+                router.appConfigs = appConfigs;
+                router.logService = logService;
                 const res = { send: jest.fn() };
 
-                // act
+                // Act
                 await router.handleSetResult(testCase.param, res);
 
-                // assert
+                // Assert
                 expect(logService.logError).toHaveBeenCalled();
                 expect(res.send).toHaveBeenCalledWith([]);
             });
@@ -82,32 +85,36 @@ describe("http-router", () => {
 
         describe("when params are valid", () => {
             it("should logWarning", async () => {
-                // arrange
+                // Arrange
                 const gameData = { settlementResultFromAdmin: {} };
-                const router = new HttpRouter(appConfigs, gameData, null, null, null, logService);
+                router.appConfigs = appConfigs;
+                router.gameData = gameData;
+                router.logService = logService;
                 const res = { send: jest.fn() };
                 const param = { Name: "player", Result: ["A", "2", "3"] };
 
-                // act
+                // Act
                 await router.handleSetResult(param, res);
 
-                // assert
+                // Assert
                 expect(logService.logWarning).toHaveBeenCalled();
             });
         });
 
         describe("when have error", () => {
             it("should logError", async () => {
-                // arrange
+                // Arrange
                 const gameData = { settlementResultFromAdmin: null };
-                const router = new HttpRouter(appConfigs, gameData, null, null, null, logService);
+                router.appConfigs = appConfigs;
+                router.gameData = gameData;
+                router.logService = logService;
                 const res = { send: jest.fn() };
                 const param = { Name: "player", Result: [] };
 
-                // act
+                // Act
                 await router.handleSetResult(param, res);
 
-                // assert
+                // Assert
                 expect(logService.logWarning).toHaveBeenCalled();
                 expect(logService.logError).toHaveBeenCalled();
             });

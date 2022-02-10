@@ -2,7 +2,7 @@ import oddsGenerator from "../odds-generator";
 
 describe("odds-generator", () => {
     describe("generate", () => {
-        // arrange
+        // Arrange
         const testCases = [
             { rank: "A", expectedValue: { h: 0, l: 0 } },
             { rank: "2", expectedValue: { h: 0, l: 0 } },
@@ -10,14 +10,14 @@ describe("odds-generator", () => {
         ];
 
         it.each(testCases)("should return correct odds", (testCase) => {
-            // arrange
+            // Arrange
             const odds = { ["high11"]: 276, ["high5"]: 28, ["low5"]: 276, ["low11"]: 28 };
             const totalTurns = 1;
 
-            // act
+            // Act
             const actualValue = oddsGenerator.generate(odds, testCase.rank, totalTurns);
 
-            // assert
+            // Assert
             expect(actualValue).toStrictEqual(testCase.expectedValue);
         });
     });

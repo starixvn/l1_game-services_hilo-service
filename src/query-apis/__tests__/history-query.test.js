@@ -4,29 +4,31 @@ import { Core } from "sc-game-base";
 import { HistoryQuery } from "../index";
 
 describe("history-query", () => {
+    let query;
+    beforeEach(() => {
+        // Arrange
+        query = new HistoryQuery();
+    });
+
     describe("extends", () => {
         it("inherit Core.QueryApis.HistoryQuery", () => {
-            // act
-            const query = new HistoryQuery();
-
-            // assert
+            // Assert
             expect(query instanceof Core.QueryApis.HistoryQuery);
         });
     });
 
     describe("getBetLogDetails", () => {
         it("should return result from betLogsRepository", () => {
-            // arrange
-            const betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
+            // Arrange
+            query.betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
             const logs = [];
-            betLogsRepository.find().lean().exec.mockReturnValueOnce(logs);
-            const query = new HistoryQuery(null, null, betLogsRepository);
+            query.betLogsRepository.find().lean().exec.mockReturnValueOnce(logs);
             const player = {};
 
-            // act
+            // Act
             const actualValue = query.getBetLogDetails(player);
 
-            // assert
+            // Assert
             expect(actualValue).toStrictEqual(logs);
         });
     });
@@ -42,9 +44,10 @@ describe("history-query", () => {
 
         describe("when page < 1", () => {
             it("should return empty", async () => {
-                const historyQuery = new HistoryQuery(roundQuery, null, betLogsRepository);
+                query.roundQuery = roundQuery;
+                query.betLogsRepository = betLogsRepository;
 
-                var actualResult = await historyQuery.queryHistory({}, 0, 10);
+                var actualResult = await query.queryHistory({}, 0, 10);
 
                 expect(actualResult).toBeEmpty();
             });
@@ -59,7 +62,8 @@ describe("history-query", () => {
         ];
         describe("when page >= 1", () => {
             it.each(testCases)("should return data", async (testCase) => {
-                const historyQuery = new HistoryQuery(roundQuery, null, testCase.betLogsRepository);
+                query.roundQuery = roundQuery;
+                query.betLogsRepository = testCase.betLogsRepository;
                 roundQuery.getOne.mockReturnValueOnce({
                     id: 1,
                     result: { red1: true, red2: false },
@@ -75,7 +79,7 @@ describe("history-query", () => {
                         { uid: 1, roundId: 1, choice: "even" },
                     ]);
 
-                var actualResult = await historyQuery.queryHistory({ UID: 1 }, 1, 10);
+                var actualResult = await query.queryHistory({ UID: 1 }, 1, 10);
 
                 expect(actualResult).not.toBeEmpty();
                 expect(actualResult.history.page).toEqual(1);

@@ -23,29 +23,28 @@ jest.mock(
 );
 
 describe("service-container-registry", () => {
-    // arrange
     const defaultInjectionMode = InjectionMode.CLASSIC;
     let containerRegistry;
 
     beforeEach(() => {
-        // arrange
+        // Arrange
         containerRegistry = new ServiceContainerRegistry(defaultInjectionMode);
         containerRegistry.container = { register: jest.fn() };
     });
 
     describe("extends", () => {
         it("inherit Core.ContainerRegistry", () => {
-            // assert
+            // Assert
             expect(containerRegistry instanceof Core.ContainerRegistry);
         });
     });
 
     describe("registerModels", () => {
         it("should register correct Models", () => {
-            // act
+            // Act
             containerRegistry.registerModels();
 
-            // assert
+            // Assert
             expect(containerRegistry.container.register).toBeCalledWith({
                 roundsRepository: expect.any(Function),
                 betLogsRepository: expect.any(Function),
@@ -55,10 +54,10 @@ describe("service-container-registry", () => {
 
     describe("registerConsumers", () => {
         it("should register correct consumers", () => {
-            // act
+            // Act
             containerRegistry.registerConsumers();
 
-            // assert
+            // Assert
             expect(containerRegistry.container.register).toBeCalledWith({
                 inGameConsumer: expect.any(Object),
                 placeBetConsumer: expect.any(Object),
@@ -72,10 +71,10 @@ describe("service-container-registry", () => {
 
     describe("registerRouters", () => {
         it("should register correct routers", () => {
-            // act
+            // Act
             containerRegistry.registerRouters();
 
-            // assert
+            // Assert
             expect(containerRegistry.container.register).toBeCalledWith({
                 socketRouter: expect.any(Function),
                 httpRouter: expect.any(Object),
@@ -85,10 +84,10 @@ describe("service-container-registry", () => {
 
     describe("registerCrons", () => {
         it("should register correct Crons", () => {
-            // act
+            // Act
             containerRegistry.registerCrons();
 
-            // assert
+            // Assert
             expect(containerRegistry.container.register).toBeCalledWith({
                 gameCron: expect.any(Function),
                 processBetQueue: expect.any(Function),
@@ -99,14 +98,13 @@ describe("service-container-registry", () => {
 
     describe("registerApis", () => {
         it("should register correct query apis", () => {
-            // arrange
-            const containerRegistry = new ServiceContainerRegistry(defaultInjectionMode);
+            // Arrange
             containerRegistry.container = { register: jest.fn() };
 
-            // act
+            // Act
             containerRegistry.registerApis();
 
-            // assert
+            // Assert
             expect(containerRegistry.container.register).toBeCalledWith({
                 roundQuery: expect.any(Object),
                 historyQuery: expect.any(Object),

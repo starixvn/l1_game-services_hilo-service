@@ -5,26 +5,26 @@ describe("deck-helper", () => {
     describe("drawCard", () => {
         describe("when already drawn all cards", () => {
             it("should also return card, card can be duplicate", () => {
-                // arrange
+                // Arrange
                 const drawnCards = baseCards;
 
-                // act
+                // Act
                 const actualValue = drawCard(drawnCards);
 
-                // assert
+                // Assert
                 expect(actualValue).not.toBeNull();
             });
         });
 
         describe("when 1st draw", () => {
             it("should return card", () => {
-                // arrange
+                // Arrange
                 const drawnCards = [];
 
-                // act
+                // Act
                 const actualValue = drawCard(drawnCards);
 
-                // assert
+                // Assert
                 expect(actualValue).not.toBeNull();
             });
         });
@@ -33,13 +33,13 @@ describe("deck-helper", () => {
     describe("getCardFromAdmin", () => {
         const testCases = [{ drawnCards: [] }, { drawnCards: [{ rank: "2", suit: 0 }] }];
         it.each(testCases)("should pick correct card", (testCase) => {
-            // arrange
+            // Arrange
             const cardRank = "2";
 
-            // act
+            // Act
             const actualValue = getCardFromAdmin(cardRank, testCase.drawnCards);
 
-            // assert
+            // Assert
             expect(actualValue.rank).toBe("2");
         });
     });

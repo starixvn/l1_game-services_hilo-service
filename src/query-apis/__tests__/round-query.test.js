@@ -8,59 +8,59 @@ describe("round-query", () => {
     let query;
 
     beforeEach(() => {
-        // arrange
+        // Arrange
         roundsRepository = stubMongooseModelStupidly(mongoose.Model);
         query = new RoundQuery(roundsRepository);
     });
 
     describe("extends", () => {
         it("inherit Core.QueryApis.RoundQuery", () => {
-            // assert
+            // Assert
             expect(query instanceof Core.QueryApis.RoundQuery);
         });
     });
 
     describe("getList", () => {
         it("should return result from roundsRepository", async () => {
-            // arrange
+            // Arrange
             const rounds = [{ id: 1 }];
             roundsRepository.find().lean().exec.mockReturnValueOnce(rounds);
             const expectedValue = [{ roundId: 1, result: undefined, settlementResult: undefined }];
 
-            // act
+            // Act
             const actualValue = await query.getList();
 
-            // assert
+            // Assert
             expect(actualValue).toStrictEqual(expectedValue);
         });
     });
 
     describe("countDocuments", () => {
         it("should return result from roundsRepository", async () => {
-            // arrange
+            // Arrange
             roundsRepository.countDocuments.mockReturnValue({ exec: jest.fn() });
             roundsRepository.countDocuments().exec.mockReturnValueOnce(1);
             const player = {};
 
-            // act
+            // Act
             const actualValue = await query.countDocuments(player);
 
-            // assert
+            // Assert
             expect(actualValue).toStrictEqual(1);
         });
     });
 
     describe("getPlayerRounds", () => {
         it("should return result from roundsRepository", async () => {
-            // arrange
+            // Arrange
             const bets = [];
             roundsRepository.find().lean().exec.mockReturnValueOnce(bets);
             const player = {};
 
-            // act
+            // Act
             const actualValue = await query.getPlayerRounds(player);
 
-            // assert
+            // Assert
             expect(actualValue).toStrictEqual(bets);
         });
     });

@@ -4,12 +4,16 @@ import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
 import { InGameConsumer } from "../index";
 
 describe("in-game-consumer", () => {
+    let consumer;
+
+    beforeEach(() => {
+        // Arrange
+        consumer = new InGameConsumer({});
+    });
+
     describe("extends", () => {
         it("inherit Core.BaseEventConsumers.InGameConsumer", () => {
-            // act
-            const consumer = new InGameConsumer({});
-
-            // assert
+            // Assert
             expect(consumer instanceof Core.BaseEventConsumers.InGameConsumer);
         });
     });
@@ -22,23 +26,22 @@ describe("in-game-consumer", () => {
             { ingame: { m2: { betTracks: undefined, expectedId: undefined } }, expectedId: undefined },
         ];
         it.each(testCases)("should return ownBets", async (testCase) => {
-            // arrange
-            const gameData = {
+            // Arrange
+            consumer.gameData = {
                 gameConfigs: {},
                 exchangeRates: { code: {} },
                 currencyGroupGames: [{ groupId: "1" }],
                 ingame: testCase.ingame,
                 players: {},
             };
-            const roundQuery = { getList: jest.fn() };
-            const getBalance = jest.fn();
-            const userInfosRepository = stubMongooseModelStupidly(mongoose.Model);
-            const consumer = new InGameConsumer({}, gameData, roundQuery, {}, getBalance, userInfosRepository);
+            consumer.roundQuery = { getList: jest.fn() };
+            consumer.getBalance = jest.fn();
+            consumer.userInfosRepository = stubMongooseModelStupidly(mongoose.Model);
             const player = { UID: "m1", session: {}, profile: { name: "m1" } };
-            // act
+            // Act
             const actualValue = await consumer.buildPayload(player);
 
-            // assert
+            // Assert
             expect(actualValue.ownBets.roundId).toStrictEqual(testCase.expectedId);
         });
     });

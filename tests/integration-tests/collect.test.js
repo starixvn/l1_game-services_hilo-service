@@ -25,7 +25,7 @@ describe("event collect - already have running round", () => {
     });
 
     it("should return isCollect=-1 or have settlementResult", (done) => {
-        // arrange
+        // Arrange
         gameClientDriver.sendBetEvent(null, 100);
         let startCollect = false;
         const endCollectFunc = (resp) => {

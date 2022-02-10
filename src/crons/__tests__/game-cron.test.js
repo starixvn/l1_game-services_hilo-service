@@ -16,26 +16,12 @@ const currencyGroupRepository = stubMongooseModelStupidly(mongoose.Model);
 const currencyRepository = stubMongooseModelStupidly(mongoose.Model);
 
 describe("game-cron", () => {
-    // arrange
     const definition = { durations: { wholeRound: 120, placingBets: 40 }, choices: ["hi", "lo"] };
-
-    describe("extends", () => {
-        it("inherit Core.Crons.BaseGameCron", () => {
-            // act
-            const cron = new GameCron({ definition });
-
-            // assert
-            expect(cron instanceof Core.Crons.BaseGameCron);
-        });
-    });
-
-    describe("start", () => {
-        // arrange
-        const gameData = { ingame: { m1: { betTracks: {} } } };
-        roundsRepository.find().lean().exec.mockReturnValue([]);
-        const cron = new GameCron({
+    let cron;
+    beforeEach(() => {
+        // Arrange
+        cron = new GameCron({
             definition,
-            gameData,
             bot,
             roundsRepository,
             archiveStatusesRepository,
@@ -47,93 +33,100 @@ describe("game-cron", () => {
             currencyGroupRepository,
             currencyRepository,
         });
+    });
 
+    describe("extends", () => {
+        it("inherit Core.Crons.BaseGameCron", () => {
+            // Assert
+            expect(cron instanceof Core.Crons.BaseGameCron);
+        });
+    });
+
+    describe("start", () => {
         const testCases = [
             { lastRound: null, expectedValue: 10 },
             { lastRound: { id: 10 }, expectedValue: 11 },
         ];
         it.each(testCases)("should assign round id", async (testCase) => {
-            // arrange
+            // Arrange
+            cron.gameData = { ingame: { m1: { betTracks: {} } } };
+            roundsRepository.find().lean().exec.mockReturnValue([]);
+
             roundsRepository.findOne().lean().exec.mockReturnValue(testCase.lastRound);
             spyOn(cron, "getLastArchiveRound").and.returnValue(10);
             spyOn(cron, "proceedUnsettledBets");
 
-            // act
+            // Act
             await cron.start();
 
-            // assert
-            expect(gameData.roundId).toStrictEqual(testCase.expectedValue);
+            // Assert
+            expect(cron.gameData.roundId).toStrictEqual(testCase.expectedValue);
             expect(cron.proceedUnsettledBets).toHaveBeenCalled();
         });
     });
 
     describe("proceed", () => {
         it("always processRunningRounds", async () => {
-            // arrange
-            const gameData = { ingame: {} };
-            const cron = new GameCron({ definition, gameData });
+            // Arrange
+            cron.gameData = { ingame: {} };
             spyOn(cron, "processRunningRounds");
 
-            // act
+            // Act
             await cron.proceed();
 
-            // assert
+            // Assert
             expect(cron.processRunningRounds).toHaveBeenCalled();
         });
 
         describe("when remainingTime is wholeRound", () => {
             it("should checkGameStatus", async () => {
-                // arrange
-                const gameData = { ingame: {}, remainingTime: 120 };
-                const cron = new GameCron({ definition, gameData });
+                // Arrange
+                cron.gameData = { ingame: {}, remainingTime: 120 };
                 spyOn(cron, "checkGameStatus");
 
-                // act
+                // Act
                 await cron.proceed();
 
-                // assert
+                // Assert
                 expect(cron.checkGameStatus).toHaveBeenCalled();
             });
         });
 
         describe("when is Starting Time", () => {
             it("should call bot.reset", async () => {
-                // arrange
-                const gameData = { ingame: {}, remainingTime: 40, disabled: true };
-                const cron = new GameCron({ definition, gameData, bot });
+                // Arrange
+                cron.gameData = { ingame: {}, remainingTime: 40, disabled: true };
 
-                // act
+                // Act
                 await cron.proceed();
 
-                // assert
+                // Assert
                 expect(bot.reset).toHaveBeenCalled();
             });
         });
 
         describe("when remainingTime < 0", () => {
             it("should reset remainingTime", async () => {
-                // arrange
-                const gameData = { ingame: {}, remainingTime: -1, disabled: false };
-                const cron = new GameCron({ definition, gameData, bot });
+                // Arrange
+                cron.gameData = { ingame: {}, remainingTime: -1, disabled: false };
 
-                // act
+                // Act
                 await cron.proceed();
 
-                // assert
-                expect(gameData.remainingTime).toBe(definition.durations.wholeRound);
+                // Assert
+                expect(cron.gameData.remainingTime).toBe(definition.durations.wholeRound);
             });
         });
 
         describe("when remainingTime < placingBets", () => {
             it("should call bot.run", async () => {
-                // arrange
-                const gameData = { ingame: {}, remainingTime: 39, disabled: false };
-                const cron = new GameCron({ definition, gameData, bot });
+                // Arrange
+                cron.gameData = { ingame: {}, remainingTime: 39, disabled: false };
 
-                // act
+                // Act
                 await cron.proceed();
 
-                // assert
+                // Assert
                 expect(bot.run).toHaveBeenCalled();
             });
         });
@@ -141,11 +134,11 @@ describe("game-cron", () => {
 
     describe("processRunningRounds", () => {
         it("should settle correct turns", async () => {
-            // arrange
+            // Arrange
             const dt = new Date();
             const expiredTime = new Date(dt.getTime() - 120000);
             const realPlayers = { m1: { UID: "m1" }, m2: { UID: "m2" } };
-            const gameData = {
+            cron.gameData = {
                 ingame: {
                     m1: { betTracks: { turnEndTime: expiredTime, uid: "m1", totalTurns: 0, name: "m1", result: [{ rank: 3 }] } },
                     m2: { betTracks: { turnEndTime: expiredTime, uid: "m2", totalTurns: 1, name: "m2" }, result: [{ rank: 3 }] },
@@ -154,16 +147,15 @@ describe("game-cron", () => {
                 },
                 realPlayers,
             };
-            const settleTurnConsumer = { settleTurn: jest.fn() };
-            const collectConsumer = { consume: jest.fn() };
-            const cron = new GameCron({ definition, gameData, settleTurnConsumer, collectConsumer });
+            cron.settleTurnConsumer = { settleTurn: jest.fn() };
+            cron.collectConsumer = { consume: jest.fn() };
 
-            // act
+            // Act
             await cron.processRunningRounds();
 
-            // assert
+            // Assert
             expect(cron.settleTurnConsumer.settleTurn).toHaveBeenCalledWith(expect.objectContaining({ name: "m1" }), expect.any(Object));
-            expect(collectConsumer.consume).toHaveBeenCalled();
+            expect(cron.collectConsumer.consume).toHaveBeenCalled();
             expect(cron.settleTurnConsumer.settleTurn).not.toHaveBeenCalledWith(
                 expect.objectContaining({ name: "m3" }),
                 expect.any(Object)
@@ -173,47 +165,44 @@ describe("game-cron", () => {
 
     describe("autoChooseChoice", () => {
         it("difference of choice frequency not too high", () => {
-            // arrange
-            const cron = new GameCron({ definition });
+            // Arrange
             const choiceCounts = { hi: 0, lo: 0 };
             const testCount = 1000;
             const round = { result: [{ rank: 3 }] };
 
-            // act
+            // Act
             for (let i = 0; i < testCount; i++) {
                 const choice = cron.autoChooseChoice(round);
                 choiceCounts[choice]++;
             }
 
-            // assert
+            // Assert
             expect(Math.abs(choiceCounts.hi / testCount - 0.5) <= 0.05).toBeTruthy();
             expect(Math.abs(choiceCounts.lo / testCount - 0.5) <= 0.05).toBeTruthy();
         });
 
         describe("when current card is Ace", () => {
             it("should return low", () => {
-                // arrange
-                const cron = new GameCron({ definition });
+                // Arrange
                 const round = { result: [{ rank: "A" }] };
 
-                // act
+                // Act
                 const actualValue = cron.autoChooseChoice(round);
 
-                // assert
+                // Assert
                 expect(actualValue).toBe(choiceNames.l);
             });
         });
 
         describe("when current card is Two", () => {
             it("should return high", () => {
-                // arrange
-                const cron = new GameCron({ definition });
+                // Arrange
                 const round = { result: [{ rank: "2" }] };
 
-                // act
+                // Act
                 const actualValue = cron.autoChooseChoice(round);
 
-                // assert
+                // Assert
                 expect(actualValue).toBe(choiceNames.h);
             });
         });
@@ -221,21 +210,20 @@ describe("game-cron", () => {
 
     describe("proceedUnsettledBets", () => {
         it("should call collectConsumer.consume", async () => {
-            // arrange
-            const gameData = { ingame: { m1: { betTracks: {} } } };
+            // Arrange
+            cron.gameData = { ingame: { m1: { betTracks: {} } } };
             const rounds = [
                 { totalTurns: 0, uid: "m1" },
                 { totalTurns: 1, uid: "m2" },
             ];
             roundsRepository.find().lean().exec.mockReturnValue(rounds);
-            const settleGameRoundConsumer = { settleBets: jest.fn() };
-            const cron = new GameCron({ gameData, roundsRepository, settleGameRoundConsumer });
+            cron.settleGameRoundConsumer = { settleBets: jest.fn() };
 
-            // act
+            // Act
             await cron.proceedUnsettledBets();
 
-            // assert
-            expect(settleGameRoundConsumer.settleBets).toHaveBeenCalled();
+            // Assert
+            expect(cron.settleGameRoundConsumer.settleBets).toHaveBeenCalled();
         });
     });
 });

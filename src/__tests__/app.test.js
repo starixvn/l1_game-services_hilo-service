@@ -47,13 +47,13 @@ describe("app", () => {
 
     describe("run", () => {
         it("should call app.run", async () => {
-            // arrange
+            // Arrange
             mAppStatus.started = false;
 
-            // act
+            // Act
             await run();
 
-            // assert
+            // Assert
             expect(mAppStatus.started).toBe(true);
         });
     });

@@ -26,7 +26,7 @@ describe("event deal - already have running round", () => {
 
     describe("when deal is valid", () => {
         it("should return endDeal", (done) => {
-            // arrange
+            // Arrange
             gameClientDriver.sendBetEvent(null, 20);
             let startDeal = false;
             const endDealFunc = (endBetData) => {
@@ -66,7 +66,7 @@ describe("event deal - not yet have running round", () => {
     });
 
     it("should return endDeal=-1", (done) => {
-        // arrange
+        // Arrange
         gameClientDriver.emit("collect", null);
 
         // Assert

@@ -2,12 +2,15 @@ import { Core } from "sc-game-base";
 import { SettleGameRoundConsumer } from "../index";
 
 describe("settle-game-round-consumer", () => {
+    let consumer;
+    beforeEach(() => {
+        // Arrange
+        consumer = new SettleGameRoundConsumer({});
+    });
+
     describe("extends", () => {
         it("inherit Core.BaseEventConsumers.SettleGameRoundConsumer", () => {
-            // act
-            const consumer = new SettleGameRoundConsumer({});
-
-            // assert
+            // Assert
             expect(consumer instanceof Core.BaseEventConsumers.SettleGameRoundConsumer);
         });
     });
@@ -15,9 +18,8 @@ describe("settle-game-round-consumer", () => {
     describe("calculateBetResult", () => {
         describe("when not win", () => {
             it("should return isLose true", () => {
-                // arrange
-                const gameData = {};
-                const consumer = new SettleGameRoundConsumer({ gameData });
+                // Arrange
+                consumer.gameData = {};
                 const settlementResult = { isLose: true, betwin: 0 };
                 const bet = { amount: 10 };
                 const expectedValue = {
@@ -29,19 +31,18 @@ describe("settle-game-round-consumer", () => {
                     totalLost: 10,
                 };
 
-                // act
+                // Act
                 const actualValue = consumer.calculateBetResult(settlementResult, bet);
 
-                // assert
+                // Assert
                 expect(actualValue).toStrictEqual(expectedValue);
             });
         });
 
         describe("when win", () => {
             it("should return isLose false", () => {
-                // arrange
-                const gameData = {};
-                const consumer = new SettleGameRoundConsumer({ gameData });
+                // Arrange
+                consumer.gameData = {};
                 const settlementResult = { isLose: false, betwin: 20 };
                 const bet = { amount: 10 };
                 const expectedValue = {
@@ -53,10 +54,10 @@ describe("settle-game-round-consumer", () => {
                     betwin: 20,
                 };
 
-                // act
+                // Act
                 const actualValue = consumer.calculateBetResult(settlementResult, bet);
 
-                // assert
+                // Assert
                 expect(actualValue).toStrictEqual(expectedValue);
             });
         });
@@ -65,15 +66,14 @@ describe("settle-game-round-consumer", () => {
     describe("settleBets", () => {
         describe("when not have bet", () => {
             it("should not call bet with end time", async () => {
-                // arrange
-                const gameData = {
+                // Arrange
+                consumer.gameData = {
                     gameConfigs: {},
                     ingame: { m1: { betTracks: { result: {}, turnResult: { betwin: 10 }, id: 1, endTime: new Date() } } },
                 };
-                const definition = {};
-                const userBetResultPublisher = { publish: jest.fn() };
-                const roundResultPublisher = { publishRoundResult: jest.fn() };
-                const consumer = new SettleGameRoundConsumer({ gameData, definition, userBetResultPublisher, roundResultPublisher });
+                consumer.definition = {};
+                consumer.userBetResultPublisher = { publish: jest.fn() };
+                consumer.roundResultPublisher = { publishRoundResult: jest.fn() };
                 const bet = { save: jest.fn() };
                 spyOn(consumer, "queryBets").and.returnValue([]);
                 consumer.endGame = async () => {
@@ -82,24 +82,23 @@ describe("settle-game-round-consumer", () => {
                     };
                 };
 
-                // act
+                // Act
                 await consumer.settleBets("m1");
 
-                // assert
+                // Assert
                 expect(bet.save).not.toHaveBeenCalled();
             });
         });
 
         it("should save bet with end time", async () => {
-            // arrange
-            const gameData = {
+            // Arrange
+            consumer.gameData = {
                 gameConfigs: {},
                 ingame: { m1: { betTracks: { result: {}, turnResult: { betwin: 10 }, id: 1, endTime: new Date() } } },
             };
-            const definition = {};
-            const userBetResultPublisher = { publish: jest.fn() };
-            const roundResultPublisher = { publishRoundResult: jest.fn() };
-            const consumer = new SettleGameRoundConsumer({ gameData, definition, userBetResultPublisher, roundResultPublisher });
+            consumer.definition = {};
+            consumer.userBetResultPublisher = { publish: jest.fn() };
+            consumer.roundResultPublisher = { publishRoundResult: jest.fn() };
             const bet = { save: jest.fn() };
             spyOn(consumer, "queryBets").and.returnValue([bet]);
             consumer.endGame = async () => {
@@ -108,30 +107,28 @@ describe("settle-game-round-consumer", () => {
                 };
             };
 
-            // act
+            // Act
             await consumer.settleBets("m1");
 
-            // assert
+            // Assert
             expect(bet.save).toHaveBeenCalled();
         });
     });
 
     describe("queryBets", () => {
         it("should return from db", async () => {
-            // arrange
+            // Arrange
             const bets = [];
-            const roundsRepository = {
+            consumer.roundsRepository = {
                 find: () => {
                     return { exec: () => bets };
                 },
             };
 
-            const consumer = new SettleGameRoundConsumer({ roundsRepository });
-
-            // act
+            // Act
             const actualValue = await consumer.queryBets();
 
-            // assert
+            // Assert
             expect(actualValue).toStrictEqual(bets);
         });
     });
@@ -139,32 +136,30 @@ describe("settle-game-round-consumer", () => {
     describe("collect", () => {
         describe("when not have running round", () => {
             it("should not call settleGameRoundConsumer.settleBets", async () => {
-                // arrange
-                const gameData = { ingame: { m1: { betTracks: null } } };
-                const consumer = new SettleGameRoundConsumer({ gameData });
+                // Arrange
+                consumer.gameData = { ingame: { m1: { betTracks: null } } };
                 spyOn(consumer, "settleBets");
                 const player = { session: {}, profile: { name: "m1" } };
 
-                // act
+                // Act
                 await consumer.collect(player);
 
-                // assert
+                // Assert
                 expect(consumer.settleBets).not.toBeCalled();
             });
         });
 
         describe("when have running round", () => {
             it("should call settleGameRoundConsumer.settleBets", async () => {
-                // arrange
-                const gameData = { ingame: { m1: { betTracks: {} } }, settlementResultFromAdmin: {} };
-                const consumer = new SettleGameRoundConsumer({ gameData });
+                // Arrange
+                consumer.gameData = { ingame: { m1: { betTracks: {} } }, settlementResultFromAdmin: {} };
                 const player = { UID: "m1", session: {}, profile: { name: "m1" } };
                 spyOn(consumer, "settleBets");
 
-                // act
+                // Act
                 await consumer.collect(player);
 
-                // assert
+                // Assert
                 expect(consumer.settleBets).toBeCalled();
             });
         });

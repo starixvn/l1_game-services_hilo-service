@@ -9,12 +9,15 @@ const userInfosRepository = {
 };
 
 describe("game-bot", () => {
+    let cron;
+    beforeEach(() => {
+        // Arrange
+        cron = new GameBot({}, null, userInfosRepository);
+    });
+
     describe("extends", () => {
         it("inherit Core.Crons.BaseBot", () => {
-            // act
-            const cron = new GameBot({});
-
-            // assert
+            // Assert
             expect(cron instanceof Core.Crons.BaseBot);
         });
     });
@@ -22,38 +25,36 @@ describe("game-bot", () => {
     describe("placeBet", () => {
         describe("when not have config", () => {
             it("should not increase round id", async () => {
-                // arrange
-                const gameData = { gameConfigs: null, roundId: 10 };
-                const cron = new GameBot({}, gameData);
+                // Arrange
+                cron.gameData = { gameConfigs: null, roundId: 10 };
                 const expectedValue = 10;
 
-                // act
+                // Act
                 await cron.run();
 
-                // assert
-                expect(gameData.roundId).toBe(expectedValue);
+                // Assert
+                expect(cron.gameData.roundId).toBe(expectedValue);
             });
         });
 
         describe("when bot not enabled ", () => {
             it("should not increase round id", async () => {
-                // arrange
-                const gameData = { gameConfigs: { botenabled: false }, roundId: 10 };
-                const cron = new GameBot({}, gameData);
+                // Arrange
+                cron.gameData = { gameConfigs: { botenabled: false }, roundId: 10 };
                 const expectedValue = 10;
 
-                // act
+                // Act
                 await cron.run();
 
-                // assert
-                expect(gameData.roundId).toBe(expectedValue);
+                // Assert
+                expect(cron.gameData.roundId).toBe(expectedValue);
             });
         });
 
         describe("when maxNumberOfBots=0", () => {
             it("should not increase round id", async () => {
-                // arrange
-                const gameData = {
+                // Arrange
+                cron.gameData = {
                     gameConfigs: {
                         botenabled: true,
                         hour_maxbot: Array(24).fill(10),
@@ -62,21 +63,20 @@ describe("game-bot", () => {
                 };
 
                 userInfosRepository.noOfDocuments = 0;
-                const cron = new GameBot({}, gameData, userInfosRepository);
                 const expectedValue = 10;
 
-                // act
+                // Act
                 await cron.run();
 
-                // assert
-                expect(gameData.roundId).toBe(expectedValue);
+                // Assert
+                expect(cron.gameData.roundId).toBe(expectedValue);
             });
         });
 
         describe("when maxNumberOfBots>0", () => {
             it("should increase round id in range 1 -> maxNumberOfBots", async () => {
-                // arrange
-                const gameData = {
+                // Arrange
+                cron.gameData = {
                     gameConfigs: {
                         botenabled: true,
                         hour_maxbot: Array(24).fill(10),
@@ -85,15 +85,14 @@ describe("game-bot", () => {
                 };
 
                 userInfosRepository.noOfDocuments = 10;
-                const cron = new GameBot({}, gameData, userInfosRepository);
                 spyOn(cron, "processDisabledBots");
                 await cron.reset();
 
-                // act
+                // Act
                 await cron.run();
 
-                // assert
-                expect(11 <= gameData.roundId && gameData.roundId <= 110).toBeTruthy();
+                // Assert
+                expect(11 <= cron.gameData.roundId && cron.gameData.roundId <= 110).toBeTruthy();
             });
         });
     });
