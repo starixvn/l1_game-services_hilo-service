@@ -8332,6 +8332,16 @@ sc-api-client@^1.3.0:
     axios "^0.19.2"
     openid-client "^3.15.9"
 
+sc-base-apis@1.15.1:
+  version "1.15.1"
+  resolved "https://npm.lumigame.com/sc-base-apis/-/sc-base-apis-1.15.1.tgz#456a1b2929cb0556ae789c46f7d4f8cfa5926a2d"
+  integrity sha512-YfZz8aTOrt50Jo5T5CCBISi/o64yGrDJ9JFLlG2IqGV48aVNqSQ2fHTsjEkozM0/AUy1wVFdIOe226rrwoBCPA==
+  dependencies:
+    moment "^2.27.0"
+    sc-api-client "^1.3.0"
+    sc-base-database "1.9.1"
+    sc-common "^1.8.0"
+
 sc-base-apis@1.15.1-beta.0:
   version "1.15.1-beta.0"
   resolved "https://npm.lumigame.com/sc-base-apis/-/sc-base-apis-1.15.1-beta.0.tgz#d86288f9b07d0046a9eac6083e9942cf0f2265f6"
@@ -8372,6 +8382,17 @@ sc-common@^1.7.1-beta.0:
     mongoose-long "^0.3.0"
     numeral "^2.0.6"
 
+sc-common@^1.8.0:
+  version "1.8.0"
+  resolved "https://npm.lumigame.com/sc-common/-/sc-common-1.8.0.tgz#125ce2efae5a7ddb328981790766f9ee8e5be359"
+  integrity sha512-QVUpBms9Vt0Bmm2GcFaf44pYQvbXB7odI+vZJqnr0ainWWLgVynK4wxcKn6y7bNhTxP6MGIX8lFHcpgilXn3eQ==
+  dependencies:
+    "@sentry/node" "^5.19.1"
+    jsonwebtoken "^8.5.1"
+    jwks-rsa "^1.8.1"
+    mongoose-long "^0.3.0"
+    numeral "^2.0.6"
+
 sc-game-base@2.4.1-beta.0:
   version "2.4.1-beta.0"
   resolved "https://npm.lumigame.com/sc-game-base/-/sc-game-base-2.4.1-beta.0.tgz#9709cc1575913f7ce6d43649199109e269cf3fb7"
@@ -8392,6 +8413,30 @@ sc-game-base@2.4.1-beta.0:
     sc-base-apis "1.15.1-beta.0"
     sc-base-database "1.9.1"
     sc-common "^1.7.1-beta.0"
+    socket.io "^4.1.2"
+    socket.io-msgpack-parser "^3.0.1"
+    socket.io-prom-metrics "^1.0.3"
+
+sc-game-base@2.4.1-beta.2:
+  version "2.4.1-beta.2"
+  resolved "https://npm.lumigame.com/sc-game-base/-/sc-game-base-2.4.1-beta.2.tgz#bf6d2292f8b4e67ee21445b0f6087385899c828a"
+  integrity sha512-o/f5XQQbacqNfvfYZZDU6ussObLESVgndUllgvxme5BN9TfmBGKizvdoVr4DM0U59ZKG6rYTyNlpj/TjMTtY9A==
+  dependencies:
+    awilix "^4.3.1"
+    axios "^0.20.0"
+    body-parser "^1.19.0"
+    chance "^1.1.7"
+    cors "^2.8.5"
+    cron "^1.8.2"
+    express "^4.17.1"
+    helmet "^3.23.3"
+    lodash "^4.17.19"
+    mongoose "^5.9.25"
+    morgan "^1.10.0"
+    openid-client "^4.2.0"
+    sc-base-apis "1.15.1"
+    sc-base-database "1.9.1"
+    sc-common "^1.8.0"
     socket.io "^4.1.2"
     socket.io-msgpack-parser "^3.0.1"
     socket.io-prom-metrics "^1.0.3"
