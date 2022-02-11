@@ -14,9 +14,10 @@ export default class SettleTurnConsumer {
 
     generateResult(runningRound) {
         const resultFromAdmin = this.gameData.settlementResultFromAdmin ? this.gameData.settlementResultFromAdmin[runningRound.name] : null;
+        const turnOrder = runningRound.totalTurns + 1;
 
-        return !!resultFromAdmin && runningRound.totalTurns < resultFromAdmin.length
-            ? resultFromAdmin[runningRound.totalTurns]
+        return !!resultFromAdmin && turnOrder < resultFromAdmin.length
+            ? resultFromAdmin[turnOrder]
             : drawCard(runningRound.result[runningRound.result.length - 1]);
     }
 
