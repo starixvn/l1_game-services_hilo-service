@@ -17,7 +17,7 @@ describe("settle-turn-consumer", () => {
         describe("when resultFromAdmin is set for user", () => {
             it("should return resultFromAdmin", () => {
                 // Arrange
-                consumer.gameData = { settlementResultFromAdmin: { player: [{ rank: "3" }] } };
+                consumer.gameData = { settlementResultFromAdmin: { player: [{ rank: "8" }, { rank: "3" }] } };
                 const expectedValue = { rank: "3" };
                 const runningRound = { name: "player", id: 10, result: [], totalTurns: 0 };
 
