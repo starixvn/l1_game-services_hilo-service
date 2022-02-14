@@ -1,31 +1,66 @@
 import { baseCards } from "../../cards";
 import { SettleTurnConsumer } from "../index";
 import mongoose from "mongoose";
-import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
+import { stubMongooseModelStupidly, stub } from "jest-micro-auto-stub";
+import { UserBetResultPublisher } from "sc-game-base/src/core/event-publishers";
+import { SettleGameRoundConsumer } from "sc-game-base/src/core/event-consumers";
+import gameSettings from "../../game-settings";
+import { player1, odds } from "../../test-data";
+
+jest.mock("../../helpers/deck-helper", () => {
+    return {
+        drawCard: () => {
+            return { rank: "10", suit: 2 };
+        },
+    };
+});
 
 describe("settle-turn-consumer", () => {
     let betLogsRepository;
     let consumer;
+    let mockDate = new Date();
 
     beforeEach(() => {
         // Arrange
+        jest.spyOn(global, "Date").mockImplementation(() => mockDate);
+
         betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
-        consumer = new SettleTurnConsumer({ betLogsRepository });
+        const userBetResultPublisher = stub(UserBetResultPublisher);
+        const settleGameRoundConsumer = stub(SettleGameRoundConsumer);
+
+        consumer = new SettleTurnConsumer({ betLogsRepository, userBetResultPublisher, settleGameRoundConsumer });
     });
 
     describe("generateResult", () => {
         describe("when resultFromAdmin is set for user", () => {
-            it("should return resultFromAdmin", () => {
-                // Arrange
-                consumer.gameData = { settlementResultFromAdmin: { player: [{ rank: "8" }, { rank: "3" }] } };
-                const expectedValue = { rank: "3" };
-                const runningRound = { name: "player", id: 10, result: [], totalTurns: 0 };
+            describe("turnOrder < resultFromAdmin.length", () => {
+                it("should return resultFromAdmin", () => {
+                    // Arrange
+                    consumer.gameData = { settlementResultFromAdmin: { player: [{ rank: "8" }, { rank: "3" }] } };
+                    const expectedValue = { rank: "3" };
+                    const runningRound = { name: "player", id: 10, result: [], totalTurns: 0 };
 
-                // Act
-                const actualValue = consumer.generateResult(runningRound);
+                    // Act
+                    const actualValue = consumer.generateResult(runningRound);
 
-                // Assert
-                expect(actualValue.rank).toStrictEqual(expectedValue.rank);
+                    // Assert
+                    expect(actualValue.rank).toStrictEqual(expectedValue.rank);
+                });
+            });
+
+            describe("turnOrder >= resultFromAdmin.length", () => {
+                it("should return result from drawCard function", () => {
+                    // Arrange
+                    consumer.gameData = { settlementResultFromAdmin: { player: [{ rank: "8" }] } };
+                    const runningRound = { name: "player", id: 10, result: [], totalTurns: 0 };
+                    const expectedValue = { rank: "10", suit: 2 };
+
+                    // Act
+                    const actualValue = consumer.generateResult(runningRound);
+
+                    // Assert
+                    expect(actualValue).toStrictEqual(expectedValue);
+                });
             });
         });
 
@@ -34,14 +69,14 @@ describe("settle-turn-consumer", () => {
             it.each(testCases)("should generate new result", (testCase) => {
                 // Arrange
                 consumer.gameData = { settlementResultFromAdmin: testCase.settlementResultFromAdmin };
-                const expectedValue = null;
+                const expectedValue = { rank: "10", suit: 2 };
                 const runningRound = { name: "player01", id: 11, result: [...baseCards], totalTurns: 3 };
 
                 // Act
                 const actualValue = consumer.generateResult(runningRound);
 
                 // Assert
-                expect(actualValue).not.toBe(expectedValue);
+                expect(actualValue).toStrictEqual(expectedValue);
             });
         });
     });
@@ -88,6 +123,7 @@ describe("settle-turn-consumer", () => {
                 expect(actualValue).toStrictEqual(expectedValue);
             });
         });
+
         describe("when result is tie", () => {
             // Arrange
             const testCases = [{ resultCard: { rank: "4" }, currentCard: { rank: "4" }, expectedValue: "t" }];
@@ -105,21 +141,57 @@ describe("settle-turn-consumer", () => {
         });
     });
 
-    describe("addBetLog", () => {
+    describe("insertBetLog", () => {
         it("should call betLogsRepository.create", async () => {
             // Arrange
             consumer.gameData = {
-                realPlayers: { m1: { uid: "m1", session: {} } },
+                realPlayers: { [player1.profile.name]: { uid: player1.UID, session: {} } },
                 exchangeRates: { code: [] },
             };
-            const runningRound = { totalTurns: 3, result: [{ rank: "4", suit: 0 }] };
+            const runningRound = {
+                uid: player1.UID,
+                name: player1.profile.name,
+                id: 10,
+                totalTurns: 3,
+                betwin: 1,
+                result: [{ rank: "4", suit: 0 }],
+
+                memberId: 1,
+                siteId: 2,
+                partnerId: 3,
+                currency: "AUD",
+                rate: 4,
+            };
+
             const turnResult = { betwin: 10, result: [{ rank: "5", suit: 0 }] };
+            const expectedLog = {
+                uid: player1.UID,
+                name: player1.profile.name,
+                roundId: 10,
+
+                time: mockDate,
+                amount: 1,
+                betwin: 10,
+                choice: "h",
+
+                memberId: 1,
+                siteId: 2,
+                partnerId: 3,
+                currency: "AUD",
+                rate: 4,
+
+                order: 4,
+                cards: [
+                    { rank: "4", suit: 0 },
+                    { rank: "5", suit: 0 },
+                ],
+            };
 
             // Act
-            await consumer.addBetLog(runningRound, "h", turnResult);
+            await consumer.insertBetLog(runningRound, "h", turnResult);
 
             // Assert
-            expect(betLogsRepository.create).toBeCalled();
+            expect(betLogsRepository.create).toBeCalledWith(expectedLog);
         });
     });
 
@@ -175,61 +247,128 @@ describe("settle-turn-consumer", () => {
     });
 
     describe("settleTurn", () => {
-        const testCases = [
-            {
-                previousCards: [{ rank: "4", suit: 3 }],
-                betChoice: "h",
-            },
-            {
-                previousCards: [{ rank: "4", suit: 3 }],
-                betChoice: "l",
-            },
-            {
-                previousCards: [{ rank: "8", suit: 3 }],
-                betChoice: "h",
-            },
-            {
-                previousCards: [{ rank: "8", suit: 3 }],
-                betChoice: "l",
-            },
-        ];
-        it.each(testCases)("should add new bet log", async (testCase) => {
+        let player;
+        let roundsRepositoryUpdate = { exec: jest.fn() };
+
+        beforeEach(() => {
             // Arrange
             consumer.gameData = {
                 ingame: {
-                    m1: {
-                        betTracks: {
-                            id: 10,
-                            result: testCase.previousCards,
-                            settlementResult: [],
-                            name: "m1",
-                            totalTurns: 0,
-                        },
+                    [player1.profile.name]: {
+                        betTracks: { id: 10, settlementResult: [], name: player1.profile.name, totalTurns: 0, betwin: 1 },
                     },
                 },
-                settlementResultFromAdmin: { m1: [{ rank: "3" }] },
-                gameConfigs: { odds: {} },
+                settlementResultFromAdmin: { [player1.profile.name]: [{ rank: "8" }] },
+                gameConfigs: { odds },
             };
 
             consumer.roundsRepository = {
                 updateOne: () => {
-                    return { exec: jest.fn() };
+                    return roundsRepositoryUpdate;
                 },
             };
 
-            consumer.userBetResultPublisher = { publishToUser: jest.fn() };
-            consumer.settleGameRoundConsumer = { settleBets: jest.fn() };
-            const player = { uid: "m1", name: "m1" };
-            const payload = { betChoice: testCase.betChoice };
-            spyOn(consumer, "addBetLog");
+            spyOn(consumer, "insertBetLog");
             spyOn(consumer.settleGameRoundConsumer, "settleBets");
             spyOn(consumer, "generateResult").and.returnValue({ rank: "8", suit: 0 });
 
-            // Act
-            await consumer.settleTurn(player, payload);
+            player = { uid: player1.UID, name: player1.profile.name };
+        });
 
-            // Assert
-            expect(consumer.addBetLog).toHaveBeenCalled();
+        describe("when lose", () => {
+            it("should call settleGameRoundConsumer.settleBets", async () => {
+                // Arrange
+                consumer.gameData.ingame[player1.profile.name].betTracks.result = [{ rank: "10", suit: 3 }];
+                const payload = { betChoice: "h" };
+
+                // Act
+                await consumer.settleTurn(player, payload);
+
+                // Assert
+                expect(consumer.settleGameRoundConsumer.settleBets).toHaveBeenCalledWith(player1.profile.name);
+            });
+        });
+
+        describe("when win", () => {
+            it("should update running round info from turn result to game data", async () => {
+                // Arrange
+                consumer.gameData.ingame[player1.profile.name].betTracks.result = [{ rank: "4", suit: 3 }];
+                const payload = { betChoice: "h" };
+                const expectedValue = { betwin: 1.16, nextAmounts: { h: 2.05, l: 2.05 } };
+
+                // Act
+                await consumer.settleTurn(player, payload);
+
+                // Assert
+                expect(consumer.gameData.ingame[player1.profile.name].betTracks).toStrictEqual(expect.objectContaining(expectedValue));
+            });
+        });
+
+        describe("always", () => {
+            beforeEach(async () => {
+                // Arrange
+                consumer.gameData.ingame[player1.profile.name].betTracks.result = [{ rank: "4", suit: 3 }];
+                const payload = { betChoice: "l" };
+
+                // Act
+                await consumer.settleTurn(player, payload);
+            });
+
+            it("should add new bet log", async () => {
+                // Arrange
+                const expectedTurnResult = {
+                    betwin: 0,
+                    isLose: true,
+                    nextAmounts: null,
+                    remainingTime: gameSettings.durations.turnTime,
+                    result: [
+                        { rank: "4", suit: 3 },
+                        { rank: "8", suit: 0 },
+                    ],
+                    settlementResult: ["h"],
+                    totalTurns: 1,
+                    turnTime: mockDate,
+                };
+                const expectedRunningRound = {
+                    betwin: 1,
+                    id: 10,
+                    name: player1.profile.name,
+                    result: [{ rank: "4", suit: 3 }],
+                    settlementResult: [],
+                    totalTurns: 0,
+                    turnResult: expectedTurnResult,
+                };
+
+                // Assert
+                expect(consumer.insertBetLog).toHaveBeenCalledWith(expectedRunningRound, "l", expectedTurnResult);
+            });
+
+            it("call roundsRepository.updateOne", async () => {
+                // Assert
+                expect(roundsRepositoryUpdate.exec).toHaveBeenCalled();
+            });
+
+            it("should call userBetResultPublisher.publishToUser", async () => {
+                // Arrange
+                const endDealData = {
+                    endDeal: 1,
+                    result: {
+                        roundId: 10,
+                        betwin: 0,
+                        result: [
+                            { rank: "4", suit: 3 },
+                            { rank: "8", suit: 0 },
+                        ],
+                        settlementResult: ["h"],
+                        remainingTime: gameSettings.durations.turnTime,
+                        nextAmounts: null,
+                        totalTurns: 1,
+                    },
+                };
+
+                // Assert
+                expect(consumer.userBetResultPublisher.publishToUser).toHaveBeenCalledWith(player1.UID, endDealData);
+            });
         });
     });
 
@@ -253,7 +392,7 @@ describe("settle-turn-consumer", () => {
         describe("when win", () => {
             it("should return next amounts base on odds and turn order", async () => {
                 // Arrange
-                consumer.gameData = { gameConfigs: { odds: { high7: 0.9, low7: 0.9, high8: 0.9, low8: 0.9 } } };
+                consumer.gameData = { gameConfigs: { odds } };
                 spyOn(consumer, "generateResult").and.returnValue({ rank: "8", suit: 0 });
                 const runningRound = { totalTurns: 0, betwin: 1, result: [{ rank: "7", suit: 0 }], settlementResult: [] };
                 const payload = { betChoice: "h" };
@@ -270,18 +409,20 @@ describe("settle-turn-consumer", () => {
         describe("when tie", () => {
             it("should return next amounts = current amount", async () => {
                 // Arrange
-                consumer.gameData = { gameConfigs: { odds: { high8: 0.9, low8: 0.9 } } };
+                consumer.gameData = { gameConfigs: { odds } };
                 spyOn(consumer, "generateResult").and.returnValue({ rank: "8", suit: 0 });
                 const runningRound = { totalTurns: 0, betwin: 1, result: [{ rank: "8", suit: 0 }], settlementResult: [] };
                 const payload = { betChoice: "h" };
-                const expectedValue = { h: 1.77, l: 1.77 };
+                const expectedValue = {
+                    betwin: 1,
+                    nextAmounts: { h: 1.77, l: 1.77 },
+                };
 
                 // Act
                 const actualValue = await consumer.calculateTurnResult(payload, runningRound);
 
                 // Assert
-                expect(actualValue.betwin).toStrictEqual(runningRound.betwin);
-                expect(actualValue.nextAmounts).toStrictEqual(expectedValue);
+                expect(actualValue).toStrictEqual(expect.objectContaining(expectedValue));
             });
         });
     });

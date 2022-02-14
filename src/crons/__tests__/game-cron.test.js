@@ -1,8 +1,10 @@
 import { Core } from "sc-game-base";
 import { GameCron } from "../index";
 import mongoose from "mongoose";
-import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
+import { stubMongooseModelStupidly, stub } from "jest-micro-auto-stub";
 import { choiceNames } from "../../game-settings";
+import { SettleTurnConsumer, CollectConsumer } from "../../event-consumers";
+import { SettleGameRoundConsumer } from "sc-game-base/src/core/event-consumers";
 
 const bot = { resetInRoomTrackings: jest.fn(), reset: jest.fn(), run: jest.fn() };
 const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
@@ -14,6 +16,9 @@ const currencyGroupGamesRepository = stubMongooseModelStupidly(mongoose.Model);
 const partnerConfigRepository = stubMongooseModelStupidly(mongoose.Model);
 const currencyGroupRepository = stubMongooseModelStupidly(mongoose.Model);
 const currencyRepository = stubMongooseModelStupidly(mongoose.Model);
+const settleTurnConsumer = stub(SettleTurnConsumer);
+const collectConsumer = stub(CollectConsumer);
+const settleGameRoundConsumer = stub(SettleGameRoundConsumer);
 
 describe("game-cron", () => {
     const definition = { durations: { wholeRound: 120, placingBets: 40 }, choices: ["hi", "lo"] };
@@ -32,6 +37,9 @@ describe("game-cron", () => {
             partnerConfigRepository,
             currencyGroupRepository,
             currencyRepository,
+            settleTurnConsumer,
+            collectConsumer,
+            settleGameRoundConsumer,
         });
     });
 
@@ -47,7 +55,7 @@ describe("game-cron", () => {
             { lastRound: null, expectedValue: 10 },
             { lastRound: { id: 10 }, expectedValue: 11 },
         ];
-        it.each(testCases)("should assign round id", async (testCase) => {
+        it.each(testCases)("should proceed Unsettled Bets", async (testCase) => {
             // Arrange
             cron.gameData = { ingame: { m1: { betTracks: {} } } };
             roundsRepository.find().lean().exec.mockReturnValue([]);
@@ -60,7 +68,6 @@ describe("game-cron", () => {
             await cron.start();
 
             // Assert
-            expect(cron.gameData.roundId).toStrictEqual(testCase.expectedValue);
             expect(cron.proceedUnsettledBets).toHaveBeenCalled();
         });
     });
@@ -133,11 +140,11 @@ describe("game-cron", () => {
     });
 
     describe("processRunningRounds", () => {
-        it("should settle correct turns", async () => {
+        beforeEach(async () => {
             // Arrange
+            const realPlayers = { m1: { UID: "m1" }, m2: { UID: "m2" } };
             const dt = new Date();
             const expiredTime = new Date(dt.getTime() - 120000);
-            const realPlayers = { m1: { UID: "m1" }, m2: { UID: "m2" } };
             cron.gameData = {
                 ingame: {
                     m1: { betTracks: { turnEndTime: expiredTime, uid: "m1", totalTurns: 0, name: "m1", result: [{ rank: 3 }] } },
@@ -147,15 +154,23 @@ describe("game-cron", () => {
                 },
                 realPlayers,
             };
-            cron.settleTurnConsumer = { settleTurn: jest.fn() };
-            cron.collectConsumer = { consume: jest.fn() };
 
             // Act
             await cron.processRunningRounds();
+        });
 
+        it("should settle correct turns", async () => {
             // Assert
             expect(cron.settleTurnConsumer.settleTurn).toHaveBeenCalledWith(expect.objectContaining({ name: "m1" }), expect.any(Object));
-            expect(cron.collectConsumer.consume).toHaveBeenCalled();
+        });
+
+        it("should collect correct turns", async () => {
+            // Assert
+            expect(cron.collectConsumer.consume).toHaveBeenCalledWith({ UID: "m2", profile: { name: "m2" } });
+        });
+
+        it("should settle correct turns", async () => {
+            // Assert
             expect(cron.settleTurnConsumer.settleTurn).not.toHaveBeenCalledWith(
                 expect.objectContaining({ name: "m3" }),
                 expect.any(Object)
@@ -177,8 +192,7 @@ describe("game-cron", () => {
             }
 
             // Assert
-            expect(Math.abs(choiceCounts.hi / testCount - 0.5) <= 0.05).toBeTruthy();
-            expect(Math.abs(choiceCounts.lo / testCount - 0.5) <= 0.05).toBeTruthy();
+            expect(Math.abs(choiceCounts.hi / testCount - 0.5) <= 0.05 && Math.abs(choiceCounts.lo / testCount - 0.5) <= 0.05).toBeTruthy();
         });
 
         describe("when current card is Ace", () => {
@@ -211,19 +225,18 @@ describe("game-cron", () => {
     describe("proceedUnsettledBets", () => {
         it("should call collectConsumer.consume", async () => {
             // Arrange
-            cron.gameData = { ingame: { m1: { betTracks: {} } } };
+            cron.gameData = { ingame: { m1: { betTracks: { name: "m1" } } } };
             const rounds = [
                 { totalTurns: 0, uid: "m1" },
                 { totalTurns: 1, uid: "m2" },
             ];
             roundsRepository.find().lean().exec.mockReturnValue(rounds);
-            cron.settleGameRoundConsumer = { settleBets: jest.fn() };
 
             // Act
             await cron.proceedUnsettledBets();
 
             // Assert
-            expect(cron.settleGameRoundConsumer.settleBets).toHaveBeenCalled();
+            expect(cron.settleGameRoundConsumer.settleBets).toHaveBeenCalledWith("m1");
         });
     });
 });

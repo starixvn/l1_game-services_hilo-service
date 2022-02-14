@@ -1,11 +1,17 @@
 import errorCodes from "../../constants/error-codes";
 import { CollectConsumer } from "../index";
+import { player1 } from "../../test-data";
+import { BaseEventPublisher } from "sc-game-base/src/core/event-publishers";
+import { stub } from "jest-micro-auto-stub";
 
 describe("collect-consumer", () => {
     let consumer;
+    let publisher;
+
     beforeEach(() => {
         // Arrange
-        consumer = new CollectConsumer();
+        publisher = stub(BaseEventPublisher);
+        consumer = new CollectConsumer(null, null, publisher);
     });
 
     describe("validate", () => {
@@ -14,7 +20,7 @@ describe("collect-consumer", () => {
                 // Arrange
                 consumer.gameData = { gameConfigs: { enabled: false } };
                 const expectedValue = { notice: errorCodes.cannotCollect };
-                const round = { uid: "m1" };
+                const round = { uid: player1.UID };
 
                 // Act
                 const actualValue = consumer.validate(round);
@@ -28,8 +34,8 @@ describe("collect-consumer", () => {
             // Arrange
             const testCases = [
                 { runningRound: null, expectedValue: { notice: errorCodes.roundEnded } },
-                { runningRound: { uid: "m1", totalTurns: 0 }, expectedValue: { notice: errorCodes.cannotCollect } },
-                { runningRound: { uid: "m1", totalTurns: 10 }, expectedValue: null },
+                { runningRound: { uid: player1.UID, totalTurns: 0 }, expectedValue: { notice: errorCodes.cannotCollect } },
+                { runningRound: { uid: player1.UID, totalTurns: 10 }, expectedValue: null },
             ];
 
             it.each(testCases)("should return validation result of runningRound", (testCase) => {
@@ -49,16 +55,14 @@ describe("collect-consumer", () => {
         describe("when validate failed", () => {
             it("should publish error to user", async () => {
                 // Arrange
-                consumer.publisher = { publishToUser: jest.fn() };
-                consumer.gameData = { ingame: { m1: { betTracks: {} } } };
+                consumer.gameData = { ingame: { [player1.profile.name]: { betTracks: {} } } };
                 spyOn(consumer, "validate").and.returnValue({ failed: true });
-                const player = { UID: "m1", profile: { name: "m1" } };
 
                 // Act
-                await consumer.consume(player);
+                await consumer.consume(player1);
 
                 // Assert
-                expect(consumer.publisher.publishToUser).toBeCalledWith("m1", expect.objectContaining({ isCollect: -1, failed: true }));
+                expect(publisher.publishToUser).toBeCalledWith(player1.UID, expect.objectContaining({ isCollect: -1, failed: true }));
             });
         });
 
@@ -66,18 +70,15 @@ describe("collect-consumer", () => {
             const testCases = [{ betQueue: null }, { betQueue: [] }];
             it.each(testCases)("should push collect info to queue", async (testCase) => {
                 // Arrange
-                consumer.publisher = { publishToUser: jest.fn() };
-                consumer.gameData = { ingame: { m1: { betQueue: testCase.betQueue }, betTracks: { id: 2 } } };
-                consumer.settleGameRoundConsumer = { settleBets: jest.fn() };
+                consumer.gameData = { ingame: { [player1.profile.name]: { betQueue: testCase.betQueue }, betTracks: { id: 2 } } };
                 consumer.definition = { durations: {} };
                 spyOn(consumer, "validate").and.returnValue(null);
-                const player = { UID: "m1", profile: { name: "m1" } };
 
                 // Act
-                await consumer.consume(player);
+                await consumer.consume(player1);
 
                 // Assert
-                expect(consumer.gameData.ingame.m1.betQueue.length > 0).toBeTruthy();
+                expect(consumer.gameData.ingame[player1.profile.name].betQueue.length > 0).toBeTruthy();
             });
         });
     });

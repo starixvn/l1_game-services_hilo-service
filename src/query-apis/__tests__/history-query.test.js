@@ -1,13 +1,19 @@
 import mongoose from "mongoose";
-import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
+import { stubMongooseModelStupidly, stub } from "jest-micro-auto-stub";
 import { Core } from "sc-game-base";
 import { HistoryQuery } from "../index";
+import { RoundQuery } from "../round-query";
 
 describe("history-query", () => {
     let query;
+    let roundQuery;
+    let betLogsRepository;
     beforeEach(() => {
         // Arrange
-        query = new HistoryQuery();
+        roundQuery = stub(RoundQuery);
+        betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
+
+        query = new HistoryQuery(roundQuery, null, betLogsRepository);
     });
 
     describe("extends", () => {
@@ -20,9 +26,8 @@ describe("history-query", () => {
     describe("getBetLogDetails", () => {
         it("should return result from betLogsRepository", () => {
             // Arrange
-            query.betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
             const logs = [];
-            query.betLogsRepository.find().lean().exec.mockReturnValueOnce(logs);
+            betLogsRepository.find().lean().exec.mockReturnValueOnce(logs);
             const player = {};
 
             // Act
@@ -34,19 +39,8 @@ describe("history-query", () => {
     });
 
     describe("queryHistory tests", () => {
-        const roundQuery = {
-            getOne: jest.fn(),
-            countDocuments: jest.fn(),
-            getPlayerRounds: jest.fn(),
-        };
-
-        const betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
-
         describe("when page < 1", () => {
             it("should return empty", async () => {
-                query.roundQuery = roundQuery;
-                query.betLogsRepository = betLogsRepository;
-
                 var actualResult = await query.queryHistory({}, 0, 10);
 
                 expect(actualResult).toBeEmpty();
@@ -54,16 +48,42 @@ describe("history-query", () => {
         });
 
         const testCases = [
-            { betLogsRepository: null },
-            { betLogsRepository },
-            { betLogsRepository, bets: [] },
-            { betLogsRepository, bets: [{ uid: 1, id: 1, odd: 100, even: 50 }] },
-            { betLogsRepository: null, bets: [{ uid: 1, id: 1, odd: 100, even: 50 }] },
+            { betLogsRepository: null, expectedBetLogs: [] },
+            { betLogsRepository: stubMongooseModelStupidly(mongoose.Model), expectedBetLogs: [] },
+            { betLogsRepository, bets: [], expectedBetLogs: [] },
+            {
+                betLogsRepository: stubMongooseModelStupidly(mongoose.Model),
+                bets: [{ uid: 1, id: 1, amount: 100 }],
+                expectedBetLogs: [
+                    {
+                        betLogDetails: undefined,
+                        amount: 100,
+                        id: 1,
+                        result: undefined,
+                        settlementResult: undefined,
+                        uid: 1,
+                    },
+                ],
+            },
+            {
+                betLogsRepository: null,
+                bets: [{ uid: 1, id: 1, amount: 100 }],
+                expectedBetLogs: [
+                    {
+                        betLogDetails: [],
+                        amount: 100,
+                        id: 1,
+                        result: undefined,
+                        settlementResult: undefined,
+                        uid: 1,
+                    },
+                ],
+            },
         ];
         describe("when page >= 1", () => {
             it.each(testCases)("should return data", async (testCase) => {
-                query.roundQuery = roundQuery;
-                query.betLogsRepository = testCase.betLogsRepository;
+                // Arrange
+                const historyQuery = new HistoryQuery(roundQuery, null, testCase.betLogsRepository);
                 roundQuery.getOne.mockReturnValueOnce({
                     id: 1,
                     result: { red1: true, red2: false },
@@ -75,16 +95,24 @@ describe("history-query", () => {
                     .find()
                     .lean()
                     .exec.mockReturnValueOnce([
-                        { uid: 1, roundId: 1, choice: "odd" },
-                        { uid: 1, roundId: 1, choice: "even" },
+                        { uid: 1, roundId: 1, choice: "h" },
+                        { uid: 1, roundId: 1, choice: "l" },
                     ]);
 
-                var actualResult = await query.queryHistory({ UID: 1 }, 1, 10);
+                const expectedResult = {
+                    history: {
+                        page: 1,
+                        pageSize: 10,
+                        total: 1,
+                        betLogs: testCase.expectedBetLogs,
+                    },
+                };
 
-                expect(actualResult).not.toBeEmpty();
-                expect(actualResult.history.page).toEqual(1);
-                expect(actualResult.history.pageSize).toEqual(10);
-                expect(actualResult.history.total).toEqual(1);
+                // Act
+                var actualResult = await historyQuery.queryHistory({ UID: 1 }, 1, 10);
+
+                // Assert
+                expect(actualResult).toStrictEqual(expectedResult);
             });
         });
     });

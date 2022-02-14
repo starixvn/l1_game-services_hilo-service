@@ -1,4 +1,5 @@
 import oddsGenerator from "../odds-generator";
+import { odds } from "../../test-data";
 
 describe("odds-generator", () => {
     describe("generate", () => {
@@ -11,7 +12,6 @@ describe("odds-generator", () => {
 
         it.each(testCases)("should return correct odds", (testCase) => {
             // Arrange
-            const odds = { ["high11"]: 276, ["high5"]: 28, ["low5"]: 276, ["low11"]: 28 };
             const totalTurns = 1;
 
             // Act

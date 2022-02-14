@@ -1,12 +1,16 @@
 import { Core } from "sc-game-base";
 import { helpers } from "sc-common";
 import { PlaceBetConsumer } from "../index";
+import { player1 } from "../../test-data";
+import { BaseEventPublisher } from "sc-game-base/src/core/event-publishers";
+import { stub } from "jest-micro-auto-stub";
 
 describe("place-bet-consumer", () => {
     let consumer;
     beforeEach(() => {
         // Arrange
-        consumer = new PlaceBetConsumer();
+        const publisher = stub(BaseEventPublisher);
+        consumer = new PlaceBetConsumer(null, null, publisher);
     });
 
     describe("extends", () => {
@@ -35,12 +39,11 @@ describe("place-bet-consumer", () => {
         describe("when already have bet tracks", () => {
             it("should return failed", () => {
                 // Arrange
-                consumer.gameData = { ingame: { m1: { betTracks: {} } } };
+                consumer.gameData = { ingame: { [player1.profile.name]: { betTracks: {} } } };
                 const expectedValue = [{ failure: true, notice: { errorCode: helpers.noticeHelper.invalidBet } }];
-                const player = { profile: { name: "m1" } };
 
                 // Act
-                const actualValue = consumer.composeBettingTimeValidationCriteria(player);
+                const actualValue = consumer.composeBettingTimeValidationCriteria(player1);
 
                 // Assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -50,12 +53,11 @@ describe("place-bet-consumer", () => {
         describe("when not have bet tracks and config disabled", () => {
             it("should return failed", () => {
                 // Arrange
-                consumer.gameData = { ingame: { m1: { betTracks: null } }, gameConfigs: { enabled: false } };
+                consumer.gameData = { ingame: { [player1.profile.name]: { betTracks: null } }, gameConfigs: { enabled: false } };
                 const expectedValue = [{ failure: true, notice: { errorCode: helpers.noticeHelper.invalidBet } }];
-                const player = { profile: { name: "m1" } };
 
                 // Act
-                const actualValue = consumer.composeBettingTimeValidationCriteria(player);
+                const actualValue = consumer.composeBettingTimeValidationCriteria(player1);
 
                 // Assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -67,10 +69,9 @@ describe("place-bet-consumer", () => {
                 // Arrange
                 consumer.gameData = { ingame: {}, gameConfigs: { enabled: true } };
                 const expectedValue = [{ failure: false, notice: { errorCode: helpers.noticeHelper.invalidBet } }];
-                const player = { profile: { name: "m1" } };
 
                 // Act
-                const actualValue = consumer.composeBettingTimeValidationCriteria(player);
+                const actualValue = consumer.composeBettingTimeValidationCriteria(player1);
 
                 // Assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -82,17 +83,12 @@ describe("place-bet-consumer", () => {
         describe("when amount < min bet", () => {
             it("should return failed", () => {
                 // Arrange
-                consumer.gameData = { currencyGroupGames: [{ groupId: "group1", minBet: 4, maxBet: 18 }] };
-                const player = {
-                    session: { currencyGroupId: "group1" },
-                    profile: { name: "m1", minBet: 5, maxBet: 20 },
-                };
-
+                consumer.gameData = { currencyGroupGames: [{ groupId: player1.session.currencyGroupId, minBet: 4, maxBet: 18 }] };
                 const amount = 3;
-                const expectedValue = { failure: true, notice: { errorCode: helpers.noticeHelper.minBet, minBet: 5 } };
+                const expectedValue = { failure: true, notice: { errorCode: helpers.noticeHelper.minBet, minBet: 6 } };
 
                 // Act
-                const actualValue = consumer.composeBetAmountValidationCriteria(player, amount);
+                const actualValue = consumer.composeBetAmountValidationCriteria(player1, amount);
 
                 // Assert
                 expect(actualValue[0]).toStrictEqual(expectedValue);
@@ -102,17 +98,12 @@ describe("place-bet-consumer", () => {
         describe("when amount > max bet ", () => {
             it("should return failed", () => {
                 // Arrange
-                consumer.gameData = { currencyGroupGames: [{ groupId: "group1", minBet: 4, maxBet: 18 }] };
-                const player = {
-                    session: { currencyGroupId: "group1" },
-                    profile: { name: "m1", minBet: 5, maxBet: 20 },
-                };
-
+                consumer.gameData = { currencyGroupGames: [{ groupId: player1.session.currencyGroupId, minBet: 4, maxBet: 18 }] };
                 const amount = 19;
-                const expectedValue = { failure: true, notice: { errorCode: helpers.noticeHelper.maxBet, maxBet: 18 } };
+                const expectedValue = { failure: true, notice: { errorCode: helpers.noticeHelper.maxBet, maxBet: 8 } };
 
                 // Act
-                const actualValue = consumer.composeBetAmountValidationCriteria(player, amount);
+                const actualValue = consumer.composeBetAmountValidationCriteria(player1, amount);
 
                 // Assert
                 expect(actualValue[1]).toStrictEqual(expectedValue);
@@ -125,40 +116,29 @@ describe("place-bet-consumer", () => {
             it("should return false", () => {
                 // Arrange
                 consumer.gameData = { currencyGroupGames: [{ groupId: "group1", minBet: 4, maxBet: 18 }] };
-                consumer.publisher = { publishToUser: jest.fn() };
                 spyOn(consumer, "composeValidationCriteria").and.returnValue([{ failure: true, notice: { code: 1 } }]);
-
-                const player = { UID: "m1" };
                 const amount = 3;
 
                 // Act
-                const actualValue = consumer.validateBetRequest(player, amount);
+                const actualValue = consumer.validateBetRequest(player1, amount);
 
                 // Assert
                 expect(actualValue).toBeFalsy();
-                expect(consumer.publisher.publishToUser).toHaveBeenCalledWith(
-                    "m1",
-                    expect.objectContaining({ endBet: -1, notice: { code: 1 } })
-                );
             });
         });
 
         describe("when not have failure", () => {
             it("should return true", () => {
                 // Arrange
-                consumer.gameData = { currencyGroupGames: [{ groupId: "group1", minBet: 4, maxBet: 18 }] };
-                consumer.publisher = { publishToUser: jest.fn() };
+                consumer.gameData = { currencyGroupGames: [{ groupId: player1.session.currencyGroupId, minBet: 4, maxBet: 18 }] };
                 spyOn(consumer, "composeValidationCriteria").and.returnValue([{ failure: false, notice: { code: 1 } }]);
-
-                const player = { UID: "m1" };
                 const amount = 3;
 
                 // Act
-                const actualValue = consumer.validateBetRequest(player, amount);
+                const actualValue = consumer.validateBetRequest(player1, amount);
 
                 // Assert
                 expect(actualValue).toBeTruthy();
-                expect(consumer.publisher.publishToUser).not.toHaveBeenCalled();
             });
         });
     });
@@ -169,12 +149,10 @@ describe("place-bet-consumer", () => {
                 // Arrange
                 consumer.gameData = { ingame: { m1: { betQueue: [] } } };
                 spyOn(consumer, "validateBetRequest").and.returnValue(false);
-
-                const player = { UID: "m1" };
                 const payload = { amount: 3 };
 
                 // Act
-                consumer.consume(player, payload);
+                consumer.consume(player1, payload);
 
                 // Assert
                 expect(consumer.gameData.ingame.m1.betQueue.length).toBe(0);
@@ -186,32 +164,28 @@ describe("place-bet-consumer", () => {
                 // Arrange
                 consumer.gameData = { ingame: {} };
                 spyOn(consumer, "validateBetRequest").and.returnValue(true);
-
-                const player = { UID: "m1", profile: { name: "m1" }, session: { currencyName: "UUS", system: 1, partnerId: 2 } };
                 const payload = { amount: 3.2 };
 
                 // Act
-                consumer.consume(player, payload);
+                consumer.consume(player1, payload);
 
                 // Assert
-                expect(consumer.gameData.ingame.m1.betQueue.length).toBe(1);
+                expect(consumer.gameData.ingame[player1.profile.name].betQueue.length).toBe(1);
             });
         });
 
         describe("when not have failure and already in game", () => {
             it("should add bet to queue", () => {
                 // Arrange
-                consumer.gameData = { ingame: { m1: { betQueue: [] } } };
+                consumer.gameData = { ingame: { [player1.profile.name]: { betQueue: [] } } };
                 spyOn(consumer, "validateBetRequest").and.returnValue(true);
-
-                const player = { UID: "m1", profile: { name: "m1" }, session: { currencyName: "UUS", system: 1, partnerId: 2 } };
                 const payload = { amount: 3.2 };
 
                 // Act
-                consumer.consume(player, payload);
+                consumer.consume(player1, payload);
 
                 // Assert
-                expect(consumer.gameData.ingame.m1.betQueue.length).toBe(1);
+                expect(consumer.gameData.ingame[player1.profile.name].betQueue.length).toBe(1);
             });
         });
     });

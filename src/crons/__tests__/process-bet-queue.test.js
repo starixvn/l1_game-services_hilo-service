@@ -1,14 +1,27 @@
 import { Core } from "sc-game-base";
 import mongoose from "mongoose";
-import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
+import { stubMongooseModelStupidly, stub } from "jest-micro-auto-stub";
 import { ProcessBetQueue } from "../index";
 import gameSettings from "../../game-settings";
+import { player1 } from "../../test-data";
+import { SettleTurnConsumer, SettleGameRoundConsumer } from "../../event-consumers";
+import { PlaceBetPublisher } from "sc-game-base/src/core/event-publishers";
 
 describe("process-bet-queue", () => {
+    let mockDate = new Date();
     let cron;
+    let settleTurnConsumer;
+    let settleGameRoundConsumer;
+
     beforeEach(() => {
         // Arrange
-        cron = new ProcessBetQueue({});
+        jest.spyOn(global, "Date").mockImplementation(() => mockDate);
+        settleTurnConsumer = stub(SettleTurnConsumer);
+        settleGameRoundConsumer = stub(SettleGameRoundConsumer);
+        const placeBetPublisher = stub(PlaceBetPublisher);
+        const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
+
+        cron = new ProcessBetQueue({ settleTurnConsumer, placeBetPublisher, settleGameRoundConsumer, roundsRepository });
     });
 
     describe("extends", () => {
@@ -22,13 +35,10 @@ describe("process-bet-queue", () => {
         describe("when not have running round", () => {
             it("should not call settleTurnConsumer.settleTurn", async () => {
                 // Arrange
-                cron.settleTurnConsumer = { settleTurn: jest.fn() };
-                cron.gameData = { ingame: { m1: { betTracks: null } } };
-                cron.placeBetPublisher = { publishToUser: jest.fn() };
-                const player = { session: {}, profile: { name: "m1" } };
+                cron.gameData = { ingame: { [player1.profile.name]: { betTracks: null } } };
 
                 // Act
-                await cron.deal(player);
+                await cron.deal(player1);
 
                 // Assert
                 expect(cron.settleTurnConsumer.settleTurn).not.toBeCalled();
@@ -38,14 +48,11 @@ describe("process-bet-queue", () => {
         describe("when bet order is mismatch", () => {
             it("should not call settleTurnConsumer.settleTurn", async () => {
                 // Arrange
-                cron.settleTurnConsumer = { settleTurn: jest.fn() };
-                cron.gameData = { ingame: { m1: { betTracks: { m1: { totalTurns: 3 } } } } };
-                cron.placeBetPublisher = { publishToUser: jest.fn() };
-                const player = { UID: "m1", session: {}, profile: { name: "m1" } };
+                cron.gameData = { ingame: { [player1.profile.name]: { betTracks: { [player1.UID]: { totalTurns: 3 } } } } };
                 const bet = { order: 2 };
 
                 // Act
-                await cron.deal(player, bet);
+                await cron.deal(player1, bet);
 
                 // Assert
                 expect(cron.settleTurnConsumer.settleTurn).not.toBeCalled();
@@ -55,18 +62,15 @@ describe("process-bet-queue", () => {
         describe("when all info correct", () => {
             it("should call settleTurnConsumer.settleTurn", async () => {
                 // Arrange
-                cron.settleTurnConsumer = { settleTurn: jest.fn() };
-                cron.settleTurnConsumer.settleTurn.mockReturnValueOnce({});
-                cron.gameData = { ingame: { m1: { betTracks: { totalTurns: 3 } } } };
-                cron.placeBetPublisher = { publishToUser: jest.fn() };
-                const player = { UID: "m1", session: {}, profile: { name: "m1" } };
+                settleTurnConsumer.settleTurn.mockReturnValueOnce({});
+                cron.gameData = { ingame: { [player1.profile.name]: { betTracks: { uid: player1.UID, totalTurns: 3 } } } };
                 const bet = { order: 3 };
 
                 // Act
-                await cron.deal(player, bet);
+                await cron.deal(player1, bet);
 
                 // Assert
-                expect(cron.settleTurnConsumer.settleTurn).toBeCalled();
+                expect(settleTurnConsumer.settleTurn).toBeCalledWith({ name: player1.profile.name, uid: player1.UID }, { order: 3 });
             });
         });
     });
@@ -75,52 +79,49 @@ describe("process-bet-queue", () => {
         describe("when deal", () => {
             it("should call deal function", async () => {
                 // Arrange
-                cron.settleGameRoundConsumer = { settleBets: jest.fn() };
-                cron.gameData = { ingame: { m1: { betTracks: {} } } };
+                cron.gameData = { ingame: { [player1.profile.name]: { betTracks: {} } } };
                 cron.deal = jest.fn();
                 const player = { session: {}, profile: {} };
-                const payload = { action: gameSettings.actions.deal };
+                const payload = { action: gameSettings.actions.deal, bet: {} };
 
                 // Act
                 await cron.proceedBet(player, payload);
 
                 // Assert
-                expect(cron.deal).toBeCalled();
+                expect(cron.deal).toBeCalledWith(player, payload.bet);
             });
         });
 
         describe("when collect", () => {
             it("should call settleGameRoundConsumer.collect function", async () => {
                 // Arrange
-                cron.settleGameRoundConsumer = { collect: jest.fn() };
-                cron.gameData = { ingame: { m1: { betTracks: {} } } };
+                cron.gameData = { ingame: { [player1.profile.name]: { betTracks: {} } } };
                 cron.deal = jest.fn();
                 const player = { session: {}, profile: {} };
-                const payload = { action: gameSettings.actions.collect };
+                const payload = { action: gameSettings.actions.collect, bet: {} };
 
                 // Act
                 await cron.proceedBet(player, payload);
 
                 // Assert
-                expect(cron.settleGameRoundConsumer.collect).toBeCalled();
+                expect(settleGameRoundConsumer.collect).toBeCalledWith(player);
             });
         });
 
         describe("when bet", () => {
             it("should call super proceedBet function", async () => {
                 // Arrange
-                cron.settleGameRoundConsumer = { settleBets: jest.fn() };
-                cron.gameData = { ingame: { m1: { betTracks: {} } } };
+                cron.gameData = { ingame: { [player1.profile.name]: { betTracks: {} } } };
                 spyOn(cron, "formatApiBetInfo");
                 spyOn(cron, "validateBetRequest").and.returnValue(false);
                 const player = { session: {}, profile: {} };
-                const payload = { action: gameSettings.actions.bet };
+                const payload = { action: gameSettings.actions.bet, bet: {} };
 
                 // Act
                 await cron.proceedBet(player, payload);
 
                 // Assert
-                expect(cron.formatApiBetInfo).toBeCalled();
+                expect(cron.formatApiBetInfo).toBeCalledWith(payload.bet);
             });
         });
     });
@@ -166,14 +167,14 @@ describe("process-bet-queue", () => {
     describe("decreaseBetTracks", () => {
         it("should do nothing", () => {
             // Arrange
-            cron.gameData = { ingame: { m1: { betTracks: { amount: 10 } } } };
-            const playerName = "m1";
+            cron.gameData = { ingame: { [player1.profile.name]: { betTracks: { amount: 10 } } } };
+            const playerName = player1.profile.name;
 
             // Act
             cron.decreaseBetTracks(playerName);
 
             // Assert
-            expect(cron.gameData.ingame["m1"].betTracks).toStrictEqual({ amount: 10 });
+            expect(cron.gameData.ingame[player1.profile.name].betTracks).toStrictEqual({ amount: 10 });
         });
     });
 
@@ -182,11 +183,15 @@ describe("process-bet-queue", () => {
         it.each(testCases)("should call roundsRepository.updateOne", async (testCase) => {
             // Arrange
             cron.definition = { choicesMapper: {}, durations: {} };
-            cron.gameData = { exchangeRates: {}, ingame: { m1: { betTracks: {} } }, gameConfigs: { odds: {} }, roundId: 10 };
-            cron.roundsRepository = stubMongooseModelStupidly(mongoose.Model);
+            cron.gameData = {
+                exchangeRates: {},
+                ingame: { [player1.profile.name]: { betTracks: {} } },
+                gameConfigs: { odds: {} },
+                roundId: 10,
+            };
             spyOn(cron, "generateFirstCard").and.returnValue({ rank: "3" });
 
-            const player = { UID: "m1", session: testCase.session, profile: { name: "m1" } };
+            const player = { UID: player1.UID, session: testCase.session, profile: { name: player1.profile.name } };
             const roundId = 1;
             const bet = {};
             const rate = 1;
@@ -195,7 +200,32 @@ describe("process-bet-queue", () => {
             await cron.upsertBet(player, roundId, bet, rate);
 
             // Assert
-            expect(cron.roundsRepository.updateOne).toHaveBeenCalled();
+            expect(cron.roundsRepository.updateOne).toHaveBeenCalledWith(
+                { id: 1, uid: player1.UID },
+                {
+                    $setOnInsert: {
+                        amount: undefined,
+                        betwin: undefined,
+                        currency: undefined,
+                        exchangeRateId: undefined,
+                        id: 1,
+                        memberId: undefined,
+                        name: player1.profile.name,
+                        odds: {},
+                        partnerId: undefined,
+                        rate: 1,
+                        result: [{ rank: "3" }],
+                        settlementResult: [],
+                        siteId: undefined,
+                        time: mockDate,
+                        totalTurns: 0,
+                        turnEndTime: mockDate,
+                        turnTime: mockDate,
+                        uid: player1.UID,
+                    },
+                },
+                { setDefaultsOnInsert: true, upsert: true }
+            );
         });
     });
 
@@ -222,8 +252,8 @@ describe("process-bet-queue", () => {
         describe("when have result from admin", () => {
             it("should return from that", () => {
                 // Arrange
-                cron.gameData = { settlementResultFromAdmin: { player: [{ rank: "3" }] } };
-                const name = "player";
+                cron.gameData = { settlementResultFromAdmin: { [player1.profile.name]: [{ rank: "3" }] } };
+                const name = player1.profile.name;
 
                 // Act
                 const actualValue = cron.generateFirstCard(name);
@@ -239,7 +269,6 @@ describe("process-bet-queue", () => {
             it("should return end bet wih own bets info has undefined values", () => {
                 // Arrange
                 cron.gameData = { ingame: {} };
-                const player = { profile: { name: "m1" } };
                 const balance = {};
                 const bet = { amount: 10 };
                 const expectedValue = {
@@ -255,7 +284,7 @@ describe("process-bet-queue", () => {
                 };
 
                 // Act
-                const actualValue = cron.generatePlacingBetResult(player, balance, bet);
+                const actualValue = cron.generatePlacingBetResult(player1, balance, bet);
 
                 // Assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -265,8 +294,9 @@ describe("process-bet-queue", () => {
         describe("when have betTracks", () => {
             it("should return end bet wih own bets info has values", () => {
                 // Arrange
-                cron.gameData = { ingame: { m1: { betTracks: { id: 3, result: [], nextAmounts: { h: 100, l: 150 } } } } };
-                const player = { profile: { name: "m1" } };
+                cron.gameData = {
+                    ingame: { [player1.profile.name]: { betTracks: { id: 3, result: [], nextAmounts: { h: 100, l: 150 } } } },
+                };
                 const balance = {};
                 const bet = { amount: 10 };
                 const expectedValue = {
@@ -282,7 +312,7 @@ describe("process-bet-queue", () => {
                 };
 
                 // Act
-                const actualValue = cron.generatePlacingBetResult(player, balance, bet);
+                const actualValue = cron.generatePlacingBetResult(player1, balance, bet);
 
                 // Assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -294,18 +324,23 @@ describe("process-bet-queue", () => {
         describe("always", () => {
             it("should upsertBet", async () => {
                 // Arrange
-                cron.gameData = { gameConfigs: { odds: {} }, ingame: { m1: { betTracks: { result: [{ rank: 3 }] } } } };
-                cron.settleTurnConsumer = { calculateWinAmounts: jest.fn() };
-                spyOn(cron, "calculateCurrencyRate");
+                cron.gameData = {
+                    gameConfigs: { odds: {} },
+                    ingame: { [player1.profile.name]: { betTracks: { roundId: 10, result: [{ rank: 3 }] } } },
+                };
+                const calculateCurrencyRate = 1;
+                spyOn(cron, "calculateCurrencyRate").and.returnValue(calculateCurrencyRate);
                 spyOn(cron, "upsertBet");
                 spyOn(cron, "notifyPlacingBetResult");
-                const player = { profile: { name: "m1" } };
+                const balance = 20;
+                const roundId = 10;
+                const bet = {};
 
                 // Act
-                await cron.handleSuccessBet(player);
+                await cron.handleSuccessBet(player1, balance, roundId, bet);
 
                 // Assert
-                expect(cron.upsertBet).toHaveBeenCalled();
+                expect(cron.upsertBet).toHaveBeenCalledWith(player1, roundId, bet, calculateCurrencyRate);
             });
         });
     });

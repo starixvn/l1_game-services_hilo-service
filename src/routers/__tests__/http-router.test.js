@@ -43,7 +43,7 @@ describe("http-router", () => {
             router.init(app);
 
             // Assert
-            expect(HttpRouter.prototype.init).toHaveBeenCalled();
+            expect(HttpRouter.prototype.init).toHaveBeenCalledWith(app);
         });
 
         it("should call app.post", () => {
@@ -57,7 +57,7 @@ describe("http-router", () => {
             router.init(app);
 
             // Assert
-            expect(router.handleSetResult).toHaveBeenCalled();
+            expect(router.handleSetResult).toHaveBeenCalledWith(undefined, {});
         });
     });
 
@@ -68,7 +68,7 @@ describe("http-router", () => {
 
         describe("when params are invalid", () => {
             const testCases = [{ param: null }, { param: {} }, { param: { roundId: 1 } }];
-            it.each(testCases)("should logError ", async (testCase) => {
+            it.each(testCases)("should return [] ", async (testCase) => {
                 // Arrange
                 router.appConfigs = appConfigs;
                 router.logService = logService;
@@ -78,7 +78,6 @@ describe("http-router", () => {
                 await router.handleSetResult(testCase.param, res);
 
                 // Assert
-                expect(logService.logError).toHaveBeenCalled();
                 expect(res.send).toHaveBeenCalledWith([]);
             });
         });
@@ -97,12 +96,14 @@ describe("http-router", () => {
                 await router.handleSetResult(param, res);
 
                 // Assert
-                expect(logService.logWarning).toHaveBeenCalled();
+                expect(logService.logWarning).toHaveBeenCalledWith(
+                    'receives a result cheating call {"Name":"player","Result":["A","2","3"]}.'
+                );
             });
         });
 
         describe("when have error", () => {
-            it("should logError", async () => {
+            it("should warning cheating", async () => {
                 // Arrange
                 const gameData = { settlementResultFromAdmin: null };
                 router.appConfigs = appConfigs;
@@ -115,8 +116,7 @@ describe("http-router", () => {
                 await router.handleSetResult(param, res);
 
                 // Assert
-                expect(logService.logWarning).toHaveBeenCalled();
-                expect(logService.logError).toHaveBeenCalled();
+                expect(logService.logWarning).toHaveBeenCalledWith('receives a result cheating call {"Name":"player","Result":[]}.');
             });
         });
     });

@@ -13,10 +13,11 @@ export default class SettleTurnConsumer {
     }
 
     generateResult(runningRound) {
-        const resultFromAdmin = this.gameData.settlementResultFromAdmin ? this.gameData.settlementResultFromAdmin[runningRound.name] : null;
+        const resultFromAdmin =
+            (this.gameData.settlementResultFromAdmin ? this.gameData.settlementResultFromAdmin[runningRound.name] : []) ?? [];
         const turnOrder = runningRound.totalTurns + 1;
 
-        return !!resultFromAdmin && turnOrder < resultFromAdmin.length
+        return turnOrder < resultFromAdmin.length
             ? resultFromAdmin[turnOrder]
             : drawCard(runningRound.result[runningRound.result.length - 1]);
     }
@@ -27,7 +28,7 @@ export default class SettleTurnConsumer {
         const turnResult = this.calculateTurnResult(payload, runningRound);
         const settleResult = { ...runningRound, ...turnResult };
 
-        await this.addBetLog(runningRound, payload.betChoice, turnResult);
+        await this.insertBetLog(runningRound, payload.betChoice, turnResult);
         await this.roundsRepository.updateOne({ id: runningRound.id }, { $set: turnResult }).exec();
 
         const { betwin, result, settlementResult, remainingTime, nextAmounts, totalTurns } = settleResult;
@@ -95,7 +96,7 @@ export default class SettleTurnConsumer {
         return currentValue < resultValue ? choiceNames.h : choiceNames.l;
     }
 
-    async addBetLog(runningRound, choice, turnResult) {
+    async insertBetLog(runningRound, choice, turnResult) {
         const currentCard = runningRound.result[runningRound.result.length - 1];
         const resultCard = turnResult.result[turnResult.result.length - 1];
 

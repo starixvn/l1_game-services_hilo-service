@@ -1,11 +1,17 @@
 import { Core } from "sc-game-base";
 import { SocketRouter } from "../index";
+import { DealConsumer, CollectConsumer } from "../../event-consumers";
+import { stub } from "jest-micro-auto-stub";
+import { player1 } from "../../test-data";
 
 describe("socket-router", () => {
     let router;
     beforeEach(() => {
         // Arrange
-        router = new SocketRouter({});
+        const dealConsumer = stub(DealConsumer);
+        const collectConsumer = stub(CollectConsumer);
+        router = new SocketRouter({ dealConsumer, collectConsumer });
+        router.logService = { logError: jest.fn() };
     });
 
     describe("extends", () => {
@@ -16,15 +22,22 @@ describe("socket-router", () => {
     });
 
     describe("init", () => {
-        it("should register correct events", () => {
+        let socketClient;
+        beforeEach(() => {
             // Arrange
-            const socketClient = { on: jest.fn() };
+            socketClient = { on: jest.fn() };
 
             // Act
             router.init(socketClient);
+        });
 
+        it("should register deal event", () => {
             // Assert
             expect(socketClient.on).toBeCalledWith("deal", expect.any(Function));
+        });
+
+        it("should register collect event", () => {
+            // Assert
             expect(socketClient.on).toBeCalledWith("collect", expect.any(Function));
         });
     });
@@ -33,7 +46,6 @@ describe("socket-router", () => {
         describe("when have error", () => {
             it("should logError", async () => {
                 // Arrange
-                router.logService = { logError: jest.fn() };
                 router.gameData = { realPlayers: null };
 
                 // Act
@@ -47,9 +59,7 @@ describe("socket-router", () => {
         describe("when verify failed", () => {
             it("should not call dealConsumer.consume", async () => {
                 // Arrange
-                router.logService = { logError: jest.fn() };
                 router.gameData = { realPlayers: {} };
-                router.dealConsumer = { consume: jest.fn() };
                 spyOn(router, "verify").and.returnValue(false);
 
                 // Act
@@ -63,10 +73,8 @@ describe("socket-router", () => {
         describe("when verify passed", () => {
             it("should call dealConsumer.consume", async () => {
                 // Arrange
-                router.logService = { logError: jest.fn() };
-                router.gameData = { realPlayers: { s1: {} } };
-                router.dealConsumer = { consume: jest.fn() };
-                router.socketClient = { id: "s1" };
+                router.gameData = { realPlayers: { [player1.socketId]: {} } };
+                router.socketClient = { id: player1.socketId };
 
                 spyOn(router, "verify").and.returnValue(true);
 
@@ -74,7 +82,7 @@ describe("socket-router", () => {
                 await router.handleDeal();
 
                 // Assert
-                expect(router.dealConsumer.consume).toBeCalled();
+                expect(router.dealConsumer.consume).toHaveBeenCalledWith({}, undefined);
             });
         });
     });
@@ -83,7 +91,6 @@ describe("socket-router", () => {
         describe("when have error", () => {
             it("should logError", async () => {
                 // Arrange
-                router.logService = { logError: jest.fn() };
                 router.gameData = { realPlayers: null };
 
                 // Act
@@ -97,9 +104,7 @@ describe("socket-router", () => {
         describe("when verify failed", () => {
             it("should not call collectConsumer.consume", async () => {
                 // Arrange
-                router.logService = { logError: jest.fn() };
                 router.gameData = { realPlayers: {} };
-                router.collectConsumer = { consume: jest.fn() };
                 spyOn(router, "verify").and.returnValue(false);
 
                 // Act
@@ -113,10 +118,8 @@ describe("socket-router", () => {
         describe("when verify passed", () => {
             it("should call collectConsumer.consume", async () => {
                 // Arrange
-                router.logService = { logError: jest.fn() };
-                router.gameData = { realPlayers: { s1: {} } };
-                router.collectConsumer = { consume: jest.fn() };
-                router.socketClient = { id: "s1" };
+                router.gameData = { realPlayers: { [player1.socketId]: {} } };
+                router.socketClient = { id: player1.socketId };
 
                 spyOn(router, "verify").and.returnValue(true);
 
@@ -124,7 +127,7 @@ describe("socket-router", () => {
                 await router.handleCollect();
 
                 // Assert
-                expect(router.collectConsumer.consume).toBeCalled();
+                expect(router.collectConsumer.consume).toHaveBeenCalledWith({});
             });
         });
     });

@@ -1,15 +1,18 @@
 import { Core } from "sc-game-base";
-import mongoose from "mongoose";
-import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
+import { stub } from "jest-micro-auto-stub";
 import { helpers } from "sc-common";
 import { DealConsumer } from "../index";
 import errorCodes from "../../constants/error-codes";
+import { player1 } from "../../test-data";
+import { BaseEventPublisher } from "sc-game-base/src/core/event-publishers";
 
 describe("deal-consumer", () => {
     let consumer;
     beforeEach(() => {
         // Arrange
-        consumer = new DealConsumer();
+        const definition = { choices: ["h", "l"] };
+        const publisher = stub(BaseEventPublisher);
+        consumer = new DealConsumer(definition, null, publisher);
     });
 
     describe("extends", () => {
@@ -43,9 +46,7 @@ describe("deal-consumer", () => {
         ];
         it.each(testCases)("should check game enabled or not", (testCase) => {
             // Arrange
-            consumer.definition = {};
             consumer.gameData = { gameConfigs: { enabled: testCase.enabled } };
-            consumer.roundsRepository = stubMongooseModelStupidly(mongoose.Model);
             const roundId = undefined;
 
             // Act
@@ -73,9 +74,7 @@ describe("deal-consumer", () => {
         ];
         it.each(testCases)("should check round id", (testCase) => {
             // Arrange
-            consumer.definition = {};
             consumer.gameData = { gameConfigs: { enabled: true } };
-            consumer.roundsRepository = stubMongooseModelStupidly(mongoose.Model);
             const roundId = testCase.roundId;
 
             // Act
@@ -90,14 +89,12 @@ describe("deal-consumer", () => {
         describe("when bet choice not in definition.choices", () => {
             it("should failed choices criterion", () => {
                 // Arrange
-                consumer.definition = { choices: [] };
-                consumer.gameData = { ingame: { m1: { betTracks: null } } };
+                consumer.gameData = { ingame: { [player1.profile.name]: { betTracks: null } } };
                 const expectedValue = { failure: true, notice: { errorCode: helpers.noticeHelper.invalidBet } };
-                const player = { profile: { maxBet: 8, maxBet: 6, name: "m1" }, session: { currencyGroupId: "g1" } };
-                const betChoice = "h";
+                const betChoice = "o";
 
                 // Act
-                const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
+                const actualValue = consumer.composeBetChoiceValidationCriteria(player1, betChoice);
 
                 // Assert
                 expect(actualValue[0]).toStrictEqual(expectedValue);
@@ -107,14 +104,12 @@ describe("deal-consumer", () => {
         describe("when bet choice in definition.choices", () => {
             it("should not failed choices criterion", () => {
                 // Arrange
-                consumer.definition = { choices: ["h", "l"] };
-                consumer.gameData = { ingame: { m1: { betTracks: null } } };
+                consumer.gameData = { ingame: { [player1.profile.name]: { betTracks: null } } };
                 const expectedValue = { failure: false, notice: { errorCode: helpers.noticeHelper.invalidBet } };
-                const player = { profile: { maxBet: 8, maxBet: 6, name: "m1" }, session: { currencyGroupId: "g1" } };
                 const betChoice = "h";
 
                 // Act
-                const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
+                const actualValue = consumer.composeBetChoiceValidationCriteria(player1, betChoice);
 
                 // Assert
                 expect(actualValue[0]).toStrictEqual(expectedValue);
@@ -124,17 +119,17 @@ describe("deal-consumer", () => {
             describe("card is 2", () => {
                 it("should failed loChoice criterion", () => {
                     // Arrange
-                    consumer.definition = { choices: [] };
-                    consumer.gameData = { ingame: { m1: { betTracks: { uid: "m1", result: [{ rank: "2" }] } } } };
+                    consumer.gameData = {
+                        ingame: { [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }] } } },
+                    };
                     const expectedValue = {
                         failure: true,
                         notice: { errorCode: errorCodes.cannotLowerThan },
                     };
-                    const player = { UID: "m1", profile: { name: "m1" } };
                     const betChoice = "l";
 
                     // Act
-                    const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
+                    const actualValue = consumer.composeBetChoiceValidationCriteria(player1, betChoice);
 
                     // Assert
                     expect(actualValue[1]).toStrictEqual(expectedValue);
@@ -144,17 +139,17 @@ describe("deal-consumer", () => {
             describe("card is not 2", () => {
                 it("should not failed loChoice criterion", () => {
                     // Arrange
-                    consumer.definition = { choices: [] };
-                    consumer.gameData = { ingame: { m1: { betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "4" }] } } } };
+                    consumer.gameData = {
+                        ingame: { [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "4" }] } } },
+                    };
                     const expectedValue = {
                         failure: false,
                         notice: { errorCode: errorCodes.cannotLowerThan },
                     };
-                    const player = { UID: "m1", profile: { name: "m1" } };
                     const betChoice = "l";
 
                     // Act
-                    const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
+                    const actualValue = consumer.composeBetChoiceValidationCriteria(player1, betChoice);
 
                     // Assert
                     expect(actualValue[1]).toStrictEqual(expectedValue);
@@ -164,17 +159,17 @@ describe("deal-consumer", () => {
             describe("card is not 1", () => {
                 it("should not failed hiChoice criterion", () => {
                     // Arrange
-                    consumer.definition = { choices: [] };
-                    consumer.gameData = { ingame: { m1: { betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "4" }] } } } };
+                    consumer.gameData = {
+                        ingame: { [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "4" }] } } },
+                    };
                     const expectedValue = {
                         failure: false,
                         notice: { errorCode: errorCodes.cannotGreaterThan },
                     };
-                    const player = { UID: "m1", profile: { name: "m1" } };
                     const betChoice = "l";
 
                     // Act
-                    const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
+                    const actualValue = consumer.composeBetChoiceValidationCriteria(player1, betChoice);
 
                     // Assert
                     expect(actualValue[2]).toStrictEqual(expectedValue);
@@ -184,17 +179,17 @@ describe("deal-consumer", () => {
             describe("card is 2", () => {
                 it("should not failed hiChoice criterion", () => {
                     // Arrange
-                    consumer.definition = { choices: [] };
-                    consumer.gameData = { ingame: { m1: { betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "A" }] } } } };
+                    consumer.gameData = {
+                        ingame: { [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "A" }] } } },
+                    };
                     const expectedValue = {
                         failure: false,
                         notice: { errorCode: errorCodes.cannotGreaterThan },
                     };
-                    const player = { UID: "m1", profile: { name: "m1" } };
                     const betChoice = "l";
 
                     // Act
-                    const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
+                    const actualValue = consumer.composeBetChoiceValidationCriteria(player1, betChoice);
 
                     // Assert
                     expect(actualValue[2]).toStrictEqual(expectedValue);
@@ -206,17 +201,17 @@ describe("deal-consumer", () => {
             describe("card is not 2", () => {
                 it("should not failed loChoice criterion", () => {
                     // Arrange
-                    consumer.definition = { choices: [] };
-                    consumer.gameData = { ingame: { m1: { betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "4" }] } } } };
+                    consumer.gameData = {
+                        ingame: { [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "4" }] } } },
+                    };
                     const expectedValue = {
                         failure: false,
                         notice: { errorCode: errorCodes.cannotLowerThan },
                     };
-                    const player = { UID: "m1", profile: { name: "m1" } };
                     const betChoice = "h";
 
                     // Act
-                    const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
+                    const actualValue = consumer.composeBetChoiceValidationCriteria(player1, betChoice);
 
                     // Assert
                     expect(actualValue[1]).toStrictEqual(expectedValue);
@@ -226,17 +221,17 @@ describe("deal-consumer", () => {
             describe("card is 2", () => {
                 it("should not failed loChoice criterion", () => {
                     // Arrange
-                    consumer.definition = { choices: [] };
-                    consumer.gameData = { ingame: { m1: { betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "2" }] } } } };
+                    consumer.gameData = {
+                        ingame: { [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "2" }] } } },
+                    };
                     const expectedValue = {
                         failure: false,
                         notice: { errorCode: errorCodes.cannotLowerThan },
                     };
-                    const player = { UID: "m1", profile: { name: "m1" } };
                     const betChoice = "h";
 
                     // Act
-                    const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
+                    const actualValue = consumer.composeBetChoiceValidationCriteria(player1, betChoice);
 
                     // Assert
                     expect(actualValue[1]).toStrictEqual(expectedValue);
@@ -246,17 +241,15 @@ describe("deal-consumer", () => {
             describe("card is 1", () => {
                 it("should failed hiChoice criterion", () => {
                     // Arrange
-                    consumer.definition = { choices: [] };
-                    consumer.gameData = { ingame: { m1: { betTracks: { result: [{ rank: "A" }] } } } };
+                    consumer.gameData = { ingame: { [player1.profile.name]: { betTracks: { result: [{ rank: "A" }] } } } };
                     const expectedValue = {
                         failure: true,
                         notice: { errorCode: errorCodes.cannotGreaterThan },
                     };
-                    const player = { UID: "m1", profile: { name: "m1" } };
                     const betChoice = "h";
 
                     // Act
-                    const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
+                    const actualValue = consumer.composeBetChoiceValidationCriteria(player1, betChoice);
 
                     // Assert
                     expect(actualValue[2]).toStrictEqual(expectedValue);
@@ -266,17 +259,17 @@ describe("deal-consumer", () => {
             describe("card is not 1", () => {
                 it("should not failed hiChoice criterion", () => {
                     // Arrange
-                    consumer.definition = { choices: [] };
-                    consumer.gameData = { ingame: { m1: { betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "4" }] } } } };
+                    consumer.gameData = {
+                        ingame: { [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "4" }] } } },
+                    };
                     const expectedValue = {
                         failure: false,
                         notice: { errorCode: errorCodes.cannotGreaterThan },
                     };
-                    const player = { UID: "m1", profile: { name: "m1" } };
                     const betChoice = "h";
 
                     // Act
-                    const actualValue = consumer.composeBetChoiceValidationCriteria(player, betChoice);
+                    const actualValue = consumer.composeBetChoiceValidationCriteria(player1, betChoice);
 
                     // Assert
                     expect(actualValue[2]).toStrictEqual(expectedValue);
@@ -289,16 +282,15 @@ describe("deal-consumer", () => {
         describe("when have failedCriterion", () => {
             it("should return failed", async () => {
                 // Arrange
-                consumer.definition = { choices: [] };
-                consumer.gameData = { ingame: { m1: { betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "A" }] } } } };
-                consumer.publisher = { publishToUser: jest.fn() };
-                const player = { UID: "m1" };
+                consumer.gameData = {
+                    ingame: { [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "A" }] } } },
+                };
                 const amount = 10;
-                const betChoice = "hi";
+                const betChoice = "h";
                 spyOn(consumer, "composeValidationCriteria").and.returnValue([{ failure: true }]);
 
                 // Act
-                const actualValue = await consumer.validateBetRequest(player, betChoice, amount);
+                const actualValue = await consumer.validateBetRequest(player1, betChoice, amount);
 
                 // Assert
                 expect(actualValue).toBeFalse();
@@ -309,15 +301,17 @@ describe("deal-consumer", () => {
             it("should return true", async () => {
                 // Arrange
                 consumer.definition = { choices: [] };
-                consumer.gameData = { ingame: { m1: { betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "A" }] } } } };
-                consumer.publisher = { publishToUser: jest.fn() };
-                const player = { UID: "m1" };
+                consumer.gameData = {
+                    ingame: {
+                        [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "A" }] } },
+                    },
+                };
                 const amount = 10;
-                const betChoice = "hi";
+                const betChoice = "h";
                 spyOn(consumer, "composeValidationCriteria").and.returnValue([]);
 
                 // Act
-                const actualValue = await consumer.validateBetRequest(player, betChoice, amount);
+                const actualValue = await consumer.validateBetRequest(player1, betChoice, amount);
 
                 // Assert
                 expect(actualValue).toBeTruthy();
@@ -329,18 +323,17 @@ describe("deal-consumer", () => {
         describe("when not have ingame data", () => {
             it("should not push deal info to queue", () => {
                 // Arrange
-                consumer.definition = { choices: [] };
                 consumer.gameData = {
-                    ingame: { m2: { betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "A" }] } }, m1: { betQueue: [] } },
+                    ingame: {
+                        m2: { betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "A" }] } },
+                        m1: { betQueue: [] },
+                    },
                 };
-                consumer.publisher = { publishToUser: jest.fn() };
-                consumer.settleTurnConsumer = { settleTurn: jest.fn() };
-                const player = { UID: "m1", profile: { name: "m1" } };
                 spyOn(consumer, "validateBetRequest").and.returnValue(false);
                 const payload = {};
 
                 // Act
-                consumer.consume(player, payload);
+                consumer.consume(player1, payload);
 
                 // Assert
                 expect(consumer.gameData.ingame.m1.betQueue.length).toBe(0);
@@ -350,38 +343,34 @@ describe("deal-consumer", () => {
         describe("when not have bet tracks data", () => {
             it("should not push deal info to queue", () => {
                 // Arrange
-                consumer.definition = { choices: [] };
-                consumer.gameData = { ingame: { m1: { betTracks: null, betQueue: [] } } };
-                consumer.publisher = { publishToUser: jest.fn() };
-                consumer.settleGameRoundConsumer = { settleTurn: jest.fn() };
-                const player = { UID: "m1", profile: { name: "m1" } };
+                consumer.gameData = { ingame: { [player1.profile.name]: { betTracks: null, betQueue: [] } } };
                 spyOn(consumer, "validateBetRequest").and.returnValue(false);
                 const payload = {};
 
                 // Act
-                consumer.consume(player, payload);
+                consumer.consume(player1, payload);
 
                 // Assert
-                expect(consumer.gameData.ingame.m1.betQueue.length).toBe(0);
+                expect(consumer.gameData.ingame[player1.profile.name].betQueue.length).toBe(0);
             });
         });
 
         describe("when validateBetRequest failed", () => {
             it("should not push deal info to queue", async () => {
                 // Arrange
-                consumer.definition = { choices: [] };
-                consumer.gameData = { ingame: { m1: { betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "A" }] }, betQueue: [] } } };
-                consumer.publisher = { publishToUser: jest.fn() };
-                consumer.settleTurnConsumer = { settleTurn: jest.fn() };
-                const player = { UID: "m1", profile: { name: "m1" } };
+                consumer.gameData = {
+                    ingame: {
+                        [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "A" }] }, betQueue: [] },
+                    },
+                };
                 spyOn(consumer, "validateBetRequest").and.returnValue(false);
                 const payload = {};
 
                 // Act
-                consumer.consume(player, payload);
+                consumer.consume(player1, payload);
 
                 // Assert
-                expect(consumer.gameData.ingame.m1.betQueue.length).toBe(0);
+                expect(consumer.gameData.ingame[player1.profile.name].betQueue.length).toBe(0);
             });
         });
 
@@ -389,22 +378,22 @@ describe("deal-consumer", () => {
             const testCases = [{ betQueue: null }, { betQueue: [] }];
             it.each(testCases)("should push deal info to queue", (testCase) => {
                 // Arrange
-                consumer.definition = { choices: [] };
                 consumer.gameData = {
-                    ingame: { m1: { betQueue: testCase.betQueue, betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "A" }] } } },
+                    ingame: {
+                        [player1.profile.name]: {
+                            betQueue: testCase.betQueue,
+                            betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "A" }] },
+                        },
+                    },
                 };
-                consumer.publisher = { publishToUser: jest.fn() };
-                consumer.settleGameRoundConsumer = { settleTurn: jest.fn() };
-
-                const player = { UID: "m1", profile: { name: "m1" } };
                 spyOn(consumer, "validateBetRequest").and.returnValue(true);
                 const payload = {};
 
                 // Act
-                consumer.consume(player, payload);
+                consumer.consume(player1, payload);
 
                 // Assert
-                expect(consumer.gameData.ingame.m1.betQueue.length > 0).toBeTruthy();
+                expect(consumer.gameData.ingame[player1.profile.name].betQueue.length > 0).toBeTruthy();
             });
         });
     });
