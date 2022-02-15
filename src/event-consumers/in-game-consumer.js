@@ -16,9 +16,11 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
         const ownBetsPayload = !!betTracks
             ? {
                   roundId: betTracks.id,
-                  amount: betTracks.betwin,
+                  betwin: betTracks.betwin,
                   result: betTracks.result,
-                  remainingTime: betTracks.turnEndTime ? (betTracks.turnEndTime - new Date()) / 1000 : 0,
+                  amount: betTracks.amount,
+                  totalTurns: betTracks.totalTurns,
+                  remainingTime: (betTracks.turnEndTime - new Date()) / 1000,
                   nextAmounts: betTracks.nextAmounts,
               }
             : {};
