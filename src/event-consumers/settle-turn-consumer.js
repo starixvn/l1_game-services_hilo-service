@@ -37,6 +37,7 @@ export default class SettleTurnConsumer {
             endDeal: 1,
             result: {
                 roundId: runningRound.id,
+                amount: runningRound.amount,
                 betwin,
                 result,
                 settlementResult,

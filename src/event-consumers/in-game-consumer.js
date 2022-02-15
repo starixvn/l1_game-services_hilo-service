@@ -18,7 +18,9 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
             gameConfigs,
             ownBets: {
                 roundId: ownBets?.id,
-                amount: ownBets?.betwin,
+                amount: ownBets?.amount,
+                betwin: ownBets?.betwin,
+                totalTurns: ownBets?.totalTurns,
                 result: ownBets?.result,
                 remainingTime: ownBets?.turnEndTime ? (ownBets.turnEndTime - new Date()) / 1000 : 0,
                 nextAmounts: ownBets?.nextAmounts,

@@ -276,6 +276,8 @@ describe("process-bet-queue", () => {
                     ownBets: {
                         roundId: undefined,
                         result: undefined,
+                        amount: 10,
+                        betwin: 10,
                         totalTurns: 0,
                         remainingTime: 122,
                         nextAmounts: undefined,
@@ -303,6 +305,8 @@ describe("process-bet-queue", () => {
                     endBet: 10,
                     ownBets: {
                         roundId: 3,
+                        amount: 10,
+                        betwin: 10,
                         result: [],
                         totalTurns: 0,
                         remainingTime: 122,

@@ -127,6 +127,8 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
             ownBets: {
                 roundId: betTracks.id,
                 result: betTracks.result,
+                amount,
+                betwin: amount,
                 totalTurns: 0,
                 nextAmounts: betTracks.nextAmounts,
                 remainingTime: gameSettings.durations.turnTime,
