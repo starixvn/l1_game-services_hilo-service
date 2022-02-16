@@ -71,6 +71,10 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
         round.nextAmounts = this.settleTurnConsumer.calculateWinAmounts(round.result[0], 1, round.betwin);
 
         this.notifyPlacingBetResult(player, balance, bet, rate);
+
+        if (player.profile.minBet !== balance.minBet || player.profile.maxBet !== balance.maxBet) {
+            await this.updateUserStakeLevel(player, balance.minBet, balance.maxBet);
+        }
     }
 
     async upsertBet(player, roundId, bet, rate) {

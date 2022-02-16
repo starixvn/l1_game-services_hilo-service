@@ -325,17 +325,24 @@ describe("process-bet-queue", () => {
     });
 
     describe("handleSuccessBet", () => {
+        let calculateCurrencyRate;
+        beforeEach(() => {
+            // Arrange
+            cron.gameData = {
+                gameConfigs: { odds: {} },
+                ingame: { [player1.profile.name]: { betTracks: { roundId: 10, result: [{ rank: 3 }] } } },
+            };
+
+            calculateCurrencyRate = 1;
+            spyOn(cron, "calculateCurrencyRate").and.returnValue(calculateCurrencyRate);
+            spyOn(cron, "upsertBet");
+            spyOn(cron, "notifyPlacingBetResult");
+            spyOn(cron, "updateUserStakeLevel");
+        });
+
         describe("always", () => {
             it("should upsertBet", async () => {
                 // Arrange
-                cron.gameData = {
-                    gameConfigs: { odds: {} },
-                    ingame: { [player1.profile.name]: { betTracks: { roundId: 10, result: [{ rank: 3 }] } } },
-                };
-                const calculateCurrencyRate = 1;
-                spyOn(cron, "calculateCurrencyRate").and.returnValue(calculateCurrencyRate);
-                spyOn(cron, "upsertBet");
-                spyOn(cron, "notifyPlacingBetResult");
                 const balance = 20;
                 const roundId = 10;
                 const bet = {};
@@ -345,6 +352,49 @@ describe("process-bet-queue", () => {
 
                 // Assert
                 expect(cron.upsertBet).toHaveBeenCalledWith(player1, roundId, bet, calculateCurrencyRate);
+            });
+        });
+
+        describe("when minBet changed", () => {
+            it("should updateUserStakeLevel", async () => {
+                // Arrange
+                const balance = { minBet: 10, maxBet: 8 };
+                const roundId = 10;
+                const bet = {};
+
+                // Act
+                await cron.handleSuccessBet(player1, balance, roundId, bet);
+
+                // Assert
+                expect(cron.updateUserStakeLevel).toHaveBeenCalledWith(player1, 10, 8);
+            });
+        });
+        describe("when maxBet changed", () => {
+            it("should updateUserStakeLevel", async () => {
+                // Arrange
+                const balance = { minBet: 6, maxBet: 20 };
+                const roundId = 10;
+                const bet = {};
+
+                // Act
+                await cron.handleSuccessBet(player1, balance, roundId, bet);
+
+                // Assert
+                expect(cron.updateUserStakeLevel).toHaveBeenCalledWith(player1, 6, 20);
+            });
+        });
+        describe("when minBet/maxBet not changed", () => {
+            it("should updateUserStakeLevel", async () => {
+                // Arrange
+                const balance = { minBet: 6, maxBet: 8 };
+                const roundId = 10;
+                const bet = {};
+
+                // Act
+                await cron.handleSuccessBet(player1, balance, roundId, bet);
+
+                // Assert
+                expect(cron.updateUserStakeLevel).not.toHaveBeenCalled();
             });
         });
     });
