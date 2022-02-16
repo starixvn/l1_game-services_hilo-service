@@ -19,7 +19,7 @@ describe("deck-helper", () => {
         describe("when 1st draw", () => {
             it("should return card", () => {
                 // Arrange
-                const drawnCards = [];
+                const drawnCards = null;
 
                 // Act
                 const actualValue = drawCard(drawnCards);
