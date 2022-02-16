@@ -52,8 +52,6 @@ export default class SettleTurnConsumer {
 
         if (turnResult.isLose) {
             await this.settleGameRoundConsumer.settleBets(name);
-            delete this.gameData.ingame[name].betTracks;
-            delete this.gameData.settlementResultFromAdmin[runningRound.name];
         } else {
             Object.assign(runningRound, turnResult);
         }

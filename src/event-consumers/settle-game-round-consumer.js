@@ -34,8 +34,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         };
 
         await this.settleBets(runningRound.name);
-        delete this.gameData.settlementResultFromAdmin[runningRound.name];
-        delete this.gameData.ingame[player.profile.name].betTracks;
     }
 
     async settleBets(name) {
@@ -61,6 +59,9 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 })
             );
         }
+
+        delete this.gameData.settlementResultFromAdmin[name];
+        delete this.gameData.ingame[name].betTracks;
     }
 
     queryBets(roundId) {

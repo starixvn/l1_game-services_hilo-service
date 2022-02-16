@@ -78,6 +78,7 @@ describe("settle-game-round-consumer", () => {
                     ingame: {
                         [player1.profile.name]: { betTracks: { result: {}, turnResult: { betwin: 10 }, id: 1, endTime: new Date() } },
                     },
+                    settlementResultFromAdmin: {},
                 };
                 const bet = { save: jest.fn() };
                 spyOn(consumer, "queryBets").and.returnValue([]);
@@ -100,6 +101,7 @@ describe("settle-game-round-consumer", () => {
             consumer.gameData = {
                 gameConfigs: {},
                 ingame: { [player1.profile.name]: { betTracks: { result: {}, turnResult: { betwin: 10 }, id: 1, endTime: new Date() } } },
+                settlementResultFromAdmin: {},
             };
             const bet = { save: jest.fn() };
             spyOn(consumer, "queryBets").and.returnValue([bet]);
