@@ -74,13 +74,16 @@ export default class SettleTurnConsumer {
             betwin = isLose ? 0 : runningRound.betwin;
         }
 
+        const turnTime = new Date();
+
         return {
             isLose,
             betwin,
             totalTurns: runningRound.totalTurns + 1,
             result: [...runningRound.result, resultCard],
             settlementResult: [...runningRound.settlementResult, settlementResult],
-            turnTime: new Date(),
+            turnTime,
+            turnEndTime: new Date(turnTime.getTime() + gameSettings.durations.turnTime * 1000),
             remainingTime: gameSettings.durations.turnTime,
             nextAmounts: isLose ? null : this.calculateWinAmounts(resultCard, runningRound.totalTurns + 2, betwin),
         };

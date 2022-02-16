@@ -6,6 +6,7 @@ import { UserBetResultPublisher } from "sc-game-base/src/core/event-publishers";
 import { SettleGameRoundConsumer } from "sc-game-base/src/core/event-consumers";
 import gameSettings from "../../game-settings";
 import { player1, odds } from "../../test-data";
+import { advanceBy, advanceTo, clear } from "jest-date-mock";
 
 jest.mock("../../helpers/deck-helper", () => {
     return {
@@ -18,11 +19,11 @@ jest.mock("../../helpers/deck-helper", () => {
 describe("settle-turn-consumer", () => {
     let betLogsRepository;
     let consumer;
-    let mockDate = new Date();
+    const mockDate = new Date();
 
     beforeEach(() => {
         // Arrange
-        jest.spyOn(global, "Date").mockImplementation(() => mockDate);
+        advanceTo(mockDate);
 
         betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
         const userBetResultPublisher = stub(UserBetResultPublisher);
@@ -328,6 +329,7 @@ describe("settle-turn-consumer", () => {
                     settlementResult: ["h"],
                     totalTurns: 1,
                     turnTime: mockDate,
+                    turnEndTime: new Date(mockDate.getTime() + gameSettings.durations.turnTime * 1000),
                 };
                 const expectedRunningRound = {
                     betwin: 1,
