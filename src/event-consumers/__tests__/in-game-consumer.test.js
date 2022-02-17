@@ -3,9 +3,10 @@ import mongoose from "mongoose";
 import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
 import { InGameConsumer } from "../index";
 import Chance from "chance";
+import { baseCards } from "../../cards";
 
 describe("in-game-consumer", () => {
-    let consumer;
+    let consumer, player;
     const roundQuery = {};
     const getBalance = jest.fn();
     const userInfosRepository = stubMongooseModelStupidly(mongoose.Model);
@@ -20,15 +21,21 @@ describe("in-game-consumer", () => {
     const chance = new Chance();
 
     const generateBetTrack = () => {
+        const result = chance.pickset(baseCards, chance.integer({ min: 1, max: 5 }));
+
         return {
             id: chance.integer({ min: 1 }),
             betwin: chance.integer({ min: 1 }),
             amount: chance.integer({ min: 1 }),
-            totalTurns: chance.integer({ min: 1 }),
+            totalTurns: result.length,
             turnEndTime: new Date(),
             nextAmounts: { h: chance.floating({ min: 1, length: 2 }), l: chance.floating({ min: 1, length: 2 }) },
-            result: [],
+            result,
         };
+    };
+
+    const generatePlayer = (playerName) => {
+        return { UID: `${playerName}UID`, session: {}, profile: { name: playerName } };
     };
 
     beforeEach(() => {
@@ -36,6 +43,7 @@ describe("in-game-consumer", () => {
         jest.clearAllMocks();
 
         consumer = new InGameConsumer(definition, gameData, roundQuery, publisher, getBalance, userInfosRepository);
+        player = generatePlayer("player1");
     });
 
     it("always inherit Core.BaseEventConsumers.InGameConsumer", () => {
@@ -45,16 +53,11 @@ describe("in-game-consumer", () => {
 
     describe("buildPayload", () => {
         describe("when player not have existing bet", () => {
-            const testCases = [{ ingame: { player1: { betTracks: undefined } } }, { ingame: { player2: { betTracks: undefined } } }];
+            const testCases = [{ ingame: { player1: { betTracks: undefined } } }, { ingame: {} }];
 
             it.each(testCases)("should return empty ownBets", async (testCase) => {
                 // Arrange
-                consumer.gameData = {
-                    ...gameData,
-                    ingame: testCase.ingame,
-                };
-
-                const player = { UID: "uid", session: {}, profile: { name: "player1" } };
+                gameData.ingame = testCase.ingame;
 
                 // Act
                 const actualValue = await consumer.buildPayload(player);
@@ -65,14 +68,9 @@ describe("in-game-consumer", () => {
         });
 
         describe("when player have existing bet", () => {
-            it("should return ownBets", async () => {
+            it("should return ownBets with values", async () => {
                 // Arrange
-                consumer.gameData = {
-                    ...gameData,
-                    ingame: { player1: { betTracks: generateBetTrack() } },
-                };
-
-                const player = { UID: "uid", session: {}, profile: { name: "player1" } };
+                gameData.ingame = { player1: { betTracks: generateBetTrack() } };
 
                 // Act
                 const actualValue = await consumer.buildPayload(player);
@@ -84,12 +82,7 @@ describe("in-game-consumer", () => {
             it("should return bet track amount", async () => {
                 // Arrange
                 const playerBet = generateBetTrack();
-                consumer.gameData = {
-                    ...gameData,
-                    ingame: { player1: { betTracks: playerBet } },
-                };
-
-                const player = { UID: "uid", session: {}, profile: { name: "player1" } };
+                gameData.ingame = { player1: { betTracks: playerBet } };
 
                 // Act
                 const actualValue = await consumer.buildPayload(player);
@@ -101,12 +94,7 @@ describe("in-game-consumer", () => {
             it("should return bet track betwin", async () => {
                 // Arrange
                 const playerBet = generateBetTrack();
-                consumer.gameData = {
-                    ...gameData,
-                    ingame: { player1: { betTracks: playerBet } },
-                };
-
-                const player = { UID: "uid", session: {}, profile: { name: "player1" } };
+                gameData.ingame = { player1: { betTracks: playerBet } };
 
                 // Act
                 const actualValue = await consumer.buildPayload(player);
@@ -118,12 +106,7 @@ describe("in-game-consumer", () => {
             it("should return bet track totalTurns", async () => {
                 // Arrange
                 const playerBet = generateBetTrack();
-                consumer.gameData = {
-                    ...gameData,
-                    ingame: { player1: { betTracks: playerBet } },
-                };
-
-                const player = { UID: "uid", session: {}, profile: { name: "player1" } };
+                gameData.ingame = { player1: { betTracks: playerBet } };
 
                 // Act
                 const actualValue = await consumer.buildPayload(player);
@@ -132,21 +115,29 @@ describe("in-game-consumer", () => {
                 expect(actualValue.ownBets.totalTurns).toBe(playerBet.totalTurns);
             });
 
-            it("should return bet track totalTurns", async () => {
+            it("should return bet track nextAmounts", async () => {
                 // Arrange
                 const playerBet = generateBetTrack();
-                consumer.gameData = {
-                    ...gameData,
-                    ingame: { player1: { betTracks: playerBet } },
-                };
-
-                const player = { UID: "uid", session: {}, profile: { name: "player1" } };
+                gameData.ingame = { player1: { betTracks: playerBet } };
 
                 // Act
                 const actualValue = await consumer.buildPayload(player);
 
                 // Assert
                 expect(actualValue.ownBets.nextAmounts).toBe(playerBet.nextAmounts);
+            });
+
+            it("should return remainingTime in seconds", async () => {
+                // Arrange
+                const playerBet = generateBetTrack();
+                gameData.ingame = { player1: { betTracks: playerBet } };
+                const expectedRemainingTime = (playerBet.turnEndTime - new Date()) / 1000;
+
+                // Act
+                const actualValue = await consumer.buildPayload(player);
+
+                // Assert
+                expect(actualValue.ownBets.remainingTime).toBeLessThanOrEqual(expectedRemainingTime);
             });
         });
     });

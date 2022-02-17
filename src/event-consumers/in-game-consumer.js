@@ -13,7 +13,7 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
         await this.getBalance(player, true);
 
         const user = await this.getUserInfo(player.UID);
-        const ownBetsPayload = !!betTracks
+        const ownBetsPayload = betTracks
             ? {
                   roundId: betTracks.id,
                   betwin: betTracks.betwin,
