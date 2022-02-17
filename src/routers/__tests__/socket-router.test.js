@@ -2,7 +2,7 @@ import { Core } from "sc-game-base";
 import { SocketRouter } from "../index";
 import { DealConsumer, CollectConsumer } from "../../event-consumers";
 import { stub } from "jest-micro-auto-stub";
-import { player1 } from "../../test-data";
+import { player1 } from "../../__tests__/set-up";
 
 describe("socket-router", () => {
     let router;

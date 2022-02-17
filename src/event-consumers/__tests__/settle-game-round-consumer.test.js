@@ -1,6 +1,6 @@
 import { Core } from "sc-game-base";
 import { SettleGameRoundConsumer } from "../index";
-import { player1 } from "../../test-data";
+import { player1 } from "../../__tests__/set-up";
 import { stub } from "jest-micro-auto-stub";
 import { UserBetResultPublisher, RoundResultPublisher } from "sc-game-base/src/core/event-publishers";
 

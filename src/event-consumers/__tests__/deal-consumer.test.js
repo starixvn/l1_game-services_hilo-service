@@ -3,7 +3,7 @@ import { stub } from "jest-micro-auto-stub";
 import { helpers } from "sc-common";
 import { DealConsumer } from "../index";
 import errorCodes from "../../constants/error-codes";
-import { player1 } from "../../test-data";
+import { player1 } from "../../__tests__/set-up";
 import { BaseEventPublisher } from "sc-game-base/src/core/event-publishers";
 
 describe("deal-consumer", () => {

@@ -1,5 +1,5 @@
 import oddsGenerator from "../odds-generator";
-import { odds } from "../../test-data";
+import { odds } from "../../__tests__/set-up";
 
 describe("odds-generator", () => {
     describe("generate", () => {

@@ -14,5 +14,6 @@ module.exports = async () => {
         coverageDirectory: "coverage",
         reporters: ["default", ["jest-junit", { outputDirectory: "coverage" }]],
         coverageReporters: ["clover", "lcov", "cobertura", "text-summary", "text", "html"],
+        testPathIgnorePatterns: ["<rootDir>/node_modules/", "<rootDir>/src/__tests__/set-up.js"],
     };
 };

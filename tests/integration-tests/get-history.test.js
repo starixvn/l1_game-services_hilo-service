@@ -1,5 +1,5 @@
 import { GameClientDriver, normalUser } from "sc-game-service-integration-utils";
-import { socketOptions } from "./stubs/test-data";
+import { socketOptions } from "./stubs/set-up";
 import { initUserSession } from "./helpers";
 import gameSettings from "../../src/game-settings";
 

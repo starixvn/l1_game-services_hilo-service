@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { stubMongooseModelStupidly, stub } from "jest-micro-auto-stub";
 import { ProcessBetQueue } from "../index";
 import gameSettings from "../../game-settings";
-import { player1 } from "../../test-data";
+import { player1 } from "../../__tests__/set-up";
 import { SettleTurnConsumer, SettleGameRoundConsumer } from "../../event-consumers";
 import { PlaceBetPublisher } from "sc-game-base/src/core/event-publishers";
 

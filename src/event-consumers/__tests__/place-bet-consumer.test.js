@@ -1,7 +1,7 @@
 import { Core } from "sc-game-base";
 import { helpers } from "sc-common";
 import { PlaceBetConsumer } from "../index";
-import { player1 } from "../../test-data";
+import { player1 } from "../../__tests__/set-up";
 import { BaseEventPublisher } from "sc-game-base/src/core/event-publishers";
 import { stub } from "jest-micro-auto-stub";
 
