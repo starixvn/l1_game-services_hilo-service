@@ -1,6 +1,6 @@
 import errorCodes from "../../constants/error-codes";
 import { CollectConsumer } from "../index";
-import { player1 } from "../../__tests__/set-up";
+import { player1 } from "../../__tests__/test-data";
 import { BaseEventPublisher } from "sc-game-base/src/core/event-publishers";
 import { stub } from "jest-micro-auto-stub";
 

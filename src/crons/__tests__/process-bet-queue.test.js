@@ -3,9 +3,10 @@ import mongoose from "mongoose";
 import { stubMongooseModelStupidly, stub } from "jest-micro-auto-stub";
 import { ProcessBetQueue } from "../index";
 import gameSettings from "../../game-settings";
-import { player1 } from "../../__tests__/set-up";
+import { player1 } from "../../__tests__/test-data";
 import { SettleTurnConsumer, SettleGameRoundConsumer } from "../../event-consumers";
 import { PlaceBetPublisher } from "sc-game-base/src/core/event-publishers";
+import { helpers } from "sc-common";
 
 describe("process-bet-queue", () => {
     let mockDate = new Date();
@@ -127,39 +128,66 @@ describe("process-bet-queue", () => {
     });
 
     describe("composeValidationCriteria", () => {
-        describe("when composeBalanceValidationCriteria return null", () => {
-            it("should return correct validation result", async () => {
-                // Arrange
-                cron.definition = { choicesMapper: {} };
-                cron.composeBalanceValidationCriteria = jest.fn();
-                cron.composeBalanceValidationCriteria.mockReturnValueOnce(null);
+        it("should return concat of composeBalanceValidationCriteria and composeBettingTimeValidationCriteria", async () => {
+            // Arrange
+            cron.definition = { choicesMapper: {} };
+            cron.composeBalanceValidationCriteria = jest.fn();
+            cron.composeBalanceValidationCriteria.mockReturnValueOnce([{ failed: true, id: 1 }]);
+            cron.composeBettingTimeValidationCriteria = jest.fn();
+            cron.composeBettingTimeValidationCriteria.mockReturnValueOnce([{ failed: false, id: 2 }]);
+            const expectedValue = [
+                { failed: false, id: 2 },
+                { failed: true, id: 1 },
+            ];
 
-                const player = { session: {} };
-                const payload = {};
+            const player = { session: {} };
+            const payload = {};
+
+            // Act
+            const actualValue = await cron.composeValidationCriteria(player, payload);
+
+            // Assert
+            expect(actualValue).toStrictEqual(expectedValue);
+        });
+    });
+
+    describe("composeBettingTimeValidationCriteria", () => {
+        describe("when already have running round", () => {
+            it("should failed validation", () => {
+                // Arrange
+                cron.gameData = { ingame: { [player1.profile.name]: { betTracks: { uid: player1.UID } } } };
 
                 // Act
-                const actualValue = await cron.composeValidationCriteria(player, payload);
+                const actualValue = cron.composeBettingTimeValidationCriteria(player1);
 
                 // Assert
-                expect(actualValue).toStrictEqual([]);
+                expect(actualValue[0]).toStrictEqual({ failure: true, notice: { errorCode: helpers.noticeHelper.invalidBet } });
             });
         });
 
-        describe("when composeBalanceValidationCriteria return not null", () => {
-            it("should return correct validation result", async () => {
+        describe("when bet track is empty", () => {
+            it("should not failed validation", () => {
                 // Arrange
-                cron.definition = { choicesMapper: {} };
-                cron.composeBalanceValidationCriteria = jest.fn();
-                cron.composeBalanceValidationCriteria.mockReturnValueOnce({ failed: true });
-
-                const player = { session: {} };
-                const payload = {};
+                cron.gameData = { ingame: { [player1.profile.name]: { betTracks: {} } } };
 
                 // Act
-                const actualValue = await cron.composeValidationCriteria(player, payload);
+                const actualValue = cron.composeBettingTimeValidationCriteria(player1);
 
                 // Assert
-                expect(actualValue).toStrictEqual({ failed: true });
+                expect(actualValue[0]).toStrictEqual({ failure: false, notice: { errorCode: helpers.noticeHelper.invalidBet } });
+            });
+        });
+
+        describe("when bet track is null", () => {
+            it("should not failed validation", () => {
+                // Arrange
+                cron.gameData = { ingame: { [player1.profile.name]: { betTracks: null } } };
+
+                // Act
+                const actualValue = cron.composeBettingTimeValidationCriteria(player1);
+
+                // Assert
+                expect(actualValue[0]).toStrictEqual({ failure: false, notice: { errorCode: helpers.noticeHelper.invalidBet } });
             });
         });
     });

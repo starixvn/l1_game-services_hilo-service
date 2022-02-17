@@ -5,7 +5,7 @@ import { stubMongooseModelStupidly, stub } from "jest-micro-auto-stub";
 import { UserBetResultPublisher } from "sc-game-base/src/core/event-publishers";
 import { SettleGameRoundConsumer } from "sc-game-base/src/core/event-consumers";
 import gameSettings from "../../game-settings";
-import { player1, odds } from "../../__tests__/set-up";
+import { player1, odds } from "../../__tests__/test-data";
 import { advanceTo } from "jest-date-mock";
 
 jest.mock("../../helpers/deck-helper", () => {

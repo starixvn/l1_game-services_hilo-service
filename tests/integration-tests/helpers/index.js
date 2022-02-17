@@ -1,4 +1,4 @@
-import { currencyData } from "../stubs/set-up";
+import { currencyData } from "../stubs/test-data";
 
 export const initUserSession = (user) => {
     return {

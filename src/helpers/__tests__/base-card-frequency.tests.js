@@ -2,14 +2,16 @@ import { baseCards, cardRanks } from "../../cards";
 import { drawCard } from "../deck-helper";
 
 describe("deck-helper", () => {
+    const drawsNo = Math.pow(10, 2);
+    const cardFrequency = 1 / 52;
+
     describe("drawCard", () => {
         describe("with 100,000 draws", () => {
             it("frequency of all cards should be around 1/52 * 100000, different is 200 times", () => {
                 // Arrange
                 const drawnCards = null;
-                const drawsNo = Math.pow(10, 5);
                 const resultCards = [];
-                const expectValue = (1 / 52) * drawsNo;
+                const expectValue = cardFrequency * drawsNo;
                 const acceptedDiff = 200;
 
                 // Act
@@ -34,9 +36,8 @@ describe("deck-helper", () => {
                 for (var j = 0; j < 10; j++) {
                     // Arrange
                     const drawnCards = null;
-                    const drawsNo = Math.pow(10, 5);
                     const resultCards = [];
-                    const expectValue = (1 / 13) * drawsNo;
+                    const expectValue = cardFrequency * 4 * drawsNo;
                     const acceptedDiff = 400;
 
                     // Act

@@ -11,7 +11,7 @@ import {
 
 import configs from "../../../src/app-configs";
 import { RoundModel } from "../../../src/models";
-import { game, gameConfig, currencyData, rounds } from "./set-up";
+import { game, gameConfig, currencyData, rounds } from "./test-data";
 
 const connectDatabase = async () => {
     await middlewares.database.configureDatabase(mongoose, configs.database);

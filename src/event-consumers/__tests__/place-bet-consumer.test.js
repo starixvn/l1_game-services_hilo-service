@@ -1,7 +1,7 @@
 import { Core } from "sc-game-base";
 import { helpers } from "sc-common";
 import { PlaceBetConsumer } from "../index";
-import { player1 } from "../../__tests__/set-up";
+import { player1 } from "../../__tests__/test-data";
 import { BaseEventPublisher } from "sc-game-base/src/core/event-publishers";
 import { stub } from "jest-micro-auto-stub";
 
@@ -177,7 +177,7 @@ describe("place-bet-consumer", () => {
         describe("when not have failure and already in game", () => {
             it("should add bet to queue", () => {
                 // Arrange
-                consumer.gameData = { ingame: { [player1.profile.name]: { betQueue: [] } } };
+                consumer.gameData = { ingame: { [player1.profile.name]: { betQueue: undefined } } };
                 spyOn(consumer, "validateBetRequest").and.returnValue(true);
                 const payload = { amount: 3.2 };
 

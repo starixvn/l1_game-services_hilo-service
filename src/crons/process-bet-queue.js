@@ -60,7 +60,19 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     }
 
     async composeValidationCriteria(player, payload) {
-        return (await this.composeBalanceValidationCriteria(player, payload)) || [];
+        const betAmountValidationCriteria = await this.composeBalanceValidationCriteria(player, payload);
+        const bettingTimeValidationCriteria = this.composeBettingTimeValidationCriteria(player);
+
+        return bettingTimeValidationCriteria.concat(betAmountValidationCriteria);
+    }
+
+    composeBettingTimeValidationCriteria(player) {
+        return [
+            {
+                failure: !!this.gameData.ingame[player.profile.name].betTracks?.uid,
+                notice: { errorCode: helpers.noticeHelper.invalidBet },
+            },
+        ];
     }
 
     async handleSuccessBet(player, balance, roundId, bet) {

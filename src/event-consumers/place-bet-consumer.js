@@ -78,6 +78,10 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
             this.gameData.ingame[name] = newPlayer;
         }
 
+        if (!this.gameData.ingame[name].betQueue) {
+            this.gameData.ingame[name].betQueue = [];
+        }
+
         this.gameData.ingame[name].betQueue.push({ player, payload: { action: gameSettings.actions.bet, bet: payload } });
     }
 }
