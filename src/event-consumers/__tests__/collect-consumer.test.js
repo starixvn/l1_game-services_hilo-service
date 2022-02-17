@@ -1,8 +1,8 @@
-import errorCodes from "../../constants/error-codes";
 import { CollectConsumer } from "../index";
 import { player1 } from "../../__tests__/test-data";
 import { BaseEventPublisher } from "sc-game-base/src/core/event-publishers";
 import { stub } from "jest-micro-auto-stub";
+import { helpers } from "sc-common";
 
 describe("collect-consumer", () => {
     let consumer;
@@ -19,7 +19,7 @@ describe("collect-consumer", () => {
             it("should return failure", () => {
                 // Arrange
                 consumer.gameData = { gameConfigs: { enabled: false } };
-                const expectedValue = { notice: errorCodes.cannotCollect };
+                const expectedValue = { notice: { errorCode: helpers.noticeHelper.invalidBet } };
                 const round = { uid: player1.UID };
 
                 // Act
@@ -33,8 +33,11 @@ describe("collect-consumer", () => {
         describe("when config enabled", () => {
             // Arrange
             const testCases = [
-                { runningRound: null, expectedValue: { notice: errorCodes.roundEnded } },
-                { runningRound: { uid: player1.UID, totalTurns: 0 }, expectedValue: { notice: errorCodes.cannotCollect } },
+                { runningRound: null, expectedValue: { notice: { errorCode: helpers.noticeHelper.invalidBet } } },
+                {
+                    runningRound: { uid: player1.UID, totalTurns: 0 },
+                    expectedValue: { notice: { errorCode: helpers.noticeHelper.invalidBet } },
+                },
                 { runningRound: { uid: player1.UID, totalTurns: 10 }, expectedValue: null },
             ];
 

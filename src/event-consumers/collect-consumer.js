@@ -1,4 +1,4 @@
-import errorCodes from "../constants/error-codes";
+import { helpers } from "sc-common";
 import gameSettings from "../game-settings";
 
 export default class CollectConsumer {
@@ -10,11 +10,11 @@ export default class CollectConsumer {
 
     validate(runningRound) {
         if (!runningRound || !runningRound.uid) {
-            return { notice: errorCodes.roundEnded };
+            return { notice: { errorCode: helpers.noticeHelper.invalidBet } };
         }
 
         if (runningRound.totalTurns === 0 || !this.gameData.gameConfigs.enabled) {
-            return { notice: errorCodes.cannotCollect };
+            return { notice: { errorCode: helpers.noticeHelper.invalidBet } };
         }
 
         return null;

@@ -392,7 +392,7 @@ describe("settle-turn-consumer", () => {
         });
 
         describe("when win", () => {
-            it("should return next amounts base on odds and turn order", async () => {
+            it("should return next amounts = odds * betwin", async () => {
                 // Arrange
                 consumer.gameData = { gameConfigs: { odds } };
                 spyOn(consumer, "generateResult").and.returnValue({ rank: "8", suit: 0 });
@@ -409,7 +409,7 @@ describe("settle-turn-consumer", () => {
         });
 
         describe("when tie", () => {
-            it("should return next amounts = current amount", async () => {
+            it("should return betwin = current amount and next amounts = odds * current amount", async () => {
                 // Arrange
                 consumer.gameData = { gameConfigs: { odds } };
                 spyOn(consumer, "generateResult").and.returnValue({ rank: "8", suit: 0 });

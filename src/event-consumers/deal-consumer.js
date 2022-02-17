@@ -1,7 +1,6 @@
 import { Core } from "sc-game-base";
 import { helpers } from "sc-common";
 import gameSettings, { choiceNames } from "../game-settings";
-import errorCodes from "../constants/error-codes";
 import { cardRanks } from "../cards";
 
 export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsumer {
@@ -21,7 +20,7 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
             },
             {
                 failure: !roundId,
-                notice: this.getNoticeObj(errorCodes.roundNotExist),
+                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet),
             },
         ];
     }
@@ -37,11 +36,11 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
             },
             {
                 failure: betChoice === choiceNames.l && currentCard.rank === cardRanks.two,
-                notice: this.getNoticeObj(errorCodes.cannotLowerThan),
+                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet),
             },
             {
                 failure: betChoice === choiceNames.h && currentCard.rank === cardRanks.ace,
-                notice: this.getNoticeObj(errorCodes.cannotGreaterThan),
+                notice: this.getNoticeObj(helpers.noticeHelper.invalidBet),
             },
         ];
     }

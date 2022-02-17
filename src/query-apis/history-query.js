@@ -3,7 +3,7 @@ import { Core } from "sc-game-base";
 export default class HistoryQuery extends Core.QueryApis.HistoryQuery {
     getBetLogDetails(player, roundId) {
         return this.betLogsRepository
-            .find({ roundId: roundId, uid: player.UID }, {}, { sort: { _id: 1 } })
+            .find({ roundId: roundId, uid: player.UID }, {}, { sort: { order: 1 } })
             .lean()
             .exec();
     }

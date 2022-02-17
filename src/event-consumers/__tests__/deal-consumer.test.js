@@ -2,7 +2,6 @@ import { Core } from "sc-game-base";
 import { stub } from "jest-micro-auto-stub";
 import { helpers } from "sc-common";
 import { DealConsumer } from "../index";
-import errorCodes from "../../constants/error-codes";
 import { player1 } from "../../__tests__/test-data";
 import { BaseEventPublisher } from "sc-game-base/src/core/event-publishers";
 
@@ -61,14 +60,14 @@ describe("deal-consumer", () => {
                 roundId: undefined,
                 expectedValue: {
                     failure: true,
-                    notice: { errorCode: errorCodes.roundNotExist },
+                    notice: { errorCode: helpers.noticeHelper.invalidBet },
                 },
             },
             {
                 roundId: 10,
                 expectedValue: {
                     failure: false,
-                    notice: { errorCode: errorCodes.roundNotExist },
+                    notice: { errorCode: helpers.noticeHelper.invalidBet },
                 },
             },
         ];
@@ -124,7 +123,7 @@ describe("deal-consumer", () => {
                     };
                     const expectedValue = {
                         failure: true,
-                        notice: { errorCode: errorCodes.cannotLowerThan },
+                        notice: { errorCode: helpers.noticeHelper.invalidBet },
                     };
                     const betChoice = "l";
 
@@ -144,7 +143,7 @@ describe("deal-consumer", () => {
                     };
                     const expectedValue = {
                         failure: false,
-                        notice: { errorCode: errorCodes.cannotLowerThan },
+                        notice: { errorCode: helpers.noticeHelper.invalidBet },
                     };
                     const betChoice = "l";
 
@@ -164,7 +163,7 @@ describe("deal-consumer", () => {
                     };
                     const expectedValue = {
                         failure: false,
-                        notice: { errorCode: errorCodes.cannotGreaterThan },
+                        notice: { errorCode: helpers.noticeHelper.invalidBet },
                     };
                     const betChoice = "l";
 
@@ -184,7 +183,7 @@ describe("deal-consumer", () => {
                     };
                     const expectedValue = {
                         failure: false,
-                        notice: { errorCode: errorCodes.cannotGreaterThan },
+                        notice: { errorCode: helpers.noticeHelper.invalidBet },
                     };
                     const betChoice = "l";
 
@@ -206,7 +205,7 @@ describe("deal-consumer", () => {
                     };
                     const expectedValue = {
                         failure: false,
-                        notice: { errorCode: errorCodes.cannotLowerThan },
+                        notice: { errorCode: helpers.noticeHelper.invalidBet },
                     };
                     const betChoice = "h";
 
@@ -226,7 +225,7 @@ describe("deal-consumer", () => {
                     };
                     const expectedValue = {
                         failure: false,
-                        notice: { errorCode: errorCodes.cannotLowerThan },
+                        notice: { errorCode: helpers.noticeHelper.invalidBet },
                     };
                     const betChoice = "h";
 
@@ -244,7 +243,7 @@ describe("deal-consumer", () => {
                     consumer.gameData = { ingame: { [player1.profile.name]: { betTracks: { result: [{ rank: "A" }] } } } };
                     const expectedValue = {
                         failure: true,
-                        notice: { errorCode: errorCodes.cannotGreaterThan },
+                        notice: { errorCode: helpers.noticeHelper.invalidBet },
                     };
                     const betChoice = "h";
 
@@ -264,7 +263,7 @@ describe("deal-consumer", () => {
                     };
                     const expectedValue = {
                         failure: false,
-                        notice: { errorCode: errorCodes.cannotGreaterThan },
+                        notice: { errorCode: helpers.noticeHelper.invalidBet },
                     };
                     const betChoice = "h";
 
