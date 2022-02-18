@@ -6,22 +6,33 @@ import { BaseEventPublisher } from "sc-game-base/src/core/event-publishers";
 import { stub } from "jest-micro-auto-stub";
 
 describe("place-bet-consumer", () => {
+    const definition = {};
+    const gameData = {
+        gameConfigs: { odds: {} },
+        exchangeRates: { code: {} },
+        currencyGroupGames: [{ groupId: "1" }],
+        players: {},
+        ingame: {},
+        roundId: 1,
+    };
+
     let consumer;
+
     beforeEach(() => {
+        jest.clearAllMocks();
+
         // Arrange
         const publisher = stub(BaseEventPublisher);
-        consumer = new PlaceBetConsumer(null, null, publisher);
+        consumer = new PlaceBetConsumer(definition, gameData, publisher);
     });
 
-    describe("extends", () => {
-        it("inherit Core.BaseEventConsumers.PlaceBetConsumer ", () => {
-            // Assert
-            expect(consumer instanceof Core.BaseEventConsumers.PlaceBetConsumer);
-        });
+    it("inherit Core.BaseEventConsumers.PlaceBetConsumer", () => {
+        // Assert
+        expect(consumer instanceof Core.BaseEventConsumers.PlaceBetConsumer);
     });
 
     describe("composeValidationCriteria", () => {
-        it("should return correct validation result", () => {
+        it("should return combined results of betting time and bet amount validations", () => {
             // Arrange
             spyOn(consumer, "composeBettingTimeValidationCriteria").and.returnValue([{ id: 1 }]);
             spyOn(consumer, "composeBetAmountValidationCriteria").and.returnValue([{ id: 2 }]);
@@ -36,10 +47,15 @@ describe("place-bet-consumer", () => {
     });
 
     describe("composeBettingTimeValidationCriteria", () => {
-        describe("when already have bet tracks", () => {
+        describe("when game is disabled", () => {
+            beforeEach(() => {
+                gameData.gameConfigs.enabled = false;
+            });
             it("should return failed", () => {
                 // Arrange
-                consumer.gameData = { ingame: { [player1.profile.name]: { betTracks: {} } } };
+                gameData.ingame = { [player1.profile.name]: { betTracks: null } };
+                gameData.gameConfigs.enabled = false;
+
                 const expectedValue = [{ failure: true, notice: { errorCode: helpers.noticeHelper.invalidBet } }];
 
                 // Act
@@ -49,11 +65,15 @@ describe("place-bet-consumer", () => {
                 expect(actualValue).toStrictEqual(expectedValue);
             });
         });
+        describe("when game is enabled", () => {
+            beforeEach(() => {
+                gameData.gameConfigs.enabled = true;
+                gameData.ingame = {};
+            });
 
-        describe("when not have bet tracks and config disabled", () => {
-            it("should return failed", () => {
+            it("should return failed if player has running round", () => {
                 // Arrange
-                consumer.gameData = { ingame: { [player1.profile.name]: { betTracks: null } }, gameConfigs: { enabled: false } };
+                gameData.ingame = { [player1.profile.name]: { betTracks: {} } };
                 const expectedValue = [{ failure: true, notice: { errorCode: helpers.noticeHelper.invalidBet } }];
 
                 // Act
@@ -62,12 +82,9 @@ describe("place-bet-consumer", () => {
                 // Assert
                 expect(actualValue).toStrictEqual(expectedValue);
             });
-        });
 
-        describe("when not in game and config enabled", () => {
-            it("should return failed", () => {
+            it("should return ok if player does not have running round", () => {
                 // Arrange
-                consumer.gameData = { ingame: {}, gameConfigs: { enabled: true } };
                 const expectedValue = [{ failure: false, notice: { errorCode: helpers.noticeHelper.invalidBet } }];
 
                 // Act
@@ -144,8 +161,8 @@ describe("place-bet-consumer", () => {
     });
 
     describe("consume", () => {
-        describe("when have failure", () => {
-            it("should not add bet to queue", () => {
+        describe("when bet is invalid", () => {
+            it("should not add it to queue", () => {
                 // Arrange
                 consumer.gameData = { ingame: { m1: { betQueue: [] } } };
                 spyOn(consumer, "validateBetRequest").and.returnValue(false);
@@ -159,7 +176,7 @@ describe("place-bet-consumer", () => {
             });
         });
 
-        describe("when not have failure and not in game yet", () => {
+        describe("when bet is valid and not in game yet", () => {
             it("should add bet to queue", () => {
                 // Arrange
                 consumer.gameData = { ingame: {} };

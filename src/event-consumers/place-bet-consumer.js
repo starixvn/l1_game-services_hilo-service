@@ -16,7 +16,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
 
         return [
             {
-                failure: !!runningRound || !configs.enabled,
+                failure: !configs.enabled || !!runningRound,
                 notice: this.getNoticeObj(helpers.noticeHelper.invalidBet),
             },
         ];
@@ -61,13 +61,17 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
             return;
         }
 
+        //TODO increase immediately after assign value to payload?!?
+        payload.roundId = this.gameData.roundId;
+
         const name = player.profile.name;
         if (!this.gameData.ingame[name]) {
+            const { currencyName: currency, system, partnerId } = player.session;
             const newPlayer = {
-                name: player.profile.name,
-                currency: player.session.currencyName,
-                system: player.session.system,
-                partnerId: player.session.partnerId,
+                name,
+                currency,
+                system,
+                partnerId,
                 betTracks: {},
                 betQueue: [],
             };
