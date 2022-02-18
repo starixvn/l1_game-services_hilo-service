@@ -61,8 +61,6 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
             return;
         }
 
-        //TODO increase immediately after assign value to payload?!?
-        payload.roundId = this.gameData.roundId;
 
         const name = player.profile.name;
         if (!this.gameData.ingame[name]) {
