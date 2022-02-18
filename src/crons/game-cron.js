@@ -61,8 +61,6 @@ export default class GameCron extends Core.Crons.BaseGameCron {
     }
 
     async proceed() {
-        await this.processRunningRounds();
-
         const { durations } = this.definition;
 
         if (this.gameData.remainingTime === durations.wholeRound) {
@@ -71,6 +69,8 @@ export default class GameCron extends Core.Crons.BaseGameCron {
 
         if (!this.gameData.disabled) {
             this.gameData.remainingTime--;
+
+            await this.processRunningRounds();
         }
 
         if (this.isStartingTime(this.gameData.remainingTime, durations)) {

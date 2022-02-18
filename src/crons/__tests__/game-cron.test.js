@@ -5,6 +5,7 @@ import { stubMongooseModelStupidly, stub } from "jest-micro-auto-stub";
 import { choiceNames } from "../../game-settings";
 import { SettleTurnConsumer, CollectConsumer } from "../../event-consumers";
 import { SettleGameRoundConsumer } from "sc-game-base/src/core/event-consumers";
+import { GameStatusPublisher } from "sc-game-base/src/core/event-publishers";
 
 const bot = { resetInRoomTrackings: jest.fn(), reset: jest.fn(), run: jest.fn() };
 const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
@@ -19,6 +20,7 @@ const currencyRepository = stubMongooseModelStupidly(mongoose.Model);
 const settleTurnConsumer = stub(SettleTurnConsumer);
 const collectConsumer = stub(CollectConsumer);
 const settleGameRoundConsumer = stub(SettleGameRoundConsumer);
+const gameStatusPublisher = stub(GameStatusPublisher);
 
 describe("game-cron", () => {
     const definition = { durations: { wholeRound: 120, placingBets: 40 }, choices: ["hi", "lo"] };
@@ -40,6 +42,7 @@ describe("game-cron", () => {
             settleTurnConsumer,
             collectConsumer,
             settleGameRoundConsumer,
+            gameStatusPublisher,
         });
     });
 
@@ -73,16 +76,32 @@ describe("game-cron", () => {
     });
 
     describe("proceed", () => {
-        it("always processRunningRounds", async () => {
-            // Arrange
-            cron.gameData = { ingame: {} };
-            spyOn(cron, "processRunningRounds");
+        describe("when game disabled", () => {
+            it("should not process running rounds", async () => {
+                // Arrange
+                cron.gameData = { ingame: {}, remainingTime: 120, disabled: true };
+                spyOn(cron, "processRunningRounds");
 
-            // Act
-            await cron.proceed();
+                // Act
+                await cron.proceed();
 
-            // Assert
-            expect(cron.processRunningRounds).toHaveBeenCalled();
+                // Assert
+                expect(cron.processRunningRounds).not.toHaveBeenCalled();
+            });
+        });
+
+        describe("when game enabled", () => {
+            it("should process running rounds", async () => {
+                // Arrange
+                cron.gameData = { ingame: {}, remainingTime: 118, disabled: false };
+                spyOn(cron, "processRunningRounds");
+
+                // Act
+                await cron.proceed();
+
+                // Assert
+                expect(cron.processRunningRounds).toHaveBeenCalled();
+            });
         });
 
         describe("when remainingTime is wholeRound", () => {
