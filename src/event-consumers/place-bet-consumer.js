@@ -53,17 +53,14 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
     }
 
     consume(player, payload) {
-        Object.assign(payload, {
-            amount: payload.amount >> 0,
-            roundId: this.gameData.roundId,
-            receivedTime: new Date(),
-        });
+        payload.roundId = this.gameData.roundId;
+        this.gameData.roundId++;
 
+        Object.assign(payload, { amount: payload.amount >> 0, receivedTime: new Date() });
         if (!this.validateBetRequest(player, payload.amount)) {
             return;
         }
 
-        this.gameData.roundId++;
         const name = player.profile.name;
         if (!this.gameData.ingame[name]) {
             const newPlayer = {
