@@ -1,30 +1,39 @@
 import { stub } from "jest-micro-auto-stub";
 import { Core } from "sc-game-base";
-import { logger } from "sc-common/logger";
+import { logger } from "sc-common";
 import { HttpRouter } from "../index";
 
-const app = {
-    get: jest.fn(),
-    post: (url, authenticate, callBack) => {
-        callBack({}, {});
-    },
-    calledPost: false,
-};
-const appConfigs = {
-    apiSettings: {
-        authUrl: "http://localhost",
-    },
-    authenticateSettings: {
-        audiences: [],
-    },
-};
-const logService = stub(logger);
+jest.mock("sc-common");
 
 describe("http-router", () => {
+    const app = {
+        get: jest.fn(),
+        post: (url, authenticate, callBack) => {
+            callBack({}, {});
+        },
+        calledPost: false,
+    };
+    const appConfigs = {
+        apiSettings: {
+            authUrl: "http://localhost",
+        },
+        authenticateSettings: {
+            audiences: [],
+        },
+    };
+    const logService = stub(logger);
+    const gameData = {};
+    const historyQuery = {};
+    const userSessionsRepository = {};
+    const metricQuery = {};
+    const res = { send: jest.fn() };
+
     let router;
     beforeEach(() => {
         // Arrange
-        router = new HttpRouter();
+        jest.clearAllMocks();
+
+        router = new HttpRouter(appConfigs, gameData, historyQuery, userSessionsRepository, metricQuery, logService);
     });
 
     describe("extends", () => {
@@ -45,34 +54,13 @@ describe("http-router", () => {
             // Assert
             expect(HttpRouter.prototype.init).toHaveBeenCalledWith(app);
         });
-
-        it("should call app.post", () => {
-            // Arrange
-            app.calledPost = false;
-            router.appConfigs = appConfigs;
-            spyOn(app, "calledPost").and.callThrough();
-            spyOn(router, "handleSetResult");
-
-            // Act
-            router.init(app);
-
-            // Assert
-            expect(router.handleSetResult).toHaveBeenCalledWith(undefined, {});
-        });
     });
 
     describe("handleSetResult", () => {
-        beforeEach(() => {
-            jest.clearAllMocks();
-        });
-
         describe("when params are invalid", () => {
             const testCases = [{ param: null }, { param: {} }, { param: { roundId: 1 } }];
             it.each(testCases)("should return [] ", async (testCase) => {
                 // Arrange
-                router.appConfigs = appConfigs;
-                router.logService = logService;
-                const res = { send: jest.fn() };
 
                 // Act
                 await router.handleSetResult(testCase.param, res);
@@ -85,11 +73,7 @@ describe("http-router", () => {
         describe("when params are valid", () => {
             it("should logWarning", async () => {
                 // Arrange
-                const gameData = { settlementResultFromAdmin: {} };
-                router.appConfigs = appConfigs;
-                router.gameData = gameData;
-                router.logService = logService;
-                const res = { send: jest.fn() };
+                gameData.settlementResultFromAdmin = {};
                 const param = { Name: "player", Result: ["A", "2", "3"] };
 
                 // Act
@@ -105,11 +89,7 @@ describe("http-router", () => {
         describe("when have error", () => {
             it("should logError", async () => {
                 // Arrange
-                const gameData = { settlementResultFromAdmin: null };
-                router.appConfigs = appConfigs;
-                router.gameData = gameData;
-                router.logService = logService;
-                const res = { send: jest.fn() };
+                gameData.settlementResultFromAdmin = null;
                 const param = { Name: "player", Result: [] };
 
                 // Act
