@@ -8401,6 +8401,30 @@ sc-game-base@2.4.1-beta.2:
     socket.io-msgpack-parser "^3.0.1"
     socket.io-prom-metrics "^1.0.3"
 
+sc-game-base@2.4.1-beta.4:
+  version "2.4.1-beta.4"
+  resolved "https://npm.lumigame.com/sc-game-base/-/sc-game-base-2.4.1-beta.4.tgz#a5ea464252b1f70e84ae56403163a25bd0b985d5"
+  integrity sha512-UMQDXbNRM2LkSEBNJs/SkV8h5p97WdfhMtiKBhbb1hziZydSWzb3j2lZquYk7/vPLnTSpfbnztgcXzJa3KBviA==
+  dependencies:
+    awilix "^4.3.1"
+    axios "^0.20.0"
+    body-parser "^1.19.0"
+    chance "^1.1.7"
+    cors "^2.8.5"
+    cron "^1.8.2"
+    express "^4.17.1"
+    helmet "^3.23.3"
+    lodash "^4.17.19"
+    mongoose "^5.9.25"
+    morgan "^1.10.0"
+    openid-client "^4.2.0"
+    sc-base-apis "1.15.1"
+    sc-base-database "1.9.1"
+    sc-common "^1.8.0"
+    socket.io "^4.1.2"
+    socket.io-msgpack-parser "^3.0.1"
+    socket.io-prom-metrics "^1.0.3"
+
 sc-game-service-integration-utils@1.0.1-beta.1:
   version "1.0.1-beta.1"
   resolved "https://npm.lumigame.com/sc-game-service-integration-utils/-/sc-game-service-integration-utils-1.0.1-beta.1.tgz#739ffcc784291ddeb741d1421144a2a75df6bf08"

@@ -69,7 +69,6 @@ export default class GameCron extends Core.Crons.BaseGameCron {
 
         if (!this.gameData.disabled) {
             this.gameData.remainingTime--;
-
             await this.processRunningRounds();
         }
 
@@ -136,5 +135,23 @@ export default class GameCron extends Core.Crons.BaseGameCron {
         await Promise.all(
             Object.values(this.gameData.ingame).map((player) => this.settleGameRoundConsumer.settleBets(player.betTracks.name))
         );
+    }
+
+    async enableGame() {
+        await Promise.all(
+            Object.values(this.gameData.ingame).map(async (player) => {
+                if (player.betTracks?.name) {
+                    const bet = player.betTracks;
+                    bet.turnResult = {
+                        isLose: false,
+                        betwin: bet.totalTurns === 0 ? bet.amount : bet.betwin,
+                    };
+
+                    await this.settleGameRoundConsumer.settleBets(bet.name);
+                }
+            })
+        );
+
+        await super.enableGame();
     }
 }

@@ -6,6 +6,7 @@ import { choiceNames } from "../../game-settings";
 import { SettleTurnConsumer, CollectConsumer } from "../../event-consumers";
 import { SettleGameRoundConsumer } from "sc-game-base/src/core/event-consumers";
 import { GameStatusPublisher } from "sc-game-base/src/core/event-publishers";
+import { player1 } from "../../__tests__/test-data";
 
 const bot = { resetInRoomTrackings: jest.fn(), reset: jest.fn(), run: jest.fn() };
 const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
@@ -256,6 +257,82 @@ describe("game-cron", () => {
 
             // Assert
             expect(cron.settleGameRoundConsumer.settleBets).toHaveBeenCalledWith("m1");
+        });
+    });
+
+    describe("enableGame", () => {
+        describe("when player doesn't complete turn 1 yet", () => {
+            beforeEach(() => {
+                // Arrange
+                cron.gameData = {
+                    ingame: { [player1.profile.name]: { betTracks: { name: player1.profile.name, totalTurns: 0, amount: 10 } } },
+                };
+            });
+
+            it("should set bet.amount to turn result", async () => {
+                // Arrange
+                const expectedTurnResult = { isLose: false, betwin: 10 };
+
+                // Act
+                await cron.enableGame();
+
+                // Assert
+                expect(cron.gameData.ingame[player1.profile.name].betTracks.turnResult).toStrictEqual(expectedTurnResult);
+            });
+
+            it("should settleBets for that player", async () => {
+                // Act
+                await cron.enableGame();
+
+                // Assert
+                expect(cron.settleGameRoundConsumer.settleBets).toHaveBeenCalledWith(player1.profile.name);
+            });
+        });
+
+        describe("when player already finish 1st turn and continue to next turn", () => {
+            beforeEach(() => {
+                // Arrange
+                cron.gameData = {
+                    ingame: {
+                        [player1.profile.name]: { betTracks: { name: player1.profile.name, totalTurns: 1, amount: 10, betwin: 20 } },
+                    },
+                };
+            });
+
+            it("should set bet.betwin to turn result", async () => {
+                // Arrange
+                const expectedTurnResult = { isLose: false, betwin: 20 };
+
+                // Act
+                await cron.enableGame();
+
+                // Assert
+                expect(cron.gameData.ingame[player1.profile.name].betTracks.turnResult).toStrictEqual(expectedTurnResult);
+            });
+
+            it("should settleBets for that player", async () => {
+                // Act
+                await cron.enableGame();
+
+                // Assert
+                expect(cron.settleGameRoundConsumer.settleBets).toHaveBeenCalledWith(player1.profile.name);
+            });
+        });
+
+        describe("when player not have play game yet", () => {
+            it("should not call settleBets for that player", async () => {
+                // Arrange
+                const name = "playerName2";
+                cron.gameData = {
+                    ingame: { name: { betTracks: {} } },
+                };
+
+                // Act
+                await cron.enableGame();
+
+                // Assert
+                expect(cron.settleGameRoundConsumer.settleBets).not.toHaveBeenCalledWith(name);
+            });
         });
     });
 });

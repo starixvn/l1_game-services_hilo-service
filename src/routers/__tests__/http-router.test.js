@@ -103,7 +103,7 @@ describe("http-router", () => {
         });
 
         describe("when have error", () => {
-            it("should warning cheating", async () => {
+            it("should logError", async () => {
                 // Arrange
                 const gameData = { settlementResultFromAdmin: null };
                 router.appConfigs = appConfigs;
@@ -116,7 +116,7 @@ describe("http-router", () => {
                 await router.handleSetResult(param, res);
 
                 // Assert
-                expect(logService.logWarning).toHaveBeenCalledWith('receives a result cheating call {"Name":"player","Result":[]}.');
+                expect(logService.logError).toHaveBeenCalledWith(new TypeError("Cannot set property 'player' of null"));
             });
         });
     });
