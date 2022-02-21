@@ -54,6 +54,20 @@ describe("http-router", () => {
             // Assert
             expect(HttpRouter.prototype.init).toHaveBeenCalledWith(app);
         });
+
+        it("should call app.post", () => {
+            // Arrange
+            app.calledPost = false;
+            router.appConfigs = appConfigs;
+            spyOn(app, "calledPost").and.callThrough();
+            spyOn(router, "handleSetResult");
+
+            // Act
+            router.init(app);
+
+            // Assert
+            expect(router.handleSetResult).toHaveBeenCalledWith(undefined, {});
+        });
     });
 
     describe("handleSetResult", () => {
