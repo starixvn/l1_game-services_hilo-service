@@ -7,6 +7,7 @@ import { SettleTurnConsumer, CollectConsumer } from "../../event-consumers";
 import { SettleGameRoundConsumer } from "sc-game-base/src/core/event-consumers";
 import { GameStatusPublisher } from "sc-game-base/src/core/event-publishers";
 import { player1 } from "../../__tests__/test-data";
+import { logger } from "sc-common";
 
 const bot = { resetInRoomTrackings: jest.fn(), reset: jest.fn(), run: jest.fn() };
 const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
@@ -22,6 +23,7 @@ const settleTurnConsumer = stub(SettleTurnConsumer);
 const collectConsumer = stub(CollectConsumer);
 const settleGameRoundConsumer = stub(SettleGameRoundConsumer);
 const gameStatusPublisher = stub(GameStatusPublisher);
+const logService = stub(logger);
 
 describe("game-cron", () => {
     const definition = { durations: { wholeRound: 120, placingBets: 40 }, choices: ["hi", "lo"] };
@@ -44,6 +46,7 @@ describe("game-cron", () => {
             collectConsumer,
             settleGameRoundConsumer,
             gameStatusPublisher,
+            logService,
         });
     });
 
