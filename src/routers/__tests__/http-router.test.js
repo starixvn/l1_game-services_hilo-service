@@ -9,7 +9,7 @@ describe("http-router", () => {
     const app = {
         get: jest.fn(),
         post: (url, authenticate, callBack) => {
-            callBack({}, {});
+            callBack({}, { send: jest.fn() });
         },
         calledPost: false,
     };
@@ -66,7 +66,7 @@ describe("http-router", () => {
             router.init(app);
 
             // Assert
-            expect(router.handleSetResult).toHaveBeenCalledWith(undefined, {});
+            expect(router.handleSetResult).toHaveBeenCalledWith(undefined, expect.any(Object));
         });
     });
 
