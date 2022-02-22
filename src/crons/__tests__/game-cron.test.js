@@ -26,6 +26,7 @@ const gameStatusPublisher = stub(GameStatusPublisher);
 const logService = stub(logger);
 
 describe("game-cron", () => {
+    jest.useFakeTimers();
     const definition = { durations: { wholeRound: 120, placingBets: 40 }, choices: ["hi", "lo"] };
     let cron;
     beforeEach(() => {
