@@ -54,7 +54,7 @@ describe("SettleGameRoundConsumer", () => {
 
     describe("settleBets", () => {
         describe("when not have bet", () => {
-            it("should not call save bet with end time", async () => {
+            it("should not call save bet", async () => {
                 // Arrange
                 consumer.gameData = {
                     gameConfigs: {},
@@ -79,26 +79,46 @@ describe("SettleGameRoundConsumer", () => {
             });
         });
 
-        it("should save bet with end time", async () => {
-            // Arrange
-            consumer.gameData = {
-                gameConfigs: {},
-                ingame: { [player1.profile.name]: { betTracks: { result: {}, turnResult: { betwin: 10 }, id: 1, endTime: new Date() } } },
-                settlementResultFromAdmin: {},
-            };
-            const bet = { save: jest.fn() };
-            spyOn(consumer, "queryBets").and.returnValue([bet]);
-            consumer.endGame = async () => {
-                return {
-                    isOk: true,
+        describe("when have bet", () => {
+            let bet;
+            beforeEach(async () => {
+                // Arrange
+                consumer.gameData = {
+                    gameConfigs: {},
+                    ingame: {
+                        [player1.profile.name]: { betTracks: { result: {}, turnResult: { betwin: 10 }, id: 1, endTime: new Date() } },
+                    },
+                    settlementResultFromAdmin: {},
                 };
-            };
+                bet = { save: jest.fn() };
+                spyOn(consumer, "queryBets").and.returnValue([bet]);
+                spyOn(consumer, "calculateBetResult").and.returnValue({ totalWin: 10 });
+                consumer.endGame = async () => {
+                    return {
+                        isOk: true,
+                    };
+                };
 
-            // Act
-            await consumer.settleBets(player1.profile.name);
+                // Act
+                await consumer.settleBets(player1.profile.name);
+            });
 
-            // Assert
-            expect(bet.save).toHaveBeenCalled();
+            it("should assign bet.betwin", async () => {
+                // Assert
+                expect(bet.betwin).toBe(10);
+            });
+            it("should set bet.paid = true", async () => {
+                // Assert
+                expect(bet.paid).toBeTrue();
+            });
+            it("should set bet.endTime", async () => {
+                // Assert
+                expect(bet.endTime).not.toBeNull();
+            });
+            it("should save bet", async () => {
+                // Assert
+                expect(bet.save).toHaveBeenCalled();
+            });
         });
     });
 

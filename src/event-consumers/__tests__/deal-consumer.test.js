@@ -197,7 +197,7 @@ describe("DealConsumer", () => {
                 });
             });
 
-            describe("card is 2", () => {
+            describe("card is Ace", () => {
                 it("should return invalidBet criterion with failure = false", () => {
                     // Arrange
                     gameData.ingame = {
