@@ -5,30 +5,32 @@ import { DealConsumer } from "../index";
 import { player1 } from "../../__tests__/test-data";
 import { BaseEventPublisher } from "sc-game-base/src/core/event-publishers";
 
-describe("deal-consumer", () => {
+describe("DealConsumer", () => {
     let consumer;
+    let gameData = {};
+
     beforeEach(() => {
         // Arrange
         const definition = { choices: ["h", "l"] };
         const publisher = stub(BaseEventPublisher);
-        consumer = new DealConsumer(definition, null, publisher);
+        consumer = new DealConsumer(definition, gameData, publisher);
     });
 
-    describe("extends", () => {
-        it("inherit Core.BaseEventConsumers.PlaceBetConsumer ", () => {
-            // Assert
-            expect(consumer instanceof Core.BaseEventConsumers.PlaceBetConsumer);
-        });
+    it("inherit Core.BaseEventConsumers.PlaceBetConsumer ", () => {
+        // Assert
+        expect(consumer instanceof Core.BaseEventConsumers.PlaceBetConsumer);
     });
 
     describe("composeValidationCriteria", () => {
-        const testCases = [{ criterion: [] }];
-        it.each(testCases)("should return concat of time/amount/choice validation", (testCase) => {
+        it("should return concat of time/choice validation", () => {
             // Arrange
-            spyOn(consumer, "composeBettingTimeValidationCriteria").and.returnValue(testCase.criterion);
-            spyOn(consumer, "composeBetAmountValidationCriteria").and.returnValue(testCase.criterion);
-            spyOn(consumer, "composeBetChoiceValidationCriteria").and.returnValue(testCase.criterion);
-            const expectedValue = [];
+            spyOn(consumer, "composeBettingTimeValidationCriteria").and.returnValue([{ failure: true, notice: { code: 1 } }]);
+            spyOn(consumer, "composeBetAmountValidationCriteria").and.returnValue([{ failure: true, notice: { code: 2 } }]);
+            spyOn(consumer, "composeBetChoiceValidationCriteria").and.returnValue([{ failure: true, notice: { code: 3 } }]);
+            const expectedValue = [
+                { failure: true, notice: { code: 1 } },
+                { failure: true, notice: { code: 3 } },
+            ];
 
             // Act
             const actualValue = consumer.composeValidationCriteria();
@@ -39,56 +41,78 @@ describe("deal-consumer", () => {
     });
 
     describe("composeBettingTimeValidationCriteria", () => {
-        let testCases = [
-            { enabled: false, expectedValue: { failure: true, notice: { errorCode: helpers.noticeHelper.invalidBet } } },
-            { enabled: true, expectedValue: { failure: false, notice: { errorCode: helpers.noticeHelper.invalidBet } } },
-        ];
-        it.each(testCases)("should check game enabled or not", (testCase) => {
-            // Arrange
-            consumer.gameData = { gameConfigs: { enabled: testCase.enabled } };
-            const roundId = undefined;
+        describe("when game disable", () => {
+            it("should return invalidBet criterion with failure = true", () => {
+                // Arrange
+                gameData.gameConfigs = { enabled: false };
+                const roundId = undefined;
+                const expectedValue = { failure: true, notice: { errorCode: helpers.noticeHelper.invalidBet } };
 
-            // Act
-            const actualValue = consumer.composeBettingTimeValidationCriteria(roundId);
+                // Act
+                const actualValue = consumer.composeBettingTimeValidationCriteria(roundId);
 
-            // Assert
-            expect(actualValue[0]).toStrictEqual(testCase.expectedValue);
+                // Assert
+                expect(actualValue[0]).toStrictEqual(expectedValue);
+            });
         });
 
-        testCases = [
-            {
-                roundId: undefined,
-                expectedValue: {
+        describe("when game enabled", () => {
+            it("should return invalidBet criterion with failure = false", () => {
+                // Arrange
+                gameData.gameConfigs = { enabled: true };
+                const roundId = undefined;
+                const expectedValue = { failure: false, notice: { errorCode: helpers.noticeHelper.invalidBet } };
+
+                // Act
+                const actualValue = consumer.composeBettingTimeValidationCriteria(roundId);
+
+                // Assert
+                expect(actualValue[0]).toStrictEqual(expectedValue);
+            });
+        });
+
+        describe("when not have round id", () => {
+            it("should return invalidBet criterion with failure = true", () => {
+                // Arrange
+                gameData.gameConfigs = { enabled: true };
+                const roundId = undefined;
+                const expectedValue = {
                     failure: true,
                     notice: { errorCode: helpers.noticeHelper.invalidBet },
-                },
-            },
-            {
-                roundId: 10,
-                expectedValue: {
+                };
+
+                // Act
+                const actualValue = consumer.composeBettingTimeValidationCriteria(roundId);
+
+                // Assert
+                expect(actualValue[1]).toStrictEqual(expectedValue);
+            });
+        });
+
+        describe("when have round id", () => {
+            it("should return invalidBet criterion with failure = false", () => {
+                // Arrange
+                gameData.gameConfigs = { enabled: true };
+                const roundId = 10;
+                const expectedValue = {
                     failure: false,
                     notice: { errorCode: helpers.noticeHelper.invalidBet },
-                },
-            },
-        ];
-        it.each(testCases)("should check round id", (testCase) => {
-            // Arrange
-            consumer.gameData = { gameConfigs: { enabled: true } };
-            const roundId = testCase.roundId;
+                };
 
-            // Act
-            const actualValue = consumer.composeBettingTimeValidationCriteria(roundId);
+                // Act
+                const actualValue = consumer.composeBettingTimeValidationCriteria(roundId);
 
-            // Assert
-            expect(actualValue[1]).toStrictEqual(testCase.expectedValue);
+                // Assert
+                expect(actualValue[1]).toStrictEqual(expectedValue);
+            });
         });
     });
 
     describe("composeBetChoiceValidationCriteria", () => {
         describe("when bet choice not in definition.choices", () => {
-            it("should failed choices criterion", () => {
+            it("should return invalidBet criterion with failure = true", () => {
                 // Arrange
-                consumer.gameData = { ingame: { [player1.profile.name]: { betTracks: null } } };
+                gameData.ingame = { [player1.profile.name]: { betTracks: null } };
                 const expectedValue = { failure: true, notice: { errorCode: helpers.noticeHelper.invalidBet } };
                 const betChoice = "o";
 
@@ -101,9 +125,9 @@ describe("deal-consumer", () => {
         });
 
         describe("when bet choice in definition.choices", () => {
-            it("should not failed choices criterion", () => {
+            it("should return invalidBet criterion with failure = false", () => {
                 // Arrange
-                consumer.gameData = { ingame: { [player1.profile.name]: { betTracks: null } } };
+                gameData.ingame = { [player1.profile.name]: { betTracks: null } };
                 const expectedValue = { failure: false, notice: { errorCode: helpers.noticeHelper.invalidBet } };
                 const betChoice = "h";
 
@@ -116,11 +140,9 @@ describe("deal-consumer", () => {
         });
         describe("when loChoice", () => {
             describe("card is 2", () => {
-                it("should failed loChoice criterion", () => {
+                it("should return invalidBet criterion with failure = true", () => {
                     // Arrange
-                    consumer.gameData = {
-                        ingame: { [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }] } } },
-                    };
+                    gameData.ingame = { [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }] } } };
                     const expectedValue = {
                         failure: true,
                         notice: { errorCode: helpers.noticeHelper.invalidBet },
@@ -136,10 +158,10 @@ describe("deal-consumer", () => {
             });
 
             describe("card is not 2", () => {
-                it("should not failed loChoice criterion", () => {
+                it("should return invalidBet criterion with failure = false", () => {
                     // Arrange
-                    consumer.gameData = {
-                        ingame: { [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "4" }] } } },
+                    gameData.ingame = {
+                        [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "4" }] } },
                     };
                     const expectedValue = {
                         failure: false,
@@ -155,11 +177,11 @@ describe("deal-consumer", () => {
                 });
             });
 
-            describe("card is not 1", () => {
-                it("should not failed hiChoice criterion", () => {
+            describe("card is not Ace", () => {
+                it("should return invalidBet criterion with failure = false", () => {
                     // Arrange
-                    consumer.gameData = {
-                        ingame: { [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "4" }] } } },
+                    gameData.ingame = {
+                        [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "4" }] } },
                     };
                     const expectedValue = {
                         failure: false,
@@ -176,10 +198,10 @@ describe("deal-consumer", () => {
             });
 
             describe("card is 2", () => {
-                it("should not failed hiChoice criterion", () => {
+                it("should return invalidBet criterion with failure = false", () => {
                     // Arrange
-                    consumer.gameData = {
-                        ingame: { [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "A" }] } } },
+                    gameData.ingame = {
+                        [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "A" }] } },
                     };
                     const expectedValue = {
                         failure: false,
@@ -198,10 +220,10 @@ describe("deal-consumer", () => {
 
         describe("when hiChoice", () => {
             describe("card is not 2", () => {
-                it("should not failed loChoice criterion", () => {
+                it("should return invalidBet criterion with failure = false", () => {
                     // Arrange
-                    consumer.gameData = {
-                        ingame: { [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "4" }] } } },
+                    gameData.ingame = {
+                        [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "4" }] } },
                     };
                     const expectedValue = {
                         failure: false,
@@ -218,10 +240,10 @@ describe("deal-consumer", () => {
             });
 
             describe("card is 2", () => {
-                it("should not failed loChoice criterion", () => {
+                it("should return invalidBet criterion with failure = false", () => {
                     // Arrange
-                    consumer.gameData = {
-                        ingame: { [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "2" }] } } },
+                    gameData.ingame = {
+                        [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "2" }] } },
                     };
                     const expectedValue = {
                         failure: false,
@@ -237,10 +259,10 @@ describe("deal-consumer", () => {
                 });
             });
 
-            describe("card is 1", () => {
-                it("should failed hiChoice criterion", () => {
+            describe("card is Ace", () => {
+                it("should return invalidBet criterion with failure = true", () => {
                     // Arrange
-                    consumer.gameData = { ingame: { [player1.profile.name]: { betTracks: { result: [{ rank: "A" }] } } } };
+                    gameData.ingame = { [player1.profile.name]: { betTracks: { result: [{ rank: "A" }] } } };
                     const expectedValue = {
                         failure: true,
                         notice: { errorCode: helpers.noticeHelper.invalidBet },
@@ -255,11 +277,11 @@ describe("deal-consumer", () => {
                 });
             });
 
-            describe("card is not 1", () => {
-                it("should not failed hiChoice criterion", () => {
+            describe("card is not Ace", () => {
+                it("should return invalidBet criterion with failure = false", () => {
                     // Arrange
-                    consumer.gameData = {
-                        ingame: { [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "4" }] } } },
+                    gameData.ingame = {
+                        [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "4" }] } },
                     };
                     const expectedValue = {
                         failure: false,
@@ -279,11 +301,9 @@ describe("deal-consumer", () => {
 
     describe("validateBetRequest", () => {
         describe("when have failedCriterion", () => {
-            it("should return failed", async () => {
+            it("should return false", async () => {
                 // Arrange
-                consumer.gameData = {
-                    ingame: { [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "A" }] } } },
-                };
+                gameData.ingame = { [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "A" }] } } };
                 const amount = 10;
                 const betChoice = "h";
                 spyOn(consumer, "composeValidationCriteria").and.returnValue([{ failure: true }]);
@@ -300,10 +320,8 @@ describe("deal-consumer", () => {
             it("should return true", async () => {
                 // Arrange
                 consumer.definition = { choices: [] };
-                consumer.gameData = {
-                    ingame: {
-                        [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "A" }] } },
-                    },
+                gameData.ingame = {
+                    [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "A" }] } },
                 };
                 const amount = 10;
                 const betChoice = "h";
@@ -313,27 +331,35 @@ describe("deal-consumer", () => {
                 const actualValue = await consumer.validateBetRequest(player1, betChoice, amount);
 
                 // Assert
-                expect(actualValue).toBeTruthy();
+                expect(actualValue).toBeTrue();
             });
         });
     });
 
     describe("consume", () => {
         describe("when not have ingame data", () => {
-            it("should not push deal info to queue", () => {
+            beforeEach(() => {
                 // Arrange
-                consumer.gameData = {
-                    ingame: {
-                        m2: { betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "A" }] } },
-                        m1: { betQueue: [] },
-                    },
+                gameData.ingame = {
+                    m2: { betTracks: { uid: "m1", result: [{ rank: "2" }, { rank: "A" }] } },
+                    m1: { betQueue: [] },
                 };
                 spyOn(consumer, "validateBetRequest").and.returnValue(false);
                 const payload = {};
 
                 // Act
                 consumer.consume(player1, payload);
+            });
 
+            it("should call publisher.publishToUser", () => {
+                // Assert
+                expect(consumer.publisher.publishToUser).toBeCalledWith(player1.UID, {
+                    endDeal: -1,
+                    notice: { errorCode: helpers.noticeHelper.invalidBet },
+                });
+            });
+
+            it("should not push deal info to queue", () => {
                 // Assert
                 expect(consumer.gameData.ingame.m1.betQueue.length).toBe(0);
             });
@@ -342,7 +368,7 @@ describe("deal-consumer", () => {
         describe("when not have bet tracks data", () => {
             it("should not push deal info to queue", () => {
                 // Arrange
-                consumer.gameData = { ingame: { [player1.profile.name]: { betTracks: null, betQueue: [] } } };
+                gameData.ingame = { [player1.profile.name]: { betTracks: null, betQueue: [] } };
                 spyOn(consumer, "validateBetRequest").and.returnValue(false);
                 const payload = {};
 
@@ -357,10 +383,8 @@ describe("deal-consumer", () => {
         describe("when validateBetRequest failed", () => {
             it("should not push deal info to queue", async () => {
                 // Arrange
-                consumer.gameData = {
-                    ingame: {
-                        [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "A" }] }, betQueue: [] },
-                    },
+                gameData.ingame = {
+                    [player1.profile.name]: { betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "A" }] }, betQueue: [] },
                 };
                 spyOn(consumer, "validateBetRequest").and.returnValue(false);
                 const payload = {};
@@ -374,15 +398,12 @@ describe("deal-consumer", () => {
         });
 
         describe("when validateBetRequest passed", () => {
-            const testCases = [{ betQueue: null }, { betQueue: [] }];
-            it.each(testCases)("should push deal info to queue", (testCase) => {
+            it("should push deal info to queue", () => {
                 // Arrange
-                consumer.gameData = {
-                    ingame: {
-                        [player1.profile.name]: {
-                            betQueue: testCase.betQueue,
-                            betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "A" }] },
-                        },
+                gameData.ingame = {
+                    [player1.profile.name]: {
+                        betQueue: [],
+                        betTracks: { uid: player1.UID, result: [{ rank: "2" }, { rank: "A" }] },
                     },
                 };
                 spyOn(consumer, "validateBetRequest").and.returnValue(true);

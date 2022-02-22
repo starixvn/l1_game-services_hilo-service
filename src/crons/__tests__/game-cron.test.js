@@ -1,8 +1,8 @@
 import { Core } from "sc-game-base";
 import { GameCron } from "../index";
 import mongoose from "mongoose";
-import { stubMongooseModelStupidly, stub } from "jest-micro-auto-stub";
-import { choiceNames } from "../../game-settings";
+import { stubMongoose, stub } from "jest-micro-auto-stub";
+import gameSettings, { choiceNames } from "../../game-settings";
 import { SettleTurnConsumer, CollectConsumer } from "../../event-consumers";
 import { SettleGameRoundConsumer } from "sc-game-base/src/core/event-consumers";
 import { GameStatusPublisher } from "sc-game-base/src/core/event-publishers";
@@ -10,29 +10,31 @@ import { player1 } from "../../__tests__/test-data";
 import { logger } from "sc-common";
 
 const bot = { resetInRoomTrackings: jest.fn(), reset: jest.fn(), run: jest.fn() };
-const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
-const archiveStatusesRepository = stubMongooseModelStupidly(mongoose.Model);
-const gameConfigsRepository = stubMongooseModelStupidly(mongoose.Model);
-const notificationRepository = stubMongooseModelStupidly(mongoose.Model);
-const exchangeRatesRepository = stubMongooseModelStupidly(mongoose.Model);
-const currencyGroupGamesRepository = stubMongooseModelStupidly(mongoose.Model);
-const partnerConfigRepository = stubMongooseModelStupidly(mongoose.Model);
-const currencyGroupRepository = stubMongooseModelStupidly(mongoose.Model);
-const currencyRepository = stubMongooseModelStupidly(mongoose.Model);
+const roundsRepository = stubMongoose(mongoose.Model);
+const archiveStatusesRepository = stubMongoose(mongoose.Model);
+const gameConfigsRepository = stubMongoose(mongoose.Model);
+const notificationRepository = stubMongoose(mongoose.Model);
+const exchangeRatesRepository = stubMongoose(mongoose.Model);
+const currencyGroupGamesRepository = stubMongoose(mongoose.Model);
+const partnerConfigRepository = stubMongoose(mongoose.Model);
+const currencyGroupRepository = stubMongoose(mongoose.Model);
+const currencyRepository = stubMongoose(mongoose.Model);
 const settleTurnConsumer = stub(SettleTurnConsumer);
 const collectConsumer = stub(CollectConsumer);
 const settleGameRoundConsumer = stub(SettleGameRoundConsumer);
 const gameStatusPublisher = stub(GameStatusPublisher);
 const logService = stub(logger);
 
-describe("game-cron", () => {
+describe("GameCron", () => {
     jest.useFakeTimers();
     const definition = { durations: { wholeRound: 120, placingBets: 40 }, choices: ["hi", "lo"] };
+    let gameData = {};
     let cron;
     beforeEach(() => {
         // Arrange
         cron = new GameCron({
             definition,
+            gameData,
             bot,
             roundsRepository,
             archiveStatusesRepository,
@@ -51,24 +53,18 @@ describe("game-cron", () => {
         });
     });
 
-    describe("extends", () => {
-        it("inherit Core.Crons.BaseGameCron", () => {
-            // Assert
-            expect(cron instanceof Core.Crons.BaseGameCron);
-        });
+    it("inherit Core.Crons.BaseGameCron", () => {
+        // Assert
+        expect(cron instanceof Core.Crons.BaseGameCron);
     });
 
     describe("start", () => {
-        const testCases = [
-            { lastRound: null, expectedValue: 10 },
-            { lastRound: { id: 10 }, expectedValue: 11 },
-        ];
-        it.each(testCases)("should proceed Unsettled Bets", async (testCase) => {
+        it("should proceed Unsettled Bets", async () => {
             // Arrange
-            cron.gameData = { ingame: { m1: { betTracks: {} } } };
+            gameData.ingame = { m1: { betTracks: {} } };
             roundsRepository.find().lean().exec.mockReturnValue([]);
 
-            roundsRepository.findOne().lean().exec.mockReturnValue(testCase.lastRound);
+            roundsRepository.findOne().lean().exec.mockReturnValue(null);
             spyOn(cron, "getLastArchiveRound").and.returnValue(10);
             spyOn(cron, "proceedUnsettledBets");
 
@@ -168,7 +164,7 @@ describe("game-cron", () => {
             // Arrange
             const realPlayers = { m1: { UID: "m1" }, m2: { UID: "m2" } };
             const dt = new Date();
-            const expiredTime = new Date(dt.getTime() - 120000);
+            const expiredTime = new Date(dt.getTime() - gameSettings.durations.turnTime * 1000 - 1);
             cron.gameData = {
                 ingame: {
                     m1: { betTracks: { turnEndTime: expiredTime, uid: "m1", totalTurns: 0, name: "m1", result: [{ rank: 3 }] } },
@@ -202,30 +198,14 @@ describe("game-cron", () => {
         });
     });
 
-    describe("autoChooseChoice", () => {
-        it("difference of choice frequency not too high", () => {
-            // Arrange
-            const choiceCounts = { hi: 0, lo: 0 };
-            const testCount = 1000;
-            const round = { result: [{ rank: 3 }] };
-
-            // Act
-            for (let i = 0; i < testCount; i++) {
-                const choice = cron.autoChooseChoice(round);
-                choiceCounts[choice]++;
-            }
-
-            // Assert
-            expect(Math.abs(choiceCounts.hi / testCount - 0.5) <= 0.05 && Math.abs(choiceCounts.lo / testCount - 0.5) <= 0.05).toBeTruthy();
-        });
-
+    describe("autoDeal", () => {
         describe("when current card is Ace", () => {
             it("should return low", () => {
                 // Arrange
                 const round = { result: [{ rank: "A" }] };
 
                 // Act
-                const actualValue = cron.autoChooseChoice(round);
+                const actualValue = cron.autoDeal(round);
 
                 // Assert
                 expect(actualValue).toBe(choiceNames.l);
@@ -238,7 +218,7 @@ describe("game-cron", () => {
                 const round = { result: [{ rank: "2" }] };
 
                 // Act
-                const actualValue = cron.autoChooseChoice(round);
+                const actualValue = cron.autoDeal(round);
 
                 // Assert
                 expect(actualValue).toBe(choiceNames.h);

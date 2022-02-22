@@ -1,23 +1,21 @@
 import mongoose from "mongoose";
-import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
+import { stubMongoose } from "jest-micro-auto-stub";
 import { Core } from "sc-game-base";
 import { RoundQuery } from "../index";
 
-describe("round-query", () => {
+describe("RoundQuery", () => {
     let roundsRepository;
     let query;
 
     beforeEach(() => {
         // Arrange
-        roundsRepository = stubMongooseModelStupidly(mongoose.Model);
+        roundsRepository = stubMongoose(mongoose.Model);
         query = new RoundQuery(roundsRepository);
     });
 
-    describe("extends", () => {
-        it("inherit Core.QueryApis.RoundQuery", () => {
-            // Assert
-            expect(query instanceof Core.QueryApis.RoundQuery);
-        });
+    it("inherit Core.QueryApis.RoundQuery", () => {
+        // Assert
+        expect(query instanceof Core.QueryApis.RoundQuery);
     });
 
     describe("getList", () => {

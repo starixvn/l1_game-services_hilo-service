@@ -22,7 +22,7 @@ jest.mock(
     { virtual: true }
 );
 
-describe("service-container-registry", () => {
+describe("ServiceContainerRegistry", () => {
     const defaultInjectionMode = InjectionMode.CLASSIC;
     let containerRegistry;
 
@@ -32,11 +32,9 @@ describe("service-container-registry", () => {
         containerRegistry.container = { register: jest.fn() };
     });
 
-    describe("extends", () => {
-        it("inherit Core.ContainerRegistry", () => {
-            // Assert
-            expect(containerRegistry instanceof Core.ContainerRegistry);
-        });
+    it("inherit Core.ContainerRegistry", () => {
+        // Assert
+        expect(containerRegistry instanceof Core.ContainerRegistry);
     });
 
     describe("registerModels", () => {

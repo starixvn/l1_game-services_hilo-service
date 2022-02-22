@@ -50,13 +50,6 @@ export default class GameCron extends Core.Crons.BaseGameCron {
 
     async start() {
         await super.start();
-
-        const lastRound = await this.roundsRepository
-            .findOne({}, "id", { sort: { id: -1 } })
-            .lean()
-            .exec();
-
-        this.gameData.roundId = lastRound ? lastRound.id + 1 : await this.getLastArchiveRound();
         await this.proceedUnsettledBets();
     }
 
@@ -90,24 +83,22 @@ export default class GameCron extends Core.Crons.BaseGameCron {
             Object.values(this.gameData.ingame).map(async (player) => {
                 const round = player.betTracks;
 
-                if (!round) {
+                if (!round || round.turnEndTime > currentTime) {
                     return;
                 }
 
-                if (round.turnEndTime <= currentTime && round.totalTurns === 0) {
-                    const payload = { betChoice: this.autoChooseChoice(round) };
+                if (round.totalTurns === 0) {
+                    const payload = { betChoice: this.autoDeal(round) };
                     await this.settleTurnConsumer.settleTurn(round, payload);
                     return;
                 }
 
-                if (round.turnEndTime <= currentTime && round.totalTurns > 0) {
-                    await this.collectConsumer.consume({ UID: round.uid, profile: { name: round.name } });
-                }
+                await this.collectConsumer.consume({ UID: round.uid, profile: { name: round.name } });
             })
         );
     }
 
-    autoChooseChoice(round) {
+    autoDeal(round) {
         const currentCard = round.result[round.result.length - 1];
         if (currentCard.rank === cardRanks.ace) {
             return choiceNames.l;
@@ -140,7 +131,7 @@ export default class GameCron extends Core.Crons.BaseGameCron {
     async enableGame() {
         await Promise.all(
             Object.values(this.gameData.ingame).map(async (player) => {
-                if (player.betTracks?.name) {
+                if (Object.keys(player.betTracks).length) {
                     const bet = player.betTracks;
                     bet.turnResult = {
                         isLose: false,

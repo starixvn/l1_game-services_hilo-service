@@ -1,26 +1,24 @@
 import mongoose from "mongoose";
-import { stubMongooseModelStupidly, stub } from "jest-micro-auto-stub";
+import { stubMongoose, stub } from "jest-micro-auto-stub";
 import { Core } from "sc-game-base";
 import { HistoryQuery } from "../index";
 import { RoundQuery } from "../round-query";
 
-describe("history-query", () => {
+describe("HistoryQuery", () => {
     let query;
     let roundQuery;
     let betLogsRepository;
     beforeEach(() => {
         // Arrange
         roundQuery = stub(RoundQuery);
-        betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
+        betLogsRepository = stubMongoose(mongoose.Model);
 
         query = new HistoryQuery(roundQuery, null, betLogsRepository);
     });
 
-    describe("extends", () => {
-        it("inherit Core.QueryApis.HistoryQuery", () => {
-            // Assert
-            expect(query instanceof Core.QueryApis.HistoryQuery);
-        });
+    it("inherit Core.QueryApis.HistoryQuery", () => {
+        // Assert
+        expect(query instanceof Core.QueryApis.HistoryQuery);
     });
 
     describe("getBetLogDetails", () => {
@@ -47,72 +45,107 @@ describe("history-query", () => {
             });
         });
 
-        const testCases = [
-            { betLogsRepository: null, expectedBetLogs: [] },
-            { betLogsRepository: stubMongooseModelStupidly(mongoose.Model), expectedBetLogs: [] },
-            { betLogsRepository, bets: [], expectedBetLogs: [] },
-            {
-                betLogsRepository: stubMongooseModelStupidly(mongoose.Model),
-                bets: [{ uid: 1, id: 1, amount: 100 }],
-                expectedBetLogs: [
-                    {
-                        betLogDetails: undefined,
-                        amount: 100,
-                        id: 1,
-                        result: undefined,
-                        settlementResult: undefined,
-                        uid: 1,
-                    },
-                ],
-            },
-            {
-                betLogsRepository: null,
-                bets: [{ uid: 1, id: 1, amount: 100 }],
-                expectedBetLogs: [
-                    {
-                        betLogDetails: [],
-                        amount: 100,
-                        id: 1,
-                        result: undefined,
-                        settlementResult: undefined,
-                        uid: 1,
-                    },
-                ],
-            },
-        ];
         describe("when page >= 1", () => {
-            it.each(testCases)("should return data", async (testCase) => {
-                // Arrange
-                const historyQuery = new HistoryQuery(roundQuery, null, testCase.betLogsRepository);
-                roundQuery.getOne.mockReturnValueOnce({
-                    id: 1,
-                    result: { red1: true, red2: false },
-                    settlementResult: { odd: true, even: false },
+            describe("when not have bet", () => {
+                const testCases = [
+                    { betLogsRepository: null },
+                    { betLogsRepository: stubMongoose(mongoose.Model) },
+                    { betLogsRepository, bets: [] },
+                ];
+                it.each(testCases)("should return empty", async (testCase) => {
+                    // Arrange
+                    const historyQuery = new HistoryQuery(roundQuery, null, testCase.betLogsRepository);
+                    roundQuery.countDocuments.mockReturnValue(1);
+                    roundQuery.getPlayerRounds.mockReturnValueOnce(testCase.bets);
+                    const expectedResult = {
+                        history: { page: 1, pageSize: 10, total: 1, betLogs: [] },
+                    };
+
+                    // Act
+                    var actualResult = await historyQuery.queryHistory({ UID: 1 }, 1, 10);
+
+                    // Assert
+                    expect(actualResult).toStrictEqual(expectedResult);
                 });
-                roundQuery.countDocuments.mockReturnValue(1);
-                roundQuery.getPlayerRounds.mockReturnValueOnce(testCase.bets);
-                betLogsRepository
-                    .find()
-                    .lean()
-                    .exec.mockReturnValueOnce([
-                        { uid: 1, roundId: 1, choice: "h" },
-                        { uid: 1, roundId: 1, choice: "l" },
-                    ]);
+            });
 
-                const expectedResult = {
-                    history: {
-                        page: 1,
-                        pageSize: 10,
-                        total: 1,
-                        betLogs: testCase.expectedBetLogs,
-                    },
-                };
+            describe("when have bet logs", () => {
+                it("should return data with bet log details", async () => {
+                    // Arrange
+                    roundQuery.countDocuments.mockReturnValue(1);
 
-                // Act
-                var actualResult = await historyQuery.queryHistory({ UID: 1 }, 1, 10);
+                    const bets = [{ uid: 1, id: 1, amount: 100, result: [], settlementResult: [] }];
+                    roundQuery.getPlayerRounds.mockReturnValueOnce(bets);
+                    betLogsRepository
+                        .find()
+                        .lean()
+                        .exec.mockReturnValueOnce([
+                            { uid: 1, roundId: 1, choice: "h" },
+                            { uid: 1, roundId: 1, choice: "l" },
+                        ]);
 
-                // Assert
-                expect(actualResult).toStrictEqual(expectedResult);
+                    const expectedResult = {
+                        history: {
+                            page: 1,
+                            pageSize: 10,
+                            total: 1,
+                            betLogs: [
+                                {
+                                    betLogDetails: [
+                                        { uid: 1, roundId: 1, choice: "h" },
+                                        { uid: 1, roundId: 1, choice: "l" },
+                                    ],
+                                    amount: 100,
+                                    id: 1,
+                                    result: [],
+                                    settlementResult: [],
+                                    uid: 1,
+                                },
+                            ],
+                        },
+                    };
+
+                    // Act
+                    var actualResult = await query.queryHistory({ UID: 1 }, 1, 10);
+
+                    // Assert
+                    expect(actualResult).toStrictEqual(expectedResult);
+                });
+            });
+
+            describe("when not have bet logs", () => {
+                it("should return data with bet log details = empty", async () => {
+                    // Arrange
+                    roundQuery.countDocuments.mockReturnValue(1);
+
+                    const bets = [{ uid: 1, id: 1, amount: 100, result: [], settlementResult: [] }];
+                    roundQuery.getPlayerRounds.mockReturnValueOnce(bets);
+                    betLogsRepository.find().lean().exec.mockReturnValueOnce(null);
+
+                    const expectedResult = {
+                        history: {
+                            page: 1,
+                            pageSize: 10,
+                            total: 1,
+                            betLogs: [
+                                {
+                                    betLogDetails: [],
+                                    amount: 100,
+                                    id: 1,
+                                    result: [],
+                                    settlementResult: [],
+                                    uid: 1,
+                                },
+                            ],
+                        },
+                    };
+
+                    // Act
+                    var actualResult = await query.queryHistory({ UID: 1 }, 1, 10);
+
+                    // Assert
+                    expect(actualResult).toStrictEqual(expectedResult);
+                });
             });
         });
     });

@@ -5,7 +5,7 @@ import { HttpRouter } from "../index";
 
 jest.mock("sc-common");
 
-describe("http-router", () => {
+describe("HttpRouter", () => {
     const app = {
         get: jest.fn(),
         post: (url, authenticate, callBack) => {
@@ -36,11 +36,9 @@ describe("http-router", () => {
         router = new HttpRouter(appConfigs, gameData, historyQuery, userSessionsRepository, metricQuery, logService);
     });
 
-    describe("extends", () => {
-        it("inherit Core.Routers.HttpRouter", () => {
-            // Assert
-            expect(router instanceof Core.Routers.HttpRouter);
-        });
+    it("inherit Core.Routers.HttpRouter", () => {
+        // Assert
+        expect(router instanceof Core.Routers.HttpRouter);
     });
 
     describe("init", () => {
@@ -110,7 +108,7 @@ describe("http-router", () => {
                 await router.handleSetResult(param, res);
 
                 // Assert
-                expect(logService.logError).toHaveBeenCalledWith(new TypeError("Cannot set property 'player' of null"));
+                expect(logService.logError).toHaveBeenCalledWith(expect.any(TypeError));
             });
         });
     });

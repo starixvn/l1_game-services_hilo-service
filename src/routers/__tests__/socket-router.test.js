@@ -4,7 +4,7 @@ import { DealConsumer, CollectConsumer } from "../../event-consumers";
 import { stub } from "jest-micro-auto-stub";
 import { player1 } from "../../__tests__/test-data";
 
-describe("socket-router", () => {
+describe("SocketRouter", () => {
     let router;
     beforeEach(() => {
         // Arrange
@@ -14,11 +14,9 @@ describe("socket-router", () => {
         router.logService = { logError: jest.fn() };
     });
 
-    describe("extends", () => {
-        it("inherit Core.Routers.BaseSocketRouter", () => {
-            // Assert
-            expect(router instanceof Core.Routers.BaseSocketRouter);
-        });
+    it("inherit Core.Routers.BaseSocketRouter", () => {
+        // Assert
+        expect(router instanceof Core.Routers.BaseSocketRouter);
     });
 
     describe("init", () => {

@@ -8,21 +8,19 @@ const userInfosRepository = {
     },
 };
 
-describe("game-bot", () => {
+describe("GameBot", () => {
     let cron;
     beforeEach(() => {
         // Arrange
         cron = new GameBot({}, null, userInfosRepository);
     });
 
-    describe("extends", () => {
-        it("inherit Core.Crons.BaseBot", () => {
-            // Assert
-            expect(cron instanceof Core.Crons.BaseBot);
-        });
+    it("inherit Core.Crons.BaseBot", () => {
+        // Assert
+        expect(cron instanceof Core.Crons.BaseBot);
     });
 
-    describe("placeBet", () => {
+    describe("run", () => {
         describe("when not have config", () => {
             it("should not increase round id", async () => {
                 // Arrange

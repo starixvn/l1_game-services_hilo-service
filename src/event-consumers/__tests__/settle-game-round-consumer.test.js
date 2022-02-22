@@ -4,67 +4,50 @@ import { player1 } from "../../__tests__/test-data";
 import { stub } from "jest-micro-auto-stub";
 import { UserBetResultPublisher, RoundResultPublisher } from "sc-game-base/src/core/event-publishers";
 
-describe("settle-game-round-consumer", () => {
+describe("SettleGameRoundConsumer", () => {
     let consumer;
+    let gameData = {};
     beforeEach(() => {
         // Arrange
         const definition = {};
         const userBetResultPublisher = stub(UserBetResultPublisher);
         const roundResultPublisher = stub(RoundResultPublisher);
-        consumer = new SettleGameRoundConsumer({ definition, userBetResultPublisher, roundResultPublisher });
+        consumer = new SettleGameRoundConsumer({ definition, gameData, userBetResultPublisher, roundResultPublisher });
     });
 
-    describe("extends", () => {
-        it("inherit Core.BaseEventConsumers.SettleGameRoundConsumer", () => {
-            // Assert
-            expect(consumer instanceof Core.BaseEventConsumers.SettleGameRoundConsumer);
-        });
+    it("inherit Core.BaseEventConsumers.SettleGameRoundConsumer", () => {
+        // Assert
+        expect(consumer instanceof Core.BaseEventConsumers.SettleGameRoundConsumer);
     });
 
     describe("calculateBetResult", () => {
         describe("when not win", () => {
-            it("should return isLose true", () => {
+            it("should return netWin=0, totalWin=0, totalBetAmount=bet amount", () => {
                 // Arrange
-                consumer.gameData = {};
                 const settlementResult = { isLose: true, betwin: 0 };
                 const bet = { amount: 10 };
-                const expectedValue = {
-                    isLose: true,
-                    betwin: 0,
-                    totalBetAmount: 10,
-                    netWin: 0,
-                    totalWin: 0,
-                    totalLost: 10,
-                };
+                const expectedValue = { betwin: 0, totalBetAmount: 10, netWin: 0 };
 
                 // Act
                 const actualValue = consumer.calculateBetResult(settlementResult, bet);
 
                 // Assert
-                expect(actualValue).toStrictEqual(expectedValue);
+                expect(actualValue).toStrictEqual(expect.objectContaining(expectedValue));
             });
         });
 
         describe("when win", () => {
-            it("should return isLose false", () => {
+            it("should return netWin=betwin-amount, totalWin=betwin, totalBetAmount=bet amount", () => {
                 // Arrange
-                consumer.gameData = {};
                 const settlementResult = { isLose: false, betwin: 20 };
                 const bet = { amount: 10 };
-                const expectedValue = {
-                    isLose: false,
-                    totalBetAmount: 10,
-                    netWin: 10,
-                    totalWin: 20,
-                    totalLost: 0,
-                    betwin: 20,
-                };
+                const expectedValue = { totalBetAmount: 10, netWin: 10, totalWin: 20 };
 
                 // Act
                 const actualValue = consumer.calculateBetResult(settlementResult, bet);
 
                 // Assert
-                expect(actualValue).toStrictEqual(expectedValue);
+                expect(actualValue).toStrictEqual(expect.objectContaining(expectedValue));
             });
         });
     });
@@ -141,7 +124,7 @@ describe("settle-game-round-consumer", () => {
         describe("when not have running round", () => {
             it("should not call settleGameRoundConsumer.settleBets", async () => {
                 // Arrange
-                consumer.gameData = { ingame: { [player1.profile.name]: { betTracks: null } } };
+                gameData.ingame = { [player1.profile.name]: { betTracks: null } };
                 spyOn(consumer, "settleBets");
 
                 // Act

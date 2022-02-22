@@ -1,5 +1,4 @@
 import { Core } from "sc-game-base";
-import gameSettings from "../game-settings";
 
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
     calculateBetResult(settlementResult, bet) {
@@ -26,7 +25,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         runningRound.turnResult = {
             isLose: false,
             turnTime: turnTime,
-            turnEndTime: new Date(turnTime.getTime() + gameSettings.durations.turnTime * 1000),
             betwin: runningRound.betwin,
             totalTurns: runningRound.totalTurns,
             result: runningRound.result,
@@ -42,7 +40,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const time = settlementResult.turnTime;
         const bets = await this.queryBets(roundId);
 
-        if (bets && bets.length) {
+        if (bets?.length) {
             await Promise.all(
                 bets.map(async (bet) => {
                     const betResult = this.calculateBetResult(settlementResult, bet);
@@ -53,8 +51,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
                     await bet.save();
                     await this.callEndGame(bet, roundId, time, betResult);
-
-                    this.captureBetResult(bet.uid, betResult, bet.rate);
                     await this.userBetResultPublisher.publish(bet.uid, betResult);
                 })
             );

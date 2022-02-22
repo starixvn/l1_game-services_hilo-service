@@ -4,21 +4,23 @@ import { BaseEventPublisher } from "sc-game-base/src/core/event-publishers";
 import { stub } from "jest-micro-auto-stub";
 import { helpers } from "sc-common";
 
-describe("collect-consumer", () => {
+describe("CollectConsumer", () => {
     let consumer;
     let publisher;
+    let gameData = {};
+    let definition = {};
 
     beforeEach(() => {
         // Arrange
         publisher = stub(BaseEventPublisher);
-        consumer = new CollectConsumer(null, null, publisher);
+        consumer = new CollectConsumer(definition, gameData, publisher);
     });
 
     describe("validate", () => {
         describe("when config disabled", () => {
             it("should return failure", () => {
                 // Arrange
-                consumer.gameData = { gameConfigs: { enabled: false } };
+                gameData.gameConfigs = { enabled: false };
                 const expectedValue = { notice: { errorCode: helpers.noticeHelper.invalidBet } };
                 const round = { uid: player1.UID };
 
@@ -31,25 +33,64 @@ describe("collect-consumer", () => {
         });
 
         describe("when config enabled", () => {
-            // Arrange
-            const testCases = [
-                { runningRound: null, expectedValue: { notice: { errorCode: helpers.noticeHelper.invalidBet } } },
-                {
-                    runningRound: { uid: player1.UID, totalTurns: 0 },
-                    expectedValue: { notice: { errorCode: helpers.noticeHelper.invalidBet } },
-                },
-                { runningRound: { uid: player1.UID, totalTurns: 10 }, expectedValue: null },
-            ];
+            describe("when not have running round", () => {
+                it("should return invalidBet", () => {
+                    // Arrange
+                    gameData.gameConfigs = { enabled: true };
+                    const runningRound = null;
+                    const expectedValue = { notice: { errorCode: helpers.noticeHelper.invalidBet } };
 
-            it.each(testCases)("should return validation result of runningRound", (testCase) => {
-                // Arrange
-                consumer.gameData = { gameConfigs: { enabled: true } };
+                    // Act
+                    const actualValue = consumer.validate(runningRound);
 
-                // Act
-                const actualValue = consumer.validate(testCase.runningRound);
+                    // Assert
+                    expect(actualValue).toStrictEqual(expectedValue);
+                });
+            });
 
-                // Assert
-                expect(actualValue).toStrictEqual(testCase.expectedValue);
+            describe("when running round is empty", () => {
+                it("should return invalidBet", () => {
+                    // Arrange
+                    gameData.gameConfigs = { enabled: true };
+                    const runningRound = {};
+                    const expectedValue = { notice: { errorCode: helpers.noticeHelper.invalidBet } };
+
+                    // Act
+                    const actualValue = consumer.validate(runningRound);
+
+                    // Assert
+                    expect(actualValue).toStrictEqual(expectedValue);
+                });
+            });
+
+            describe("when running round turn = 0", () => {
+                it("should return invalidBet", () => {
+                    // Arrange
+                    gameData.gameConfigs = { enabled: true };
+                    const runningRound = { uid: player1.UID, totalTurns: 0 };
+                    const expectedValue = { notice: { errorCode: helpers.noticeHelper.invalidBet } };
+
+                    // Act
+                    const actualValue = consumer.validate(runningRound);
+
+                    // Assert
+                    expect(actualValue).toStrictEqual(expectedValue);
+                });
+            });
+
+            describe("when running round turn > 0", () => {
+                it("should return null failure", () => {
+                    // Arrange
+                    gameData.gameConfigs = { enabled: true };
+                    const runningRound = { uid: player1.UID, totalTurns: 10 };
+                    const expectedValue = null;
+
+                    // Act
+                    const actualValue = consumer.validate(runningRound);
+
+                    // Assert
+                    expect(actualValue).toStrictEqual(expectedValue);
+                });
             });
         });
     });
@@ -58,7 +99,7 @@ describe("collect-consumer", () => {
         describe("when validate failed", () => {
             it("should publish error to user", async () => {
                 // Arrange
-                consumer.gameData = { ingame: { [player1.profile.name]: { betTracks: {} } } };
+                gameData.ingame = { [player1.profile.name]: { betTracks: {} } };
                 spyOn(consumer, "validate").and.returnValue({ failed: true });
 
                 // Act
@@ -70,18 +111,32 @@ describe("collect-consumer", () => {
         });
 
         describe("when validate passed", () => {
-            const testCases = [{ betQueue: null }, { betQueue: [] }];
-            it.each(testCases)("should push collect info to queue", async (testCase) => {
-                // Arrange
-                consumer.gameData = { ingame: { [player1.profile.name]: { betQueue: testCase.betQueue }, betTracks: { id: 2 } } };
-                consumer.definition = { durations: {} };
-                spyOn(consumer, "validate").and.returnValue(null);
+            describe("when betQueue is null", () => {
+                it("should create bet queue and push collect info to queue", async () => {
+                    // Arrange
+                    gameData.ingame = { [player1.profile.name]: { betQueue: null }, betTracks: { id: 2 } };
+                    spyOn(consumer, "validate").and.returnValue(null);
 
-                // Act
-                await consumer.consume(player1);
+                    // Act
+                    await consumer.consume(player1);
 
-                // Assert
-                expect(consumer.gameData.ingame[player1.profile.name].betQueue.length > 0).toBeTruthy();
+                    // Assert
+                    expect(gameData.ingame[player1.profile.name].betQueue.length > 0).toBeTruthy();
+                });
+            });
+
+            describe("when betQueue is not null", () => {
+                it("should push collect info to queue", async () => {
+                    // Arrange
+                    gameData.ingame = { [player1.profile.name]: { betQueue: [] }, betTracks: { id: 2 } };
+                    spyOn(consumer, "validate").and.returnValue(null);
+
+                    // Act
+                    await consumer.consume(player1);
+
+                    // Assert
+                    expect(gameData.ingame[player1.profile.name].betQueue.length > 0).toBeTruthy();
+                });
             });
         });
     });

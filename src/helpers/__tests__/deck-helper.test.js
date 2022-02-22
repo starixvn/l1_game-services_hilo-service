@@ -1,7 +1,7 @@
 import { baseCards } from "../../cards";
 import { drawCard, getCardFromAdmin } from "../deck-helper";
 
-describe("deck-helper", () => {
+describe("DeckHelper", () => {
     describe("drawCard", () => {
         describe("when already drawn all cards", () => {
             it("should also return card, card can be duplicate", () => {
@@ -31,16 +31,32 @@ describe("deck-helper", () => {
     });
 
     describe("getCardFromAdmin", () => {
-        const testCases = [{ drawnCards: [] }, { drawnCards: [{ rank: "2", suit: 0 }] }];
-        it.each(testCases)("should pick correct card", (testCase) => {
-            // Arrange
-            const cardRank = "2";
+        describe("when not draw any card yet", () => {
+            it("should pick card with expected rank", () => {
+                // Arrange
+                const cardRank = "2";
+                const drawnCards = [];
 
-            // Act
-            const actualValue = getCardFromAdmin(cardRank, testCase.drawnCards);
+                // Act
+                const actualValue = getCardFromAdmin(cardRank, drawnCards);
 
-            // Assert
-            expect(actualValue.rank).toBe("2");
+                // Assert
+                expect(actualValue.rank).toBe(cardRank);
+            });
+        });
+
+        describe("when previous card rank = expected rank", () => {
+            it("should able to pick card with expected rank", () => {
+                // Arrange
+                const cardRank = "2";
+                const drawnCards = [{ rank: "2", suit: 0 }];
+
+                // Act
+                const actualValue = getCardFromAdmin(cardRank, drawnCards);
+
+                // Assert
+                expect(actualValue.rank).toBe(cardRank);
+            });
         });
     });
 });

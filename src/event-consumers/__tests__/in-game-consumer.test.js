@@ -1,15 +1,15 @@
 import { Core } from "sc-game-base";
 import mongoose from "mongoose";
-import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
+import { stubMongoose } from "jest-micro-auto-stub";
 import { InGameConsumer } from "../index";
 import Chance from "chance";
 import { baseCards } from "../../cards";
 
-describe("in-game-consumer", () => {
+describe("InGameConsumer", () => {
     let consumer, player;
     const roundQuery = {};
     const getBalance = jest.fn();
-    const userInfosRepository = stubMongooseModelStupidly(mongoose.Model);
+    const userInfosRepository = stubMongoose(mongoose.Model);
     const definition = {};
     const gameData = {
         gameConfigs: { odds: {} },

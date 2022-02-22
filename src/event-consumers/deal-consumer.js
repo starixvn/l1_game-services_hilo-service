@@ -58,15 +58,15 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
     }
 
     consume(player, payload) {
-        if (!this.gameData.ingame[player.profile.name]?.betTracks?.uid) {
+        const runningRound = this.gameData.ingame[player.profile.name]?.betTracks;
+
+        if (!runningRound || Object.keys(runningRound).length === 0) {
             this.publisher.publishToUser(player.UID, { endDeal: -1, notice: this.getNoticeObj(helpers.noticeHelper.invalidBet) });
             return;
         }
 
-        const runningRound = this.gameData.ingame[player.profile.name].betTracks;
-
         Object.assign(payload, {
-            roundId: payload.roundId ?? runningRound.id,
+            roundId: runningRound.id,
             order: runningRound.totalTurns,
             receivedTime: new Date(),
         });
@@ -76,7 +76,6 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
             return;
         }
 
-        this.gameData.ingame[player.profile.name].betQueue = this.gameData.ingame[player.profile.name].betQueue ?? [];
-        this.gameData.ingame[player.profile.name].betQueue.push({ player, payload: { action: gameSettings.actions.deal, bet: payload } });
+        this.gameData.ingame[player.profile.name].betQueue?.push({ player, payload: { action: gameSettings.actions.deal, bet: payload } });
     }
 }

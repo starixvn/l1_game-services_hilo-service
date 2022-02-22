@@ -64,4 +64,5 @@ export default {
         "http://adm.sabagame.com",
         "https://adm.sabagame.com",
     ],
+    useMsgpackParser: false,
 };

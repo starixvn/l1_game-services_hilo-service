@@ -1,7 +1,7 @@
 import { baseCards } from "../../cards";
 import { SettleTurnConsumer } from "../index";
 import mongoose from "mongoose";
-import { stubMongooseModelStupidly, stub } from "jest-micro-auto-stub";
+import { stubMongoose, stub } from "jest-micro-auto-stub";
 import { UserBetResultPublisher } from "sc-game-base/src/core/event-publishers";
 import { SettleGameRoundConsumer } from "sc-game-base/src/core/event-consumers";
 import gameSettings from "../../game-settings";
@@ -16,20 +16,21 @@ jest.mock("../../helpers/deck-helper", () => {
     };
 });
 
-describe("settle-turn-consumer", () => {
+describe("SettleTurnConsumer", () => {
     let betLogsRepository;
     let consumer;
+    let gameData = { gameConfigs: { odds } };
     const mockDate = new Date();
 
     beforeEach(() => {
         // Arrange
         advanceTo(mockDate);
 
-        betLogsRepository = stubMongooseModelStupidly(mongoose.Model);
+        betLogsRepository = stubMongoose(mongoose.Model);
         const userBetResultPublisher = stub(UserBetResultPublisher);
         const settleGameRoundConsumer = stub(SettleGameRoundConsumer);
 
-        consumer = new SettleTurnConsumer({ betLogsRepository, userBetResultPublisher, settleGameRoundConsumer });
+        consumer = new SettleTurnConsumer({ gameData, betLogsRepository, userBetResultPublisher, settleGameRoundConsumer });
     });
 
     describe("generateResult", () => {
@@ -37,7 +38,7 @@ describe("settle-turn-consumer", () => {
             describe("turnOrder < resultFromAdmin.length", () => {
                 it("should return resultFromAdmin", () => {
                     // Arrange
-                    consumer.gameData = { settlementResultFromAdmin: { player: [{ rank: "8" }, { rank: "3" }] } };
+                    gameData.settlementResultFromAdmin = { player: [{ rank: "8" }, { rank: "3" }] };
                     const expectedValue = { rank: "3" };
                     const runningRound = { name: "player", id: 10, result: [], totalTurns: 0 };
 
@@ -52,7 +53,7 @@ describe("settle-turn-consumer", () => {
             describe("turnOrder >= resultFromAdmin.length", () => {
                 it("should return result from drawCard function", () => {
                     // Arrange
-                    consumer.gameData = { settlementResultFromAdmin: { player: [{ rank: "8" }] } };
+                    gameData.settlementResultFromAdmin = { player: [{ rank: "8" }] };
                     const runningRound = { name: "player", id: 10, result: [], totalTurns: 0 };
                     const expectedValue = { rank: "10", suit: 2 };
 
@@ -69,7 +70,7 @@ describe("settle-turn-consumer", () => {
             const testCases = [{ settlementResultFromAdmin: null }, { settlementResultFromAdmin: { player: [{ rank: "2" }] } }];
             it.each(testCases)("should generate new result", (testCase) => {
                 // Arrange
-                consumer.gameData = { settlementResultFromAdmin: testCase.settlementResultFromAdmin };
+                gameData.settlementResultFromAdmin = testCase.settlementResultFromAdmin;
                 const expectedValue = { rank: "10", suit: 2 };
                 const runningRound = { name: "player01", id: 11, result: [...baseCards], totalTurns: 3 };
 
@@ -394,7 +395,6 @@ describe("settle-turn-consumer", () => {
         describe("when win", () => {
             it("should return next amounts = odds * betwin", async () => {
                 // Arrange
-                consumer.gameData = { gameConfigs: { odds } };
                 spyOn(consumer, "generateResult").and.returnValue({ rank: "8", suit: 0 });
                 const runningRound = { totalTurns: 0, betwin: 1, result: [{ rank: "7", suit: 0 }], settlementResult: [] };
                 const payload = { betChoice: "h" };
@@ -411,7 +411,6 @@ describe("settle-turn-consumer", () => {
         describe("when tie", () => {
             it("should return betwin = current amount and next amounts = odds * current amount", async () => {
                 // Arrange
-                consumer.gameData = { gameConfigs: { odds } };
                 spyOn(consumer, "generateResult").and.returnValue({ rank: "8", suit: 0 });
                 const runningRound = { totalTurns: 0, betwin: 1, result: [{ rank: "8", suit: 0 }], settlementResult: [] };
                 const payload = { betChoice: "h" };

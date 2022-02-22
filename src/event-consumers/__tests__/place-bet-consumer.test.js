@@ -5,7 +5,7 @@ import { player1 } from "../../__tests__/test-data";
 import { BaseEventPublisher } from "sc-game-base/src/core/event-publishers";
 import { stub } from "jest-micro-auto-stub";
 
-describe("place-bet-consumer", () => {
+describe("PlaceBetConsumer", () => {
     const definition = {};
     const gameData = {
         gameConfigs: { odds: {} },
@@ -71,7 +71,7 @@ describe("place-bet-consumer", () => {
                 gameData.ingame = {};
             });
 
-            it("should return failed if player has running round", () => {
+            it("should return failed if player not has running round", () => {
                 // Arrange
                 gameData.ingame = { [player1.profile.name]: { betTracks: {} } };
                 const expectedValue = [{ failure: true, notice: { errorCode: helpers.noticeHelper.invalidBet } }];
@@ -83,7 +83,7 @@ describe("place-bet-consumer", () => {
                 expect(actualValue).toStrictEqual(expectedValue);
             });
 
-            it("should return ok if player does not have running round", () => {
+            it("should return ok if player have running round", () => {
                 // Arrange
                 const expectedValue = [{ failure: false, notice: { errorCode: helpers.noticeHelper.invalidBet } }];
 
@@ -140,7 +140,7 @@ describe("place-bet-consumer", () => {
                 const actualValue = consumer.validateBetRequest(player1, amount);
 
                 // Assert
-                expect(actualValue).toBeFalsy();
+                expect(actualValue).toBeFalse();
             });
         });
 
@@ -155,7 +155,7 @@ describe("place-bet-consumer", () => {
                 const actualValue = consumer.validateBetRequest(player1, amount);
 
                 // Assert
-                expect(actualValue).toBeTruthy();
+                expect(actualValue).toBeTrue();
             });
         });
     });

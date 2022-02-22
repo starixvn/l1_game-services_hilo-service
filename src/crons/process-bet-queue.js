@@ -67,9 +67,11 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
     }
 
     composeBettingTimeValidationCriteria(player) {
+        const runningRound = this.gameData.ingame[player.profile.name].betTracks;
+
         return [
             {
-                failure: !!this.gameData.ingame[player.profile.name].betTracks?.uid,
+                failure: !!runningRound && Object.keys(runningRound).length > 0,
                 notice: { errorCode: helpers.noticeHelper.invalidBet },
             },
         ];

@@ -20,7 +20,7 @@ export default class HistoryQuery extends Core.QueryApis.HistoryQuery {
         if (bets && bets.length > 0) {
             betLogs = await Promise.all(
                 bets.map(async (bet) => {
-                    const betLogDetails = this.betLogsRepository ? await this.getBetLogDetails(player, bet.id) : [];
+                    const betLogDetails = (await this.getBetLogDetails(player, bet.id)) ?? [];
 
                     return {
                         ...bet,
