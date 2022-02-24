@@ -48,7 +48,7 @@ describe("OddsGenerator", () => {
         describe("when base card is not A or 2 and first turn", () => {
             // Arrange
             const testCases = [
-                { rank: "J", totalTurns: 1, expectedValue: { h: 276, l: 28 } },
+                { rank: "J", totalTurns: 1, expectedValue: { h: 2.76, l: 0.28 } },
                 { rank: "8", totalTurns: 1, expectedValue: { h: 0.9, l: 0.9 } },
             ];
 
@@ -66,7 +66,7 @@ describe("OddsGenerator", () => {
         describe("when base card is not A or 2 and turn > 1", () => {
             // Arrange
             const testCases = [
-                { rank: "J", totalTurns: 7, expectedValue: { h: 138, l: 14 } },
+                { rank: "J", totalTurns: 7, expectedValue: { h: 1.38, l: 0.14 } },
                 { rank: "8", totalTurns: 7, expectedValue: { h: 0.45, l: 0.45 } },
             ];
 

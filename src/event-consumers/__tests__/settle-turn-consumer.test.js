@@ -398,7 +398,7 @@ describe("SettleTurnConsumer", () => {
                 spyOn(consumer, "generateResult").and.returnValue({ rank: "8", suit: 0 });
                 const runningRound = { totalTurns: 0, betwin: 1, result: [{ rank: "7", suit: 0 }], settlementResult: [] };
                 const payload = { betChoice: "h" };
-                const expectedValue = { h: 3.37, l: 3.37 };
+                const expectedValue = { h: 2.89, l: 2.89 };
 
                 // Act
                 const actualValue = await consumer.calculateTurnResult(payload, runningRound);
