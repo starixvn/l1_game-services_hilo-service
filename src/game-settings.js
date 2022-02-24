@@ -7,7 +7,7 @@ export default {
         wholeRound: 60,
         placingBets: 40, // time for bot place bet
         lockingBet: 5, // time for bot place bet
-        turnTime: 122,
+        turnTime: 121,
     },
     choices: [choiceNames.h, choiceNames.l],
     tieResult: "t",
