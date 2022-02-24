@@ -6,7 +6,7 @@ import oddsGenerator from "../../src/generators/odds-generator";
 import { odds } from "../../src/__tests__/test-data";
 
 function run() {
-    const totalRounds = 10;
+    const totalRounds = 100_000;
     const amount = 1;
     let totalBetAmount = 0;
     let totalWinAmount = 0;
