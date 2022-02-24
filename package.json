@@ -16,7 +16,8 @@
         "test-coverage": "jest --collect-coverage --testPathPattern=__tests__",
         "test-:-integration-:-setup-test-data": "node --es-module-specifier-resolution=node ./tests/integration-tests/stubs/test-data-setup.js",
         "test-:-integration-:-start-service": "node --es-module-specifier-resolution=node ./tests/integration-tests/game-service-setup/game-service-app.js",
-        "test-:-integration-:-start-test": "jest --testPathPattern=tests/integration-tests/  --detectOpenHandles --ci --reporters=default --reporters=jest-junit"
+        "test-:-integration-:-start-test": "jest --testPathPattern=tests/integration-tests/  --detectOpenHandles --ci --reporters=default --reporters=jest-junit",
+        "stats": "node --es-module-specifier-resolution=node ./tests/statistics/high-risk-strategy.js"
     },
     "jestSonar": {
         "reportPath": "reports",
