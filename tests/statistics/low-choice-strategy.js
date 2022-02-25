@@ -18,7 +18,6 @@ function run() {
         const resultCard = drawCard(firstCard);
         const estimatedWin = calculateWinAmounts(odds, firstCard, 1, amount, resultCard);
         const choice = choiceNames.l;
-
         if (!settleTurnConsumer.isLose(choice, firstCard, resultCard)) {
             totalWinAmount += estimatedWin[choice];
             winCount++;

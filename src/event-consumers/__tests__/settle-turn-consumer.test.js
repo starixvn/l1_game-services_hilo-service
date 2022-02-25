@@ -379,20 +379,90 @@ describe("SettleTurnConsumer", () => {
         let payload;
 
         beforeEach(() => {
-            runningRound = { totalTurns: 3, betwin: 1, result: [{ rank: "7", suit: 0 }], settlementResult: [] };
+            // Arrange
+            runningRound = {
+                totalTurns: 2,
+                betwin: 1,
+                result: [
+                    { rank: "3", suit: 0 },
+                    { rank: "J", suit: 0 },
+                    { rank: "7", suit: 0 },
+                ],
+                settlementResult: ["h", "l"],
+                name: player1.profile.name,
+            };
             payload = { betChoice: "h" };
+            gameData.settlementResultFromAdmin = {
+                [player1.profile.name]: [
+                    { rank: "3", suit: 0 },
+                    { rank: "J", suit: 0 },
+                    { rank: "7", suit: 0 },
+                    { rank: "8", suit: 2 },
+                ],
+            };
         });
 
-        it("always return latest settlement result", async () => {});
+        it("always return latest settlement result", async () => {
+            // Arrange
+            const expectedValue = ["h", "l", "h"];
 
-        it("always return latest result card", async () => {});
+            // Act
+            const actualValue = consumer.calculateTurnResult(payload, runningRound);
 
-        it("always return total turns += 1", async () => {});
+            // Assert
+            expect(actualValue.settlementResult).toStrictEqual(expectedValue);
+        });
 
-        it("always return remainingTime as duration settings", async () => {});
+        it("always return latest result card", async () => {
+            // Arrange
+            const expectedValue = [
+                { rank: "3", suit: 0 },
+                { rank: "J", suit: 0 },
+                { rank: "7", suit: 0 },
+                { rank: "8", suit: 2 },
+            ];
+
+            // Act
+            const actualValue = consumer.calculateTurnResult(payload, runningRound);
+
+            // Assert
+            expect(actualValue.result).toStrictEqual(expectedValue);
+        });
+
+        it("always return total turns += 1", async () => {
+            // Arrange
+            const expectedValue = 3;
+
+            // Act
+            const actualValue = consumer.calculateTurnResult(payload, runningRound);
+
+            // Assert
+            expect(actualValue.totalTurns).toStrictEqual(expectedValue);
+        });
+
+        it("always return remainingTime as duration settings", async () => {
+            // Arrange
+            const expectedValue = gameSettings.durations.turnTime;
+
+            // Act
+            const actualValue = consumer.calculateTurnResult(payload, runningRound);
+
+            // Assert
+            expect(actualValue.remainingTime).toStrictEqual(expectedValue);
+        });
 
         describe("when lose", () => {
-            it("always return betwin = 0", async () => {});
+            it("always return betwin = 0", async () => {
+                // Arrange
+                spyOn(consumer, "generateResult").and.returnValue({ rank: "6", suit: 0 });
+                const expectValue = 0;
+
+                // Act
+                const actualValue = await consumer.calculateTurnResult(payload, runningRound);
+
+                // Assert
+                expect(actualValue.betwin).toBe(expectValue);
+            });
 
             it("should return next amounts = null", async () => {
                 // Arrange
@@ -407,12 +477,23 @@ describe("SettleTurnConsumer", () => {
         });
 
         describe("when win", () => {
-            //TODO next amounts always = bet win amount * odds [when win or tie]
-            //TODO bet win always = current amount * odds
+            it("should return bet win always = current amount * odds", async () => {
+                // Arrange
+                spyOn(consumer, "generateResult").and.returnValue({ rank: "9", suit: 0 });
+                const expectedValue = 1.47;
+
+                // Act
+                const actualValue = await consumer.calculateTurnResult(payload, runningRound);
+
+                // Assert
+                expect(actualValue.betwin).toStrictEqual(expectedValue);
+            });
+
+            //TODO
             it("should return next amounts = odds * betwin", async () => {
                 // Arrange
                 spyOn(consumer, "generateResult").and.returnValue({ rank: "9", suit: 0 });
-                const expectedValue = { h: 2.5, l: 1.96 };
+                const expectedValue = { h: 2.71, l: 2.09 };
 
                 // Act
                 const actualValue = await consumer.calculateTurnResult(payload, runningRound);
@@ -423,20 +504,29 @@ describe("SettleTurnConsumer", () => {
         });
 
         describe("when tie", () => {
-            //TODO betwin always == curernt amount
-            it("should return betwin = current amount and next amounts = odds * current amount", async () => {
+            //TODO
+            it("should return betwin always == curernt amount", async () => {
                 // Arrange
                 spyOn(consumer, "generateResult").and.returnValue({ rank: "7", suit: 0 });
-                const expectedValue = {
-                    betwin: 1,
-                    nextAmounts: { h: 1.38, l: 1.76 },
-                };
+                const expectedValue = 1;
 
                 // Act
                 const actualValue = await consumer.calculateTurnResult(payload, runningRound);
 
                 // Assert
-                expect(actualValue).toStrictEqual(expect.objectContaining(expectedValue));
+                expect(actualValue.betwin).toStrictEqual(expectedValue);
+            });
+
+            it("should return next amounts = odds * current amount", async () => {
+                // Arrange
+                spyOn(consumer, "generateResult").and.returnValue({ rank: "7", suit: 0 });
+                const expectedValue = { h: 1.42, l: 1.85 };
+
+                // Act
+                const actualValue = await consumer.calculateTurnResult(payload, runningRound);
+
+                // Assert
+                expect(actualValue.nextAmounts).toStrictEqual(expectedValue);
             });
         });
     });
