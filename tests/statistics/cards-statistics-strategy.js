@@ -29,19 +29,18 @@ function run() {
 
     for (let index = 0; index < totalRounds; index++) {
         let betAmount = 1;
+        totalBetAmount += betAmount;
+
         const firstCard = drawCard();
-        const cardsStatistic = cardsStatistics[firstCard.rank];
-        const resultCard = drawCard(firstCard);
-        let choice;
-        if (firstCard.rank === cardRanks.ace) {
-            choice = choiceNames.l;
-        } else if (firstCard.rank === cardRanks.two) {
-            choice = choiceNames.h;
-        } else {
-            choice = cardsStatistic[choiceNames.h] > cardsStatistic[choiceNames.l] ? choiceNames.l : choiceNames.h;
+        if (firstCard.rank === cardRanks.two || firstCard.rank === cardRanks.ace) {
+            totalWinAmount += betAmount;
+            winCount++;
+            continue;
         }
 
-        totalBetAmount += betAmount;
+        const cardsStatistic = cardsStatistics[firstCard.rank];
+        const resultCard = drawCard(firstCard);
+        const choice = cardsStatistic[choiceNames.h] > cardsStatistic[choiceNames.l] ? choiceNames.l : choiceNames.h;
         const estimatedWin = calculateWinAmounts(odds, firstCard, 1, betAmount, resultCard);
         const settlementResult = settleTurnConsumer.getSettlementResult(firstCard, resultCard);
         cardsStatistic[settlementResult]++;

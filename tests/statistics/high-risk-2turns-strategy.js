@@ -3,6 +3,7 @@ import { drawCard } from "../../src/helpers/deck-helper";
 import SettleTurnConsumer from "../../src/event-consumers/settle-turn-consumer";
 import { odds } from "../../src/__tests__/test-data";
 import { calculateWinAmounts } from "./helpers";
+import { cardRanks } from "../../src/cards";
 
 function run() {
     const totalRounds = 100_000;
@@ -11,33 +12,55 @@ function run() {
     let totalWinAmount = 0;
     let winCount = 0;
     const settleTurnConsumer = new SettleTurnConsumer({});
+    const cardPlayNextTurns = [
+        cardRanks.two,
+        cardRanks.ace,
+        cardRanks.three,
+        cardRanks.four,
+        cardRanks.five,
+        cardRanks.six,
+        cardRanks.jack,
+        cardRanks.queen,
+        cardRanks.king,
+    ];
+    const maxTurn = 1;
 
     for (let index = 0; index < totalRounds; index++) {
         totalBetAmount += amount;
-        let drawnCard = null;
+        let currentCard = drawCard();
         let betwin = amount;
         let turnCount = 1;
 
         for (let i = 0; i < turnCount; i++) {
-            const currentCard = drawCard(drawnCard);
-            const resultCard = drawCard(currentCard);
-            const estimatedWin = calculateWinAmounts(odds, currentCard, i + 1, betwin, resultCard);
-            const choice = estimatedWin[choiceNames.h] > estimatedWin[choiceNames.l] ? choiceNames.h : choiceNames.l;
-            const isLose = settleTurnConsumer.isLose(choice, currentCard, resultCard);
-            drawnCard = currentCard;
-            if (currentCard.rank === "3" || currentCard.rank === "K") {
-                turnCount++;
+            if (currentCard.rank === cardRanks.two || currentCard.rank === cardRanks.ace) {
+                if (i === maxTurn) {
+                    totalWinAmount += betwin;
+                    winCount++;
+                    break;
+                } else {
+                    turnCount++;
+                    currentCard = drawCard(currentCard);
+                    continue;
+                }
             }
 
+            const resultCard = drawCard(currentCard);
+            const estimatedWin = calculateWinAmounts(odds, currentCard, i + 1, betwin, resultCard);
+            const choice = estimatedWin[choiceNames.h] > estimatedWin[choiceNames.l] ? choiceNames.l : choiceNames.h;
+            const isLose = settleTurnConsumer.isLose(choice, currentCard, resultCard);
             if (isLose) {
                 break;
             }
 
-            betwin = estimatedWin[choice];
-            if (i == turnCount - 1) {
+            if (i === maxTurn || cardPlayNextTurns.indexOf(resultCard.rank) === -1) {
+                betwin = estimatedWin[choice];
                 totalWinAmount += betwin;
                 winCount++;
+                break;
             }
+
+            currentCard = resultCard;
+            turnCount++;
         }
     }
 

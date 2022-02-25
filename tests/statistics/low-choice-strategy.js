@@ -3,6 +3,7 @@ import { drawCard } from "../../src/helpers/deck-helper";
 import SettleTurnConsumer from "../../src/event-consumers/settle-turn-consumer";
 import { odds } from "../../src/__tests__/test-data";
 import { calculateWinAmounts } from "./helpers";
+import { cardRanks } from "../../src/cards";
 
 function run() {
     const totalRounds = 100_000;
@@ -15,6 +16,12 @@ function run() {
     for (let index = 0; index < totalRounds; index++) {
         totalBetAmount += 1;
         const firstCard = drawCard();
+        if (firstCard.rank === cardRanks.two || firstCard.rank === cardRanks.ace) {
+            totalWinAmount += amount;
+            winCount++;
+            continue;
+        }
+
         const resultCard = drawCard(firstCard);
         const estimatedWin = calculateWinAmounts(odds, firstCard, 1, amount, resultCard);
         const choice = choiceNames.l;
