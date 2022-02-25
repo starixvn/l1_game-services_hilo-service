@@ -17,7 +17,10 @@ jest.mock("../../helpers/deck-helper", () => {
 });
 
 describe("SettleTurnConsumer", () => {
-    let betLogsRepository;
+    const betLogsRepository = stubMongoose(mongoose.Model);
+    const userBetResultPublisher = stub(UserBetResultPublisher);
+    const settleGameRoundConsumer = stub(SettleGameRoundConsumer);
+
     let consumer;
     let gameData = { gameConfigs: { odds } };
     const mockDate = new Date();
@@ -25,10 +28,6 @@ describe("SettleTurnConsumer", () => {
     beforeEach(() => {
         // Arrange
         advanceTo(mockDate);
-
-        betLogsRepository = stubMongoose(mongoose.Model);
-        const userBetResultPublisher = stub(UserBetResultPublisher);
-        const settleGameRoundConsumer = stub(SettleGameRoundConsumer);
 
         consumer = new SettleTurnConsumer({ gameData, betLogsRepository, userBetResultPublisher, settleGameRoundConsumer });
     });
@@ -376,13 +375,28 @@ describe("SettleTurnConsumer", () => {
     });
 
     describe("calculateTurnResult", () => {
+        let runningRound;
+        let payload;
+
+        beforeEach(() => {
+            runningRound = { totalTurns: 3, betwin: 1, result: [{ rank: "7", suit: 0 }], settlementResult: [] };
+            payload = { betChoice: "h" };
+        });
+
+        it("always return latest settlement result", async () => {});
+
+        it("always return latest result card", async () => {});
+
+        it("always return total turns += 1", async () => {});
+
+        it("always return remainingTime as duration settings", async () => {});
+
         describe("when lose", () => {
+            it("always return betwin = 0", async () => {});
+
             it("should return next amounts = null", async () => {
                 // Arrange
-                consumer.gameData = { gameConfigs: { odds: {} } };
-                spyOn(consumer, "generateResult").and.returnValue({ rank: "8", suit: 0 });
-                const runningRound = { totalTurns: 3, result: [{ rank: "A", suit: 0 }], settlementResult: [] };
-                const payload = { betChoice: "h" };
+                spyOn(consumer, "generateResult").and.returnValue({ rank: "6", suit: 0 });
 
                 // Act
                 const actualValue = await consumer.calculateTurnResult(payload, runningRound);
@@ -393,12 +407,12 @@ describe("SettleTurnConsumer", () => {
         });
 
         describe("when win", () => {
+            //TODO next amounts always = bet win amount * odds [when win or tie]
+            //TODO bet win always = current amount * odds
             it("should return next amounts = odds * betwin", async () => {
                 // Arrange
-                spyOn(consumer, "generateResult").and.returnValue({ rank: "8", suit: 0 });
-                const runningRound = { totalTurns: 0, betwin: 1, result: [{ rank: "7", suit: 0 }], settlementResult: [] };
-                const payload = { betChoice: "h" };
-                const expectedValue = { h: 2.89, l: 2.89 };
+                spyOn(consumer, "generateResult").and.returnValue({ rank: "9", suit: 0 });
+                const expectedValue = { h: 2.5, l: 1.96 };
 
                 // Act
                 const actualValue = await consumer.calculateTurnResult(payload, runningRound);
@@ -409,14 +423,13 @@ describe("SettleTurnConsumer", () => {
         });
 
         describe("when tie", () => {
+            //TODO betwin always == curernt amount
             it("should return betwin = current amount and next amounts = odds * current amount", async () => {
                 // Arrange
-                spyOn(consumer, "generateResult").and.returnValue({ rank: "8", suit: 0 });
-                const runningRound = { totalTurns: 0, betwin: 1, result: [{ rank: "8", suit: 0 }], settlementResult: [] };
-                const payload = { betChoice: "h" };
+                spyOn(consumer, "generateResult").and.returnValue({ rank: "7", suit: 0 });
                 const expectedValue = {
                     betwin: 1,
-                    nextAmounts: { h: 1.77, l: 1.77 },
+                    nextAmounts: { h: 1.38, l: 1.76 },
                 };
 
                 // Act
