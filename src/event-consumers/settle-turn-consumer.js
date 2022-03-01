@@ -60,19 +60,13 @@ export default class SettleTurnConsumer {
     }
 
     calculateTurnResult(payload, runningRound) {
+        const turnTime = new Date();
         const currentCard = runningRound.result[runningRound.result.length - 1];
         const resultCard = this.generateResult(runningRound);
         const isLose = this.isLose(payload.betChoice, currentCard, resultCard);
         const odds = oddsGenerator.generate(this.gameData.gameConfigs.odds, currentCard.rank, runningRound.totalTurns + 1);
         const settlementResult = this.getSettlementResult(currentCard, resultCard);
-        let betwin;
-        if (settlementResult === payload.betChoice) {
-            betwin = parseFloat((runningRound.betwin * (1 + odds[payload.betChoice])).toFixed(2));
-        } else {
-            betwin = isLose ? 0 : runningRound.betwin;
-        }
-
-        const turnTime = new Date();
+        const betwin = isLose ? 0 : this.calculateBetWin(settlementResult, payload, runningRound.betwin, odds);
 
         return {
             isLose,
@@ -85,6 +79,12 @@ export default class SettleTurnConsumer {
             remainingTime: gameSettings.durations.turnTime,
             nextAmounts: isLose ? null : this.calculateWinAmounts(resultCard, runningRound.totalTurns + 2, betwin),
         };
+    }
+
+    calculateBetWin(settlementResult, payload, betAmount, odds) {
+        const betWin = settlementResult === payload.betChoice ? betAmount * (1 + odds[payload.betChoice]) : betAmount;
+
+        return parseFloat(betWin.toFixed(2));
     }
 
     getSettlementResult(currentCard, resultCard) {

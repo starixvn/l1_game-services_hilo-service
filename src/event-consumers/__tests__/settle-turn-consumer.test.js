@@ -27,6 +27,7 @@ describe("SettleTurnConsumer", () => {
 
     beforeEach(() => {
         // Arrange
+        jest.clearAllMocks();
         advanceTo(mockDate);
 
         consumer = new SettleTurnConsumer({ gameData, betLogsRepository, userBetResultPublisher, settleGameRoundConsumer });
@@ -489,7 +490,6 @@ describe("SettleTurnConsumer", () => {
                 expect(actualValue.betwin).toStrictEqual(expectedValue);
             });
 
-            //TODO
             it("should return next amounts = odds * betwin", async () => {
                 // Arrange
                 spyOn(consumer, "generateResult").and.returnValue({ rank: "9", suit: 0 });
@@ -504,7 +504,6 @@ describe("SettleTurnConsumer", () => {
         });
 
         describe("when tie", () => {
-            //TODO
             it("should return betwin always == curernt amount", async () => {
                 // Arrange
                 spyOn(consumer, "generateResult").and.returnValue({ rank: "7", suit: 0 });
