@@ -1,0 +1,58 @@
+import { choiceNames } from "../../src/game-settings";
+import { drawCard } from "../../src/helpers/deck-helper";
+import SettleTurnConsumer from "../../src/event-consumers/settle-turn-consumer";
+import { odds } from "../../src/__tests__/test-data";
+import { calculateWinAmounts } from "./helpers";
+import { cardRanks } from "../../src/cards";
+
+function getAmount(loseCount) {
+    if (loseCount >= 6) {
+        return 100;
+    }
+
+    if (loseCount >= 3) {
+        return 10;
+    }
+
+    return 1;
+}
+function run() {
+    const totalRounds = 100_000;
+    let totalBetAmount = 0;
+    let totalWinAmount = 0;
+    let winCount = 0;
+    const settleTurnConsumer = new SettleTurnConsumer({});
+
+    let loseCount = 0;
+
+    for (let index = 0; index < totalRounds; index++) {
+        const amount = getAmount(loseCount);
+        totalBetAmount += amount;
+        const firstCard = drawCard();
+        if (firstCard.rank === cardRanks.two || firstCard.rank === cardRanks.ace) {
+            totalWinAmount += amount;
+            winCount++;
+            continue;
+        }
+
+        const resultCard = drawCard(firstCard);
+        const estimatedWin = calculateWinAmounts(odds, firstCard, 1, amount, resultCard);
+        const choice = estimatedWin[choiceNames.h] > estimatedWin[choiceNames.l] ? choiceNames.l : choiceNames.h;
+
+        if (settleTurnConsumer.isLose(choice, firstCard, resultCard)) {
+            loseCount++;
+        } else {
+            totalWinAmount += estimatedWin[choice];
+            winCount++;
+            loseCount = 0;
+        }
+    }
+
+    console.log(`TotalBet: ${totalBetAmount}`);
+    console.log(`TotalWin: ${totalWinAmount}. Payout: ${(totalWinAmount / totalBetAmount) * 100}%`);
+    console.log(`NetWin: ${totalWinAmount - totalBetAmount}.`);
+    console.log(`WinCount: ${winCount}`);
+    console.log(`Payout: ${(totalWinAmount / totalBetAmount) * 100}%`);
+}
+
+run();
