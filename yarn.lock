@@ -8401,10 +8401,10 @@ sc-game-base@2.5.0:
     socket.io-msgpack-parser "^3.0.1"
     socket.io-prom-metrics "^1.0.3"
 
-sc-game-service-integration-utils@1.0.2:
-  version "1.0.2"
-  resolved "https://npm.lumigame.com/sc-game-service-integration-utils/-/sc-game-service-integration-utils-1.0.2.tgz#a855697a47a832aa20560be4bd21c014753776e6"
-  integrity sha512-NVei2hAlDMig9O31Cx4UeSp8yQ52zdKAt4UNRI0Z564T2ttv6pGbCXeVRXAE7hHTmpKha83ih7cvkqG0sQZ1hQ==
+sc-game-service-integration-utils@1.0.3:
+  version "1.0.3"
+  resolved "https://npm.lumigame.com/sc-game-service-integration-utils/-/sc-game-service-integration-utils-1.0.3.tgz#22a0d56e2ea789681b649d792723cedc2f39719a"
+  integrity sha512-mMM3n8ijzLzQAGP/n8MM8okJPFdGJRbjOZt65gXTKPqrM435byPeA/lI4UUX1LE03V4ynx+jJ7kQQk5svsZwwA==
   dependencies:
     lodash.matches "^4.6.0"
     nock "^13.2.1"
