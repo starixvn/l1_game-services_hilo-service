@@ -7,6 +7,7 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
     composeValidationCriteria(player, betChoice, roundId) {
         const bettingTimeValidationCriteria = this.composeBettingTimeValidationCriteria(roundId);
         const betChoiceValidationCriteria = this.composeBetChoiceValidationCriteria(player, betChoice);
+
         return bettingTimeValidationCriteria.concat(betChoiceValidationCriteria);
     }
 
@@ -48,6 +49,7 @@ export default class DealConsumer extends Core.BaseEventConsumers.PlaceBetConsum
     validateBetRequest(player, betChoice, roundId) {
         const criteria = this.composeValidationCriteria(player, betChoice, roundId);
         const failedCriterion = criteria.find((criterion) => criterion.failure);
+
         if (failedCriterion) {
             this.publisher.publishToUser(player.UID, { endDeal: -1, betChoice, notice: failedCriterion.notice });
 
