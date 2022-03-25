@@ -71,27 +71,46 @@ describe("PlaceBetConsumer", () => {
                 gameData.ingame = {};
             });
 
-            it("should return failed if player not has running round", () => {
-                // Arrange
-                gameData.ingame = { [player1.profile.name]: { betTracks: {} } };
-                const expectedValue = [{ failure: true, notice: { errorCode: helpers.noticeHelper.invalidBet } }];
+            describe("when betTracks is null", () => {
+                it("should allow place bet (failure=false)", () => {
+                    // Arrange
+                    gameData.ingame = { [player1.profile.name]: { betTracks: null } };
+                    const expectedValue = [{ failure: false, notice: { errorCode: helpers.noticeHelper.invalidBet } }];
 
-                // Act
-                const actualValue = consumer.composeBettingTimeValidationCriteria(player1);
+                    // Act
+                    const actualValue = consumer.composeBettingTimeValidationCriteria(player1);
 
-                // Assert
-                expect(actualValue).toStrictEqual(expectedValue);
+                    // Assert
+                    expect(actualValue).toStrictEqual(expectedValue);
+                });
             });
 
-            it("should return ok if player have running round", () => {
-                // Arrange
-                const expectedValue = [{ failure: false, notice: { errorCode: helpers.noticeHelper.invalidBet } }];
+            describe("when betTracks is {} (already placed bet)", () => {
+                it("should not allow place bet (failure: true)", () => {
+                    // Arrange
+                    const expectedValue = [{ failure: true, notice: { errorCode: helpers.noticeHelper.invalidBet } }];
+                    gameData.ingame = { [player1.profile.name]: { betTracks: {} } };
 
-                // Act
-                const actualValue = consumer.composeBettingTimeValidationCriteria(player1);
+                    // Act
+                    const actualValue = consumer.composeBettingTimeValidationCriteria(player1);
 
-                // Assert
-                expect(actualValue).toStrictEqual(expectedValue);
+                    // Assert
+                    expect(actualValue).toStrictEqual(expectedValue);
+                });
+            });
+
+            describe("when betTracks is {runningRound} (already has running round)", () => {
+                it("should not allow place bet (failure: true)", () => {
+                    // Arrange
+                    const expectedValue = [{ failure: true, notice: { errorCode: helpers.noticeHelper.invalidBet } }];
+                    gameData.ingame = { [player1.profile.name]: { betTracks: { uid: player1.UID } } };
+
+                    // Act
+                    const actualValue = consumer.composeBettingTimeValidationCriteria(player1);
+
+                    // Assert
+                    expect(actualValue).toStrictEqual(expectedValue);
+                });
             });
         });
     });

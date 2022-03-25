@@ -242,16 +242,46 @@ describe("ProcessBetQueue", () => {
     });
 
     describe("decreaseBetTracks", () => {
-        it("should do nothing", () => {
-            // Arrange
-            cron.gameData = { ingame: { [player1.profile.name]: { betTracks: { amount: 10 } } } };
-            const playerName = player1.profile.name;
+        describe("when bet track is {}", () => {
+            it("should delete bet tracks", () => {
+                // Arrange
+                cron.gameData = { ingame: { [player1.profile.name]: { betTracks: {} } } };
+                const playerName = player1.profile.name;
 
-            // Act
-            cron.decreaseBetTracks(playerName);
+                // Act
+                cron.decreaseBetTracks(playerName);
 
-            // Assert
-            expect(cron.gameData.ingame[player1.profile.name].betTracks).toStrictEqual({ amount: 10 });
+                // Assert
+                expect(cron.gameData.ingame[player1.profile.name].betTracks).toBeUndefined();
+            });
+        });
+
+        describe("when bet track is undefined", () => {
+            it("should keep bet track is undefined", () => {
+                // Arrange
+                cron.gameData = { ingame: { [player1.profile.name]: { betTracks: undefined } } };
+                const playerName = player1.profile.name;
+
+                // Act
+                cron.decreaseBetTracks(playerName);
+
+                // Assert
+                expect(cron.gameData.ingame[player1.profile.name].betTracks).toStrictEqual(undefined);
+            });
+        });
+
+        describe("when bet tracks contains running round", () => {
+            it("should do nothing", () => {
+                // Arrange
+                cron.gameData = { ingame: { [player1.profile.name]: { betTracks: { id: 2, amount: 10 } } } };
+                const playerName = player1.profile.name;
+
+                // Act
+                cron.decreaseBetTracks(playerName);
+
+                // Assert
+                expect(cron.gameData.ingame[player1.profile.name].betTracks).toStrictEqual({ id: 2, amount: 10 });
+            });
         });
     });
 
