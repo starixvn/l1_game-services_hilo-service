@@ -51,6 +51,8 @@ export default class GameCron extends Core.Crons.BaseGameCron {
     async start() {
         await super.start();
         await this.proceedUnsettledBets();
+
+        this.logService.log(`Game ${this.definition.configName} start with round #${this.gameData.roundId}`);
     }
 
     async proceed() {
