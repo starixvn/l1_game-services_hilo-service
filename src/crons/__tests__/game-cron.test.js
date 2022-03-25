@@ -319,4 +319,35 @@ describe("GameCron", () => {
             });
         });
     });
+
+    describe("getLastArchiveRound", () => {
+        describe("when not have archive status yet", () => {
+            it("should return 1", async () => {
+                // Arrange
+                archiveStatusesRepository.findOne().lean().exec.mockReturnValueOnce(null);
+                const expectedValue = 1;
+
+                // Act
+                const actualValue = await cron.getLastArchiveRound();
+
+                // Assert
+                expect(actualValue).toStrictEqual(expectedValue);
+            });
+        });
+
+        describe("when already have archive status", () => {
+            it("should return last round id + 1", async () => {
+                // Arrange
+                const lastRound = { lastArcId: { _rounds: 2 } };
+                archiveStatusesRepository.findOne().lean().exec.mockReturnValueOnce(lastRound);
+                const expectedValue = 3;
+
+                // Act
+                const actualValue = await cron.getLastArchiveRound();
+
+                // Assert
+                expect(actualValue).toStrictEqual(expectedValue);
+            });
+        });
+    });
 });
