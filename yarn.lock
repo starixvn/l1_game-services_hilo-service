@@ -8347,10 +8347,28 @@ sc-base-apis@1.15.1:
     sc-base-database "1.9.1"
     sc-common "^1.8.0"
 
+sc-base-apis@1.15.2:
+  version "1.15.2"
+  resolved "https://npm.lumigame.com/sc-base-apis/-/sc-base-apis-1.15.2.tgz#4d60ed1d9ba75859c208c3fa5e1ab509acebb64c"
+  integrity sha512-+lwTbfVRuQNJcJVbSUoDX+DBGDJcUWFcw3j9pFE+IbbuS6Xdp3um98JuR7uHNM8pvR7Uoc9P/XXW5ow8YxAUjw==
+  dependencies:
+    moment "^2.27.0"
+    sc-api-client "^1.3.0"
+    sc-base-database "1.9.2"
+    sc-common "^1.8.0"
+
 sc-base-database@1.9.1:
   version "1.9.1"
   resolved "https://npm.lumigame.com/sc-base-database/-/sc-base-database-1.9.1.tgz#b60b8558abbaa688c1d6583e36b7ede2b33e9f57"
   integrity sha512-3qEwy0aXEv7WGXUqB/WYHf2+QW+88Yq2oSPtFHZaa1z+yITqLCTVWtCfBjW/jaIhRzSc4uwVD9+dCrQQyfbJhg==
+  dependencies:
+    mongoose "^5.9.25"
+    sc-common "^1.6.0"
+
+sc-base-database@1.9.2:
+  version "1.9.2"
+  resolved "https://npm.lumigame.com/sc-base-database/-/sc-base-database-1.9.2.tgz#4ee800820ff88a91c6a23c7f8e368082df8b20c2"
+  integrity sha512-o2N42wqNCI5kqymavaqi1Gf7Gm7VAISFMI8oxcyWww3eyo2KKh19dI9+OBozWWQcCDCuJIWgj51+fj6XX4se3Q==
   dependencies:
     mongoose "^5.9.25"
     sc-common "^1.6.0"
@@ -8400,6 +8418,31 @@ sc-game-base@2.5.0:
     socket.io "^4.1.2"
     socket.io-msgpack-parser "^3.0.1"
     socket.io-prom-metrics "^1.0.3"
+
+sc-game-base@2.6.3-beta.0:
+  version "2.6.3-beta.0"
+  resolved "https://npm.lumigame.com/sc-game-base/-/sc-game-base-2.6.3-beta.0.tgz#18994d3f90645086f006054cf33c69b2c54190de"
+  integrity sha512-G5LENma06BWOm+XmrTalL5577tqJgvCSupAlxqkpKOO+cp0s71ZjzaruIY3NM1YK+3hqmNsXuAmr7Z/YsM6v9g==
+  dependencies:
+    awilix "^4.3.1"
+    axios "^0.20.0"
+    body-parser "^1.19.0"
+    chance "^1.1.7"
+    cors "^2.8.5"
+    cron "^1.8.2"
+    express "^4.17.1"
+    helmet "^3.23.3"
+    lodash "^4.17.19"
+    mongoose "^5.9.25"
+    morgan "^1.10.0"
+    openid-client "^4.2.0"
+    sc-base-apis "1.15.2"
+    sc-base-database "1.9.2"
+    sc-common "^1.8.0"
+    socket.io "^4.1.2"
+    socket.io-msgpack-parser "^3.0.1"
+    socket.io-prom-metrics "^1.0.3"
+    uWebSockets.js uNetworking/uWebSockets.js#20.6.0
 
 sc-game-service-integration-utils@1.0.3:
   version "1.0.3"
@@ -9346,6 +9389,10 @@ typedarray-to-buffer@^3.1.5:
   integrity sha512-zdu8XMNEDepKKR+XYOXAVPtWui0ly0NtohUscw+UmaHiAWT8hrV1rr//H6V+0DvJ3OQ19S979M0laLfX8rm82Q==
   dependencies:
     is-typedarray "^1.0.0"
+
+uWebSockets.js@uNetworking/uWebSockets.js#20.6.0:
+  version "20.6.0"
+  resolved "https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/a58e810e47a23696410f6073c8c905dc38f75da5"
 
 uglify-js@^3.1.4:
   version "3.14.5"
