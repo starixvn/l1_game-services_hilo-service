@@ -8401,10 +8401,10 @@ sc-game-base@2.6.0:
     socket.io-msgpack-parser "^3.0.1"
     socket.io-prom-metrics "^1.0.3"
 
-sc-game-base@^2.6.3-beta.1:
-  version "2.6.3-beta.1"
-  resolved "https://npm.lumigame.com/sc-game-base/-/sc-game-base-2.6.3-beta.1.tgz#a71f275b7843ef3588da05691dbe179edf4c8e24"
-  integrity sha512-oi66ggi83G8IvoU0FQxn3tvys/JqoywcItgVgIhPj+b+fAyEz1hM0+PXOrGAlI+6UkSYPWRLhtZGkBNY0vYXwQ==
+sc-game-base@^2.6.3-beta.2:
+  version "2.6.3-beta.2"
+  resolved "https://npm.lumigame.com/sc-game-base/-/sc-game-base-2.6.3-beta.2.tgz#5ebeb2df0f23f02a0c64718eb5c155af8ed15db3"
+  integrity sha512-NKDdhT7klLYjg+tfVEqWCqsb2H7iVZNAeSDyq12+MibLX7Bohw2quaZpZy9ZAtcgeqzeD2YBuIQ5O2qinjO8ww==
   dependencies:
     awilix "^4.3.1"
     axios "^0.20.0"
@@ -8421,7 +8421,7 @@ sc-game-base@^2.6.3-beta.1:
     sc-base-apis "1.15.2"
     sc-base-database "1.9.2"
     sc-common "^1.8.0"
-    socket.io "^4.1.2"
+    socket.io "^4.4.0"
     socket.io-msgpack-parser "^3.0.1"
     socket.io-prom-metrics "^1.0.3"
     uWebSockets.js uNetworking/uWebSockets.js#20.6.0
@@ -8730,7 +8730,7 @@ socket.io-prom-metrics@^1.0.3:
     prom-client "^11.2.1"
     socket.io "^4.1.3"
 
-socket.io@^4.1.2, socket.io@^4.1.3:
+socket.io@^4.1.2, socket.io@^4.1.3, socket.io@^4.4.0:
   version "4.4.1"
   resolved "https://npm.lumigame.com/socket.io/-/socket.io-4.4.1.tgz#cd6de29e277a161d176832bb24f64ee045c56ab8"
   integrity sha512-s04vrBswdQBUmuWJuuNTmXUVJhP0cVky8bBDhdkf8y0Ptsu7fKU2LuLbts9g+pdmAdyMMn8F/9Mf1/wbtUN0fg==
