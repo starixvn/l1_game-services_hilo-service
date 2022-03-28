@@ -8337,16 +8337,6 @@ sc-api-client@^1.3.0:
     axios "^0.19.2"
     openid-client "^3.15.9"
 
-sc-base-apis@1.15.1:
-  version "1.15.1"
-  resolved "https://npm.lumigame.com/sc-base-apis/-/sc-base-apis-1.15.1.tgz#456a1b2929cb0556ae789c46f7d4f8cfa5926a2d"
-  integrity sha512-YfZz8aTOrt50Jo5T5CCBISi/o64yGrDJ9JFLlG2IqGV48aVNqSQ2fHTsjEkozM0/AUy1wVFdIOe226rrwoBCPA==
-  dependencies:
-    moment "^2.27.0"
-    sc-api-client "^1.3.0"
-    sc-base-database "1.9.1"
-    sc-common "^1.8.0"
-
 sc-base-apis@1.15.2:
   version "1.15.2"
   resolved "https://npm.lumigame.com/sc-base-apis/-/sc-base-apis-1.15.2.tgz#4d60ed1d9ba75859c208c3fa5e1ab509acebb64c"
@@ -8356,14 +8346,6 @@ sc-base-apis@1.15.2:
     sc-api-client "^1.3.0"
     sc-base-database "1.9.2"
     sc-common "^1.8.0"
-
-sc-base-database@1.9.1:
-  version "1.9.1"
-  resolved "https://npm.lumigame.com/sc-base-database/-/sc-base-database-1.9.1.tgz#b60b8558abbaa688c1d6583e36b7ede2b33e9f57"
-  integrity sha512-3qEwy0aXEv7WGXUqB/WYHf2+QW+88Yq2oSPtFHZaa1z+yITqLCTVWtCfBjW/jaIhRzSc4uwVD9+dCrQQyfbJhg==
-  dependencies:
-    mongoose "^5.9.25"
-    sc-common "^1.6.0"
 
 sc-base-database@1.9.2:
   version "1.9.2"
@@ -8395,10 +8377,10 @@ sc-common@^1.8.0:
     mongoose-long "^0.3.0"
     numeral "^2.0.6"
 
-sc-game-base@2.5.0:
-  version "2.5.0"
-  resolved "https://npm.lumigame.com/sc-game-base/-/sc-game-base-2.5.0.tgz#6b2d9dbd45ba8dd46522a41fed083a141413d9ca"
-  integrity sha512-t/qx8Z141Ptwn/KddafGoSlWeSGi9ERrtYI6cUzZR4BpWdPRAz+PRrPtCXTwLzS0GUHS45dkrRtSU05G9q+lOA==
+sc-game-base@2.6.0:
+  version "2.6.0"
+  resolved "https://npm.lumigame.com/sc-game-base/-/sc-game-base-2.6.0.tgz#e678ab3caeb1a08d72b0a5ad14f93ff0177f40b9"
+  integrity sha512-U0Gb+DC9TOARY3spSE3dqWll5rrKaiosvaSVGltYZLo1SzxaKXo/xQQ1RTeBvhnh5Q72YNB7Qj6adDgKruhn7g==
   dependencies:
     awilix "^4.3.1"
     axios "^0.20.0"
@@ -8412,17 +8394,17 @@ sc-game-base@2.5.0:
     mongoose "^5.9.25"
     morgan "^1.10.0"
     openid-client "^4.2.0"
-    sc-base-apis "1.15.1"
-    sc-base-database "1.9.1"
+    sc-base-apis "1.15.2"
+    sc-base-database "1.9.2"
     sc-common "^1.8.0"
     socket.io "^4.1.2"
     socket.io-msgpack-parser "^3.0.1"
     socket.io-prom-metrics "^1.0.3"
 
-sc-game-base@2.6.3-beta.0:
-  version "2.6.3-beta.0"
-  resolved "https://npm.lumigame.com/sc-game-base/-/sc-game-base-2.6.3-beta.0.tgz#18994d3f90645086f006054cf33c69b2c54190de"
-  integrity sha512-G5LENma06BWOm+XmrTalL5577tqJgvCSupAlxqkpKOO+cp0s71ZjzaruIY3NM1YK+3hqmNsXuAmr7Z/YsM6v9g==
+sc-game-base@^2.6.3-beta.1:
+  version "2.6.3-beta.1"
+  resolved "https://npm.lumigame.com/sc-game-base/-/sc-game-base-2.6.3-beta.1.tgz#a71f275b7843ef3588da05691dbe179edf4c8e24"
+  integrity sha512-oi66ggi83G8IvoU0FQxn3tvys/JqoywcItgVgIhPj+b+fAyEz1hM0+PXOrGAlI+6UkSYPWRLhtZGkBNY0vYXwQ==
   dependencies:
     awilix "^4.3.1"
     axios "^0.20.0"
@@ -8444,14 +8426,14 @@ sc-game-base@2.6.3-beta.0:
     socket.io-prom-metrics "^1.0.3"
     uWebSockets.js uNetworking/uWebSockets.js#20.6.0
 
-sc-game-service-integration-utils@1.0.3:
-  version "1.0.3"
-  resolved "https://npm.lumigame.com/sc-game-service-integration-utils/-/sc-game-service-integration-utils-1.0.3.tgz#22a0d56e2ea789681b649d792723cedc2f39719a"
-  integrity sha512-mMM3n8ijzLzQAGP/n8MM8okJPFdGJRbjOZt65gXTKPqrM435byPeA/lI4UUX1LE03V4ynx+jJ7kQQk5svsZwwA==
+sc-game-service-integration-utils@1.1.1:
+  version "1.1.1"
+  resolved "https://npm.lumigame.com/sc-game-service-integration-utils/-/sc-game-service-integration-utils-1.1.1.tgz#69156911707e2d5d0f3b1f8da76e93be7bfec8f8"
+  integrity sha512-ZpEKHtXygUwG0KkYWZ66WsuWvAxEiOy2JIH2qz8ZdyI+8VLw9RNH3BQknELYZLvVOKU2A6cyFSoyAb05cU27Og==
   dependencies:
     lodash.matches "^4.6.0"
     nock "^13.2.1"
-    sc-game-base "2.5.0"
+    sc-game-base "2.6.0"
     socket.io-client "^4.4.0"
 
 sc-semantic-release@^1.1.0:
@@ -9390,7 +9372,7 @@ typedarray-to-buffer@^3.1.5:
   dependencies:
     is-typedarray "^1.0.0"
 
-uWebSockets.js@uNetworking/uWebSockets.js#20.6.0:
+"uWebSockets.js@github:uNetworking/uWebSockets.js#20.6.0":
   version "20.6.0"
   resolved "https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/a58e810e47a23696410f6073c8c905dc38f75da5"
 
