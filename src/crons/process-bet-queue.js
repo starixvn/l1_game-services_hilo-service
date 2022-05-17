@@ -122,6 +122,9 @@ export default class ProcessBetQueue extends Core.Crons.ProcessBetQueue {
             newBet.siteId = player.session.siteId;
             newBet.partnerId = player.session.partnerId;
             newBet.currency = player.session.currencyName;
+
+            newBet.operatorId = player.session.partnerId;
+            newBet.playerId = player.session.memberId;
         }
 
         await this.roundsRepository.updateOne(existingBetFilter, { $setOnInsert: newBet }, { upsert: true, setDefaultsOnInsert: true });

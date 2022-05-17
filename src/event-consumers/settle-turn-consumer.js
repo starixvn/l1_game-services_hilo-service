@@ -120,6 +120,9 @@ export default class SettleTurnConsumer {
 
             order: runningRound.totalTurns + 1,
             cards: [currentCard, resultCard],
+
+            operatorId: runningRound.partnerId,
+            playerId: runningRound.memberId,
         };
 
         await this.betLogsRepository.create(log);
