@@ -138,7 +138,7 @@ export default class GameCron extends Core.Crons.BaseGameCron {
     async enableGame() {
         await Promise.all(
             Object.values(this.gameData.ingame).map(async (player) => {
-                if (Object.keys(player.betTracks).length) {
+                if (player.betTracks && Object.keys(player.betTracks).length) {
                     const bet = player.betTracks;
                     bet.turnResult = {
                         isLose: false,
