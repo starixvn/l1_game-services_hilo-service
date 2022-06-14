@@ -13,15 +13,9 @@ export default {
         requestTimeout: 10000, // 10s
         enabledApiLogs: true,
     },
-    mainServerApiSettings: {
-        url: "http://l1_game_server_prod:5000/api",
-        auth: {
-            url: "http://l1_auth_api_prod:5000",
-            id: "game-services",
-            secret: "gameservices@20luminet&",
-        },
+    userServiceSettings: {
+        url: "http://l1_user_service_prod:5000",
         requestTimeout: 10000,
-        useAuthenticate: true,
     },
     socketOptions: {
         pingInterval: 60 * 1000,
