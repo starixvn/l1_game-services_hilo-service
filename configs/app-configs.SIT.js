@@ -13,15 +13,9 @@ export default {
         placeBetTimeout: 4500,
         enabledApiLogs: true,
     },
-    mainServerApiSettings: {
-        url: "http://l1_game_server_sit:5000/api",
-        auth: {
-            url: "http://l1_auth_api_sit:5000",
-            id: "game-services",
-            secret: "gameservices@20luminet&",
-        },
+    userServiceSettings: {
+        url: "http://l1_user_service_sit:5000",
         requestTimeout: 10000,
-        useAuthenticate: true,
     },
     socketOptions: {
         pingInterval: 60 * 1000,

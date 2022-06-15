@@ -14,15 +14,9 @@ export default {
         placeBetTimeout: 4500,
         enabledApiLogs: true,
     },
-    mainServerApiSettings: {
-        url: "http://l1_game_server_local_1:5000/api",
-        auth: {
-            url: "http://l1_auth_api_local_1:5000",
-            id: "game-services",
-            secret: "gameservices@20luminet&",
-        },
+    userServiceSettings: {
+        url: "https://l1-proxy1.lumigame.com/user",
         requestTimeout: 10000,
-        useAuthenticate: true,
     },
     socketOptions: {
         pingInterval: 60 * 1000,
