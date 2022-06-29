@@ -9,19 +9,20 @@ export default {
             secret: "gameserver@20luminet&",
         },
         useAuthenticate: true,
-        placeBetTimeout: 4500,
+        placeBetTimeout: 4000,
         requestTimeout: 10000, // 10s
         enabledApiLogs: true,
     },
-    mainServerApiSettings: {
-        url: "http://l1_game_server_uat:5000/api",
-        auth: {
-            url: "http://l1_auth_api_uat:5000",
-            id: "game-services",
-            secret: "gameservices@20luminet&",
-        },
+    authenticateSettings: {
+        url: "http://l1_auth_api_uat:5000",
+        id: "game-services",
+        secret: "gameservices@20luminet&",
         requestTimeout: 10000,
         useAuthenticate: true,
+        audiences: ["api", "admin-api"],
+    },
+    userServiceSettings: {
+        url: "http://l1_user_service_uat:5000",
     },
     socketOptions: {
         pingInterval: 60 * 1000,
@@ -44,9 +45,6 @@ export default {
         sentryUrl: "http://52368c4019044019885440599c180bda@10.2.190.51:9009/24",
         logIdentifier: "hilo",
         env: "UAT",
-    },
-    authenticateSettings: {
-        audiences: ["api", "admin-api"],
     },
     adminSecretKey: "asWDEerfOIdgsdqRTFabvmgh",
     enableCorsWs: true,

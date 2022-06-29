@@ -11,18 +11,19 @@ export default {
 
         useAuthenticate: true,
         requestTimeout: 10000,
-        placeBetTimeout: 4500,
+        placeBetTimeout: 4000,
         enabledApiLogs: true,
     },
-    mainServerApiSettings: {
-        url: "http://l1_game_server_local_1:5000/api",
-        auth: {
-            url: "http://l1_auth_api_local_1:5000",
-            id: "game-services",
-            secret: "gameservices@20luminet&",
-        },
+    authenticateSettings: {
+        url: "http://l1_auth_api_local_1:5000",
+        id: "game-services",
+        secret: "gameservices@20luminet&",
         requestTimeout: 10000,
         useAuthenticate: true,
+        audiences: ["api", "admin-api"],
+    },
+    userServiceSettings: {
+        url: "http://l1_user_service_local_1:5000",
     },
     socketOptions: {
         pingInterval: 60 * 1000,
@@ -46,11 +47,8 @@ export default {
         logIdentifier: "hilo",
         env: "LOCAL_1",
     },
-    authenticateSettings: {
-        audiences: ["api", "admin-api"],
-    },
     adminSecretKey: "asWDEerfOIdgsdqRTFabvmgh",
     enableCorsWs: false,
     corsUrls: ["http://localhost:7456", "http://localhost:7000", "https://l1-games1.lumigame.com", "https://l1-admin1.lumigame.com"],
-    enableMsgpackParser: true,
+    enableMsgpackParser: false,
 };

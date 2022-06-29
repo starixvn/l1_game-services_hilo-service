@@ -9,7 +9,7 @@ describe("HttpRouter", () => {
     const app = {
         get: jest.fn(),
         post: (url, authenticate, callBack) => {
-            callBack({}, { send: jest.fn() });
+            callBack && callBack({}, { send: jest.fn() });
         },
         calledPost: false,
     };
@@ -24,7 +24,6 @@ describe("HttpRouter", () => {
     const logService = stub(logger);
     const gameData = {};
     const historyQuery = {};
-    const userSessionsRepository = {};
     const metricQuery = {};
     const res = { send: jest.fn() };
 
@@ -33,7 +32,7 @@ describe("HttpRouter", () => {
         // Arrange
         jest.clearAllMocks();
 
-        router = new HttpRouter(appConfigs, gameData, historyQuery, userSessionsRepository, metricQuery, logService);
+        router = new HttpRouter(appConfigs, gameData, historyQuery, metricQuery, logService);
     });
 
     it("inherit Core.Routers.HttpRouter", () => {

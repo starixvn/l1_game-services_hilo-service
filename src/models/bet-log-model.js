@@ -19,6 +19,9 @@ const schema = new mongoose.Schema({
 
     order: { type: Number, default: 0 },
     cards: { type: Array },
+
+    operatorId: { type: String, require: true },
+    playerId: { type: Number },
 });
 
 export default mongoose.model(`${gameSettings.name}_betlog`, schema);

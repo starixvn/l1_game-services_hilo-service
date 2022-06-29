@@ -187,6 +187,8 @@ describe("SettleTurnConsumer", () => {
                     { rank: "4", suit: 0 },
                     { rank: "5", suit: 0 },
                 ],
+                operatorId: 3,
+                playerId: 1,
             };
 
             // Act

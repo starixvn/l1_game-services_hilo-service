@@ -24,6 +24,9 @@ const schema = new mongoose.Schema({
     result: { type: Array },
     settlementResult: { type: Array },
     exchangeRateId: { type: Number, required: true },
+
+    operatorId: { type: String, default: "" },
+    playerId: { type: Number },
 });
 
 export default mongoose.model(`${gameSettings.name}_round`, schema);

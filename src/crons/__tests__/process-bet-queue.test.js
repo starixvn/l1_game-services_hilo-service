@@ -378,6 +378,8 @@ describe("ProcessBetQueue", () => {
                             turnEndTime: mockDate,
                             turnTime: mockDate,
                             uid: player1.UID,
+                            operatorId: 3,
+                            playerId: 2,
                         },
                     },
                     { setDefaultsOnInsert: true, upsert: true }
