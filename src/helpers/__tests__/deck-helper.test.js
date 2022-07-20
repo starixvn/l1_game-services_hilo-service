@@ -1,15 +1,40 @@
 import { baseCards } from "../../cards";
 import { drawCard, getCardFromAdmin } from "../deck-helper";
 
+const chanceMock = { pickoneIndex: 0 };
+jest.mock("chance", () => {
+    return function () {
+        const orig = {
+            ...jest.requireActual("chance"),
+        };
+
+        return {
+            shuffle: (arr) => {
+                return new orig.Chance().shuffle(arr);
+            },
+            pickone: (arr) => arr[chanceMock.pickoneIndex],
+        };
+    };
+});
+
 describe("DeckHelper", () => {
     describe("drawCard", () => {
+        const testCases = [
+            { randomMode: 1, pickoneIndex: 0 },
+            { randomMode: 2, pickoneIndex: 0 },
+            { randomMode: 3, pickoneIndex: 0 },
+            { randomMode: 3, pickoneIndex: 1 },
+            { randomMode: 4, pickoneIndex: 0 },
+        ];
+
         describe("when already drawn all cards", () => {
-            it("should also return card, card can be duplicate", () => {
+            it.each(testCases)("should also return card, card can be duplicate", (testCase) => {
                 // Arrange
                 const drawnCards = baseCards;
+                chanceMock.pickoneIndex = testCase.pickoneIndex;
 
                 // Act
-                const actualValue = drawCard(drawnCards);
+                const actualValue = drawCard(testCase.randomMode, drawnCards);
 
                 // Assert
                 expect(actualValue).not.toBeNull();
@@ -22,7 +47,7 @@ describe("DeckHelper", () => {
                 const drawnCards = null;
 
                 // Act
-                const actualValue = drawCard(drawnCards);
+                const actualValue = drawCard(1, drawnCards);
 
                 // Assert
                 expect(actualValue).not.toBeNull();

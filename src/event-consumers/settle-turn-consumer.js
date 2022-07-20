@@ -13,13 +13,15 @@ export default class SettleTurnConsumer {
     }
 
     generateResult(runningRound) {
+        const { randomMode } = this.gameData.gameConfigs;
+
         const resultFromAdmin =
             (this.gameData.settlementResultFromAdmin ? this.gameData.settlementResultFromAdmin[runningRound.name] : []) ?? [];
         const turnOrder = runningRound.totalTurns + 1;
 
         return turnOrder < resultFromAdmin.length
             ? resultFromAdmin[turnOrder]
-            : drawCard(runningRound.result[runningRound.result.length - 1]);
+            : drawCard(randomMode, runningRound.result[runningRound.result.length - 1]);
     }
 
     async settleTurn(player, payload) {

@@ -4,6 +4,7 @@ import SettleTurnConsumer from "../../src/event-consumers/settle-turn-consumer";
 import { odds } from "../../src/__tests__/test-data";
 import { calculateWinAmounts } from "./helpers";
 
+const randomMode = 1;
 function run() {
     const totalRounds = 52 * 51 * 10;
     let totalBetAmount = 0;
@@ -27,9 +28,9 @@ function run() {
     };
 
     for (let index = 0; index < totalRounds; index++) {
-        const firstCard = drawCard();
+        const firstCard = randomMode,);
         const cardsStatistic = cardsStatistics[firstCard.rank];
-        const resultCard = drawCard(firstCard);
+        const resultCard = drawCard(randomMode,firstCard);
         const choice = cardsStatistic[choiceNames.h] > cardsStatistic[choiceNames.l] ? choiceNames.l : choiceNames.h;
         const betAmount = 1;
         totalBetAmount += betAmount;

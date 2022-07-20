@@ -4,6 +4,7 @@ import { drawCard } from "../../src/helpers/deck-helper";
 const drawsNo = Math.pow(10, 5);
 const cardFrequency = 1 / 52;
 
+const randomMode = 1;
 function runBaseCardStatisticsByCards() {
     // Arrange
     const drawnCards = null;
@@ -13,7 +14,7 @@ function runBaseCardStatisticsByCards() {
 
     // Act
     for (let i = 0; i < drawsNo; i++) {
-        resultCards[i] = drawCard(drawnCards);
+        resultCards[i] = drawCard(randomMode, drawnCards);
     }
 
     // Assert
@@ -41,7 +42,7 @@ function runBaseCardStatisticsByRanks() {
 
         // Act
         for (let i = 0; i < drawsNo; i++) {
-            resultCards[i] = drawCard(drawnCards);
+            resultCards[i] = drawCard(randomMode, drawnCards);
         }
 
         // Assert
