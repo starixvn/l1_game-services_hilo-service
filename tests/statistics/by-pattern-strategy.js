@@ -5,6 +5,8 @@ import { odds } from "../../src/__tests__/test-data";
 import { calculateWinAmounts } from "./helpers";
 import { cardRanks } from "../../src/cards";
 
+const randomMode = 1;
+
 function isMatch(pattern, settlementResults) {
     if (settlementResults.length + 1 < pattern.length) {
         return false;
@@ -37,14 +39,14 @@ function run() {
 
     for (let index = 0; index < totalRounds; index++) {
         totalBetAmount += 1;
-        const firstCard = drawCard();
+        const firstCard = drawCard(randomMode);
         if (firstCard.rank === cardRanks.two || firstCard.rank === cardRanks.ace) {
             totalWinAmount += amount;
             winCount++;
             continue;
         }
 
-        const resultCard = drawCard(firstCard);
+        const resultCard = drawCard(randomMode, firstCard);
         const estimatedWin = calculateWinAmounts(odds, firstCard, 1, amount, resultCard);
         const pattern = patterns.find((p) => isMatch(p, settlementResults));
         const choice = pattern ? pattern[pattern.length - 1] : choiceNames.h;

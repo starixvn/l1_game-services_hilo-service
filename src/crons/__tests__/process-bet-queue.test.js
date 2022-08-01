@@ -25,6 +25,7 @@ describe("ProcessBetQueue", () => {
 
         const definition = stub(Core.GameDefinition);
         const gameData = stub(Core.GameData);
+
         const placeBet = jest.fn();
         const logService = stub(logger);
         const betsRepository = stubMongoose(mongoose.Model);
@@ -397,7 +398,7 @@ describe("ProcessBetQueue", () => {
             ];
             it.each(testCases)("should return random", (testCase) => {
                 // Arrange
-                cron.gameData = { settlementResultFromAdmin: testCase.settlementResultFromAdmin };
+                cron.gameData = { settlementResultFromAdmin: testCase.settlementResultFromAdmin, gameConfigs: {} };
                 const name = "player";
 
                 // Act
@@ -411,7 +412,7 @@ describe("ProcessBetQueue", () => {
         describe("when have result from admin", () => {
             it("should return from that", () => {
                 // Arrange
-                cron.gameData = { settlementResultFromAdmin: { [player1.profile.name]: [{ rank: "3" }] } };
+                cron.gameData = { settlementResultFromAdmin: { [player1.profile.name]: [{ rank: "3" }] }, gameConfigs: {} };
                 const name = player1.profile.name;
 
                 // Act
@@ -427,7 +428,7 @@ describe("ProcessBetQueue", () => {
         describe("when not have betTracks", () => {
             it("should return end bet wih own bets info has undefined values", () => {
                 // Arrange
-                cron.gameData = { ingame: {} };
+                cron.gameData = { ingame: {}, gameConfigs: {} };
                 const balance = {};
                 const bet = { amount: 10 };
                 const expectedValue = {
@@ -457,6 +458,7 @@ describe("ProcessBetQueue", () => {
                 // Arrange
                 cron.gameData = {
                     ingame: { [player1.profile.name]: { betTracks: { id: 3, result: [], nextAmounts: { h: 100, l: 150 } } } },
+                    gameConfigs: {},
                 };
                 const balance = {};
                 const bet = { amount: 10 };

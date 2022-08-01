@@ -5,6 +5,7 @@ import { odds } from "../../src/__tests__/test-data";
 import { calculateWinAmounts } from "./helpers";
 import { cardRanks } from "../../src/cards";
 
+const randomMode = 1;
 function run() {
     const totalRounds = 100_000;
     const amount = 1;
@@ -27,7 +28,7 @@ function run() {
 
     for (let index = 0; index < totalRounds; index++) {
         totalBetAmount += amount;
-        let currentCard = drawCard();
+        let currentCard = drawCard(randomMode);
         let betwin = amount;
         let turnCount = 1;
 
@@ -39,12 +40,12 @@ function run() {
                     break;
                 } else {
                     turnCount++;
-                    currentCard = drawCard(currentCard);
+                    currentCard = drawCard(randomMode, currentCard);
                     continue;
                 }
             }
 
-            const resultCard = drawCard(currentCard);
+            const resultCard = drawCard(randomMode, currentCard);
             const estimatedWin = calculateWinAmounts(odds, currentCard, i + 1, betwin, resultCard);
             const choice = estimatedWin[choiceNames.h] > estimatedWin[choiceNames.l] ? choiceNames.l : choiceNames.h;
             const isLose = settleTurnConsumer.isLose(choice, currentCard, resultCard);

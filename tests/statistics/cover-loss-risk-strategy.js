@@ -4,6 +4,7 @@ import SettleTurnConsumer from "../../src/event-consumers/settle-turn-consumer";
 import { odds } from "../../src/__tests__/test-data";
 import { calculateWinAmounts } from "./helpers";
 
+const randomMode = 1;
 function run() {
     const totalRounds = 100_000;
     let totalBetAmount = 0;
@@ -17,8 +18,8 @@ function run() {
     for (let index = 0; index < totalRounds; index++) {
         const amount = coverRatio;
         totalBetAmount += amount;
-        const firstCard = drawCard();
-        const resultCard = drawCard(firstCard);
+        const firstCard = drawCard(randomMode);
+        const resultCard = drawCard(randomMode, firstCard);
         const estimatedWin = calculateWinAmounts(odds, firstCard, 1, amount, resultCard);
         const choice = estimatedWin[choiceNames.h] > estimatedWin[choiceNames.l] ? choiceNames.h : choiceNames.l;
 
