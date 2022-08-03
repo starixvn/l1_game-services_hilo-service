@@ -5,8 +5,8 @@
     "main": "./src/app.js",
     "author": "pentagon",
     "license": "ISC",
-    "type": "module",    
-    "scripts": { 
+    "type": "module",
+    "scripts": {
         "start": "node --es-module-specifier-resolution=node .",
         "dev": "nodemon --es-module-specifier-resolution=node --watch ./src ./src/app.js",
         "debug": "nodemon --es-module-specifier-resolution=node --watch ./ --inspect ./src/app.js",
@@ -27,11 +27,11 @@
     "dependencies": {
         "chance": "^1.1.7",
         "d3-array": "^3.2.0",
-        "random-js": "^2.1.0",
         "jest-date-mock": "^1.0.8",
         "lodash": "^4.17.19",
         "nodemon": "^2.0.4",
-        "sc-game-base": "3.0.6"
+        "random-js": "^2.1.0",
+        "sc-game-base": "3.0.7-beta.0"
     },
     "devDependencies": {
         "@babel/core": "7.14.3",
