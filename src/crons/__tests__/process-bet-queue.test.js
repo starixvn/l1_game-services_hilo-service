@@ -346,7 +346,7 @@ describe("ProcessBetQueue", () => {
 
                 const player = {
                     UID: player1.UID,
-                    session: { currencyName: "AUD", memberId: 2, partnerId: 3, siteId: 4 },
+                    session: { currencyName: "AUD", playerId: 2, partnerId: 3, siteId: 4 },
                     profile: { name: player1.profile.name },
                 };
                 const roundId = 1;
@@ -366,10 +366,8 @@ describe("ProcessBetQueue", () => {
                             currency: "AUD",
                             exchangeRateId: 1,
                             id: 1,
-                            memberId: 2,
                             name: player1.profile.name,
                             odds: {},
-                            partnerId: 3,
                             rate: 1,
                             result: [{ rank: "3" }],
                             settlementResult: [],

@@ -114,17 +114,15 @@ export default class SettleTurnConsumer {
             betwin: turnResult.betwin,
             choice,
 
-            memberId: runningRound.memberId,
             siteId: runningRound.siteId,
-            partnerId: runningRound.partnerId,
             currency: runningRound.currency,
             rate: runningRound.rate,
 
             order: runningRound.totalTurns + 1,
             cards: [currentCard, resultCard],
 
-            operatorId: runningRound.partnerId,
-            playerId: runningRound.memberId,
+            operatorId: runningRound.operatorId,
+            playerId: runningRound.playerId,
         };
 
         await this.betLogsRepository.create(log);

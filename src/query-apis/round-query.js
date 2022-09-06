@@ -28,7 +28,7 @@ export default class RoundQuery extends Core.QueryApis.RoundQuery {
             uid: false,
             paid: false,
             siteId: false,
-            memberId: false,
+            playerId: false,
             __v: false,
             __archive: false,
         };

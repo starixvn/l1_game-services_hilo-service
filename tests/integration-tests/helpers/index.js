@@ -2,10 +2,10 @@ import { currencyData } from "../stubs/test-data";
 
 export const initUserSession = (user) => {
     return {
-        session: `${user.memberId}-session-id`,
-        ss: `${user.memberId}-session-id`,
+        session: `${user.playerId}-session-id`,
+        ss: `${user.playerId}-session-id`,
         currency: currencyData.name,
-        username: `${user.memberId}_${user.memberName}`,
+        username: `${user.playerId}_${user.playerName}`,
         browserUserAgent: "browser-user-agent",
     };
 };

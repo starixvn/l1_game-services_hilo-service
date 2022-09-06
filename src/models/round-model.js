@@ -13,12 +13,10 @@ const schema = new mongoose.Schema({
     endTime: { type: Date },
     odds: { type: Object },
 
-    memberId: { type: Number },
     siteId: { type: String, default: "" },
 
     currency: { type: String, default: "" },
     rate: { type: Number, require: true },
-    partnerId: { type: String, default: "" },
 
     totalTurns: { type: Number, default: 0 },
     result: { type: Array },

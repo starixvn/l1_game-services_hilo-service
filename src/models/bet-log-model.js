@@ -10,12 +10,10 @@ const schema = new mongoose.Schema({
     amount: { type: Number, default: 0 },
     betwin: { type: Number, default: 0 },
     choice: { type: String },
-    memberId: { type: Number },
     siteId: { type: String },
 
     currency: { type: String, require: true },
     rate: { type: Number, require: true },
-    partnerId: { type: String, require: true },
 
     order: { type: Number, default: 0 },
     cards: { type: Array },
