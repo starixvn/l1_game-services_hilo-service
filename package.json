@@ -47,7 +47,7 @@
         "jest-junit": "^12.2.0",
         "jest-micro-auto-stub": "^1.0.9",
         "jest-sonar-reporter": "^2.0.0",
-        "sc-game-service-integration-utils": "1.3.2-beta.4"
+        "sc-game-service-integration-utils": "1.3.2"
     },
     "husky": {
         "hooks": {
