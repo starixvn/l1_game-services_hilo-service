@@ -63,12 +63,12 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
 
         const name = player.profile.name;
         if (!this.gameData.ingame[name]) {
-            const { currencyName: currency, system, partnerId } = player.session;
+            const { currencyName: currency, system, operatorId } = player.session;
             const newPlayer = {
                 name,
                 currency,
                 system,
-                partnerId,
+                operatorId,
                 betTracks: {},
                 betQueue: [],
             };

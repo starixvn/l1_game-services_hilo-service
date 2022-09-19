@@ -77,7 +77,7 @@ const rounds = [
 
         currency: "$US",
         rate: 1,
-        partnerId: "ONEworks1",
+        operatorId: "ONEworks1",
 
         betwin: 10,
         totalTurns: 1,
