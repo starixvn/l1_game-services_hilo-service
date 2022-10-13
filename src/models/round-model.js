@@ -16,7 +16,7 @@ const schema = new mongoose.Schema({
     siteId: { type: String, default: "" },
 
     currency: { type: String, default: "" },
-    rate: { type: Number, require: true },
+    rate: { type: Number, required: true },
 
     totalTurns: { type: Number, default: 0 },
     result: { type: Array },

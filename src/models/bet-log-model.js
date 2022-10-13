@@ -12,13 +12,13 @@ const schema = new mongoose.Schema({
     choice: { type: String },
     siteId: { type: String },
 
-    currency: { type: String, require: true },
-    rate: { type: Number, require: true },
+    currency: { type: String, required: true },
+    rate: { type: Number, required: true },
 
     order: { type: Number, default: 0 },
     cards: { type: Array },
 
-    operatorId: { type: String, require: true },
+    operatorId: { type: String, required: true },
     playerId: { type: Number },
 });
 
