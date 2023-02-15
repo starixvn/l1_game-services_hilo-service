@@ -46,14 +46,5 @@ export default {
         env: "LOCAL",
     },
     adminSecretKey: "asWDEerfOIdgsdqRTFabvmgh",
-    enableCorsWs: false,
-    corsUrls: [
-        "http://localhost:7456",
-        "http://10.5.10.14:7456",
-        "http://localhost:7000",
-        "http://localhost:7779",
-        "http://games.lumigame.com",
-        "http://admin.lumigame.com",
-    ],
     enableMsgpackParser: false,
 };
