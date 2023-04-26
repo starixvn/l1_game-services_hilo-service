@@ -28,7 +28,7 @@ function run() {
     };
 
     for (let index = 0; index < totalRounds; index++) {
-        const firstCard = randomMode,);
+        const firstCard = drawCard(randomMode);
         const cardsStatistic = cardsStatistics[firstCard.rank];
         const resultCard = drawCard(randomMode,firstCard);
         const choice = cardsStatistic[choiceNames.h] > cardsStatistic[choiceNames.l] ? choiceNames.l : choiceNames.h;

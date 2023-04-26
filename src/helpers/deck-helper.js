@@ -28,7 +28,7 @@ const random4 = (arr) => {
     return _.shuffle(_.shuffle(_.shuffle(arr)));
 };
 
-const randomModes = {
+export const randomModes = {
     1: [random1],
     2: [random2],
     3: [random3, random4],
