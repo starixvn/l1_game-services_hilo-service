@@ -19,7 +19,7 @@ const schema = new mongoose.Schema({
     cards: { type: Array },
 
     operatorId: { type: String, required: true },
-    playerId: { type: Number },
+    playerId: { type: String },
 });
 
 export default mongoose.model(`${gameSettings.name}_betlog`, schema);

@@ -5123,10 +5123,15 @@ moment-timezone@^0.5.x:
   dependencies:
     moment ">= 2.9.0"
 
-"moment@>= 2.9.0", moment@^2.27.0:
+"moment@>= 2.9.0":
   version "2.29.1"
   resolved "https://npm.lumigame.com/moment/-/moment-2.29.1.tgz#b2be769fa31940be9eeea6469c075e35006fa3d3"
   integrity sha512-kHmoybcPV8Sqy59DwNDY3Jefr64lK/by/da0ViFcuA4DH0vQg5Q6Ze5VimxkfQNSC+Mls/Kx53s7TjP1RhFEDQ==
+
+moment@^2.29.4:
+  version "2.30.1"
+  resolved "http://npm.lumigame.com/moment/-/moment-2.30.1.tgz#f8c91c07b7a786e30c59926df530b4eac96974ae"
+  integrity sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==
 
 mongodb@3.7.3:
   version "3.7.3"
@@ -6170,20 +6175,20 @@ sc-api-client@1.4.0:
   dependencies:
     axios "^0.19.2"
 
-sc-base-apis@1.18.0:
-  version "1.18.0"
-  resolved "https://npm.lumigame.com/sc-base-apis/-/sc-base-apis-1.18.0.tgz#70cf9bae9e5366b2b46f04bb8df1b1fe2c45b70b"
-  integrity sha512-rAbnKrJ0PkiEy5nKIdGXEv6Hzytde+VYmHqTO751g4eW2ooOQJEa0K8IKd6p975BSLYu/JlTeCWyLOHvEXASrA==
+sc-base-apis@1.18.0, sc-base-apis@1.18.3-beta.0:
+  version "1.18.3-beta.0"
+  resolved "http://npm.lumigame.com/sc-base-apis/-/sc-base-apis-1.18.3-beta.0.tgz#861103e661f13162befea20a2df6719342d2095d"
+  integrity sha512-01cDmlZQeostnNaS22Y2qjykf/djoIqfxdHVtXotje/26+frEe9UeubA27+C3nc11/VBT0sikMiMuVaTMl7IJQ==
   dependencies:
-    moment "^2.27.0"
+    moment "^2.29.4"
     sc-api-client "1.4.0"
-    sc-base-database "1.10.1"
+    sc-base-database "1.11.1"
     sc-common "1.8.1"
 
-sc-base-database@1.10.1:
-  version "1.10.1"
-  resolved "http://npm.lumigame.com/sc-base-database/-/sc-base-database-1.10.1.tgz#ffa166dafa4ec9220fb42990b973bc80489de232"
-  integrity sha512-VQh7D72S3JcpDlZKU0QL40EVEionhnjXWTOP5pCr/NYPX4vMY7W+5U10p5Lr0KkeNtOM1hCN/IYtxzhlQOtrpg==
+sc-base-database@1.10.1, sc-base-database@1.11.1:
+  version "1.11.1"
+  resolved "http://npm.lumigame.com/sc-base-database/-/sc-base-database-1.11.1.tgz#25d850e83b4e07f7e6e26f3d2d1eecc11145c2cf"
+  integrity sha512-DxuFRNDDSHQglSGFsXnrcDXVs+BRxSiILBNRbJ5RistCcSbs+k7QiwYMGhCSv3FOz9J/On9jh2y3MNst/he2BA==
   dependencies:
     mongoose "^5.9.25"
     sc-common "1.8.1"

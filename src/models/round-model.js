@@ -24,7 +24,7 @@ const schema = new mongoose.Schema({
     exchangeRateId: { type: Number, required: true },
 
     operatorId: { type: String, default: "" },
-    playerId: { type: Number },
+    playerId: { type: String },
 });
 
 export default mongoose.model(`${gameSettings.name}_round`, schema);

@@ -158,7 +158,7 @@ describe("SettleTurnConsumer", () => {
                 betwin: 1,
                 result: [{ rank: "4", suit: 0 }],
 
-                playerId: 1,
+                playerId: "1",
                 siteId: 2,
                 operatorId: 3,
                 currency: "AUD",
@@ -186,7 +186,7 @@ describe("SettleTurnConsumer", () => {
                     { rank: "5", suit: 0 },
                 ],
                 operatorId: 3,
-                playerId: 1,
+                playerId: "1",
             };
 
             // Act

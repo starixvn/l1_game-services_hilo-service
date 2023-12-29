@@ -346,7 +346,7 @@ describe("ProcessBetQueue", () => {
 
                 const player = {
                     UID: player1.UID,
-                    session: { currencyName: "AUD", playerId: 2, operatorId: 3, siteId: 4 },
+                    session: { currencyName: "AUD", playerId: "2", operatorId: 3, siteId: 4 },
                     profile: { name: player1.profile.name },
                 };
                 const roundId = 1;
@@ -378,7 +378,7 @@ describe("ProcessBetQueue", () => {
                             turnTime: mockDate,
                             uid: player1.UID,
                             operatorId: 3,
-                            playerId: 2,
+                            playerId: "2",
                         },
                     },
                     { setDefaultsOnInsert: true, upsert: true }
