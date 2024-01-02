@@ -1,7 +1,7 @@
 import { Core } from "sc-game-base";
 import { initAPIStub, stubUserService } from "sc-game-service-integration-utils";
 
-import appConfigs from "../../../src/app-configs";
+import appConfigs from "../../../src/app-configs.IGT";
 import gameSettings from "../../../src/game-settings";
 import ServiceContainerRegistry from "../../../src/service-container-registry";
 
